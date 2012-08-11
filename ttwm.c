@@ -364,7 +364,7 @@ void updatestatus() {
 		status.cpu = (n > 100 ? 100 : n) / 2;
 	}
 	if ( (in=fopen(AUD_FILE,"r")) ) {	/* AUDIO VOLUME MONITOR */
-		n = fscanf(in,"%d",&n);
+		ln1 = fscanf(in,"%d",&n);
 		fclose(in);
 		if (n == -1) status.vol_col = BarsAlarm;
 		else if (n == 100) status.vol_col = BarsFull;
