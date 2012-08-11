@@ -1,7 +1,7 @@
 # Maintainer: Jesse McClure AKA "Trilby" <jmcclure [at] cns [dot] umass [dot] edu>
 pkgname=ttwm-git
 pkgver=20120811
-pkgrel=1
+pkgrel=2
 pkgdesc="Tiny Tiler/Tabbed Tiler Window Manager"
 url="http://github.com/TrilbyWhite/ttwm.git"
 arch=('any')
