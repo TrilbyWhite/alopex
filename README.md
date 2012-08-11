@@ -1,3 +1,5 @@
+**NOTE** I just pushed an update to add a bottom stacking mode and an option to adjust master-stack sizes.  I'm not up for incorporating any documentation below just yet - but have a look at the new default config.h.
+
 # TTWM: Tiny Tiler WM / Tabbed Tiler WM #
 #### - Tiny and Tabbed! ####
 
