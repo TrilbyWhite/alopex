@@ -56,10 +56,11 @@ The fullscreen command works similarly.  When given the fullscreen command, the 
 Be sure to change USERNAME in config.h to your username and chose a font in the font string.  Currently TTWM does not have much error checking, if the font in the font string can't be found do not expect ttwm to function.
 
 Launch ttwm from ~/.xinitrc as 
-	xsetroot -solid "#040408" -cursor_name left_ptr
-	exec ttwm
-	# or exec dbus-launch --exit-with-session dwm
-
+``` bash
+xsetroot -solid "#040408" -cursor_name left_ptr
+exec ttwm
+#or exec dbus-launch --exit-with-session dwm
+```
 ## Development directions ##
 
 1. Implement move-client-to-workspace function.  Squash the known bug from windows closing in workspaces other than the currently focused workspace.  I've only experienced this when I close virtualbox or gimp and immediately switch workspaces while they are still shutting down.  Of course this is still an anunacceptable bug, but it should not get in the way of trying out ttwm as a "prototype".  These fixes can be expected in the next few days.
