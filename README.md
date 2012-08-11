@@ -28,9 +28,9 @@ Working on papers or publications I'll have one window open editting the LaTeX d
 TinyTiler has a built in status bar.  Below are two images with the default settings.
 
 Left side of bar:
-![bar1.png](https://raw.github.com/TilbyWhite/ttwm/master/bar1.png)
+![bar1.png](./ttwm/master/bar1.png)
 Right side of bar:
-![bar2.png](https://raw.github.com/TilbyWhite/ttwm/master/bar2.png)
+![bar2.png](./master/bar2.png)
 
 Starting from the left you'll see a clock.  Next are some vertical rectangles - these are your workspace indicators.  An empty workspace is shorter and light grey.  An occupied workspace is full height and blue, and the focused workspace is full height and yellow.  Note that all colors are customizable in the config.h file.
 
