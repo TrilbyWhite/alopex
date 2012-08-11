@@ -353,7 +353,7 @@ void updatestatus() {
 	static int n;
 	static char c;
 	if ( (in=fopen(CPU_FILE,"r")) ) {	/* CPU MONITOR */
-		fscanf(in,"cpu %ld %ld %ld %ld",&ln1,&ln2,&ln3,&ln4);
+		n = fscanf(in,"cpu %ld %ld %ld %ld",&ln1,&ln2,&ln3,&ln4);
 		fclose(in);
 		if (ln4>j4) n=(int)100*(ln1-j1+ln2-j2+ln3-j3)/(ln1-j1+ln2-j2+ln3-j3+ln4-j4);
 		else n=0;
@@ -364,7 +364,7 @@ void updatestatus() {
 		status.cpu = (n > 100 ? 100 : n) / 2;
 	}
 	if ( (in=fopen(AUD_FILE,"r")) ) {	/* AUDIO VOLUME MONITOR */
-		fscanf(in,"%d",&n);
+		n = fscanf(in,"%d",&n);
 		fclose(in);
 		if (n == -1) status.vol_col = BarsAlarm;
 		else if (n == 100) status.vol_col = BarsFull;
@@ -373,9 +373,9 @@ void updatestatus() {
 		if (n > -1) status.vol = n / 2;
 	}
 	if ( (in=fopen(BATT_NOW,"r")) ) {	/* BATTERY MONITOR */
-		fscanf(in,"%ld\n",&ln1); fclose(in);
-		if ( (in=fopen(BATT_FULL,"r")) ) { fscanf(in,"%ld\n",&ln2); fclose(in); }
-		if ( (in=fopen(BATT_STAT,"r")) ) { fscanf(in,"%c",&c); fclose(in); }
+		n = fscanf(in,"%ld\n",&ln1); fclose(in);
+		if ( (in=fopen(BATT_FULL,"r")) ) { n = fscanf(in,"%ld\n",&ln2); fclose(in); }
+		if ( (in=fopen(BATT_STAT,"r")) ) { n = fscanf(in,"%c",&c); fclose(in); }
 		n = (ln1 ? ln1 * 100 / ln2 : 0);
 		if (c == 'C') status.bat_col = BarsCharge;
 		else if (n < 10) status.bat_col = BarsAlarm;

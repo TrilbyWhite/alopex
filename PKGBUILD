@@ -1,16 +1,15 @@
 # Maintainer: Jesse McClure AKA "Trilby" <jmcclure [at] cns [dot] umass [dot] edu>
 pkgname=ttwm-git
-pkgver=20120812
+pkgver=20120811
 pkgrel=1
 pkgdesc="Tiny Tiler/Tabbed Tiler Window Manager"
 url="http://github.com/TrilbyWhite/ttwm.git"
 arch=('any')
 license=('GPLv3')
-depends=('libX11')
+depends=('libx11')
 makedepends=('git')
-#  not sure if this will work yet ... standby
-#_gitroot="git://github.com/TrilbyWhite/ttwm.git/"
-#_gitname="ttwm/src"
+_gitroot="git://github.com/TrilbyWhite/ttwm.git"
+_gitname="ttwm"
 
 build() {
     cd "$srcdir"
