@@ -8,7 +8,7 @@ static const char font[] = "-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*";
 #define WORKSPACES	5
 
 #define CPU_FILE	"/proc/stat"
-#define AUD_FILE	"/home/USERNAME/.audio_volume"
+#define AUD_FILE	"/home/jmcclure/.audio_volume"
 #define BATT_NOW	"/sys/class/power_supply/BAT1/charge_now"
 #define BATT_FULL	"/sys/class/power_supply/BAT1/charge_full"
 #define BATT_STAT	"/sys/class/power_supply/BAT1/status"
@@ -31,6 +31,13 @@ static const char colors[NUMCOLORS][9] = {
 	[StackAct]		=	"#4466FF",
 	[StackSel]		=	"#FFDD0E",
 };
+
+/* minimum percentage of screen that a window can take */
+/*  and granularity in adjustment of master window size */
+#define FACT_MIN	0.2
+#define FACT_ADJUST	0.02
+static uint8_t bstack	= False;	/* start with bottom stack? */
+static float fact		= 0.50;		/* portion of screen for master window */
 
 #define DMENU		"dmenu_run -fn \"-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
 #define TERM		"urxvtc"
@@ -62,6 +69,13 @@ static Key keys[] = {
 	{ MODKEY,			XK_Right,	focus,		"right"			},
 	{ MODKEY|ShiftMask,	XK_Left,	move,		"left"			},
 	{ MODKEY|ShiftMask,	XK_Right,	move,		"right"			},
+	/* increase or decrease master size.  */
+	/* set bottom stack, right stack, or toggle between the two */
+	{ MODKEY,			XK_i,		stackmode,	"increase"		},
+	{ MODKEY,			XK_d,		stackmode,	"decrease"		},
+	{ MODKEY,			XK_b,		stackmode,	"bottom"		},
+	{ MODKEY,			XK_r,		stackmode,	"right"			},
+	{ MODKEY,			XK_t,		stackmode,	"toggle"		},
 	/* change workspaces: */
 	{ MODKEY,			XK_1,		workspace,	"1"	},
 	{ MODKEY,			XK_2,		workspace,	"2"	},

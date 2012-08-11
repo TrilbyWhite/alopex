@@ -42,6 +42,7 @@ static void putclient(const char *);
 static void spawn(const char *);
 static void swap(const char *);
 static void stack();
+static void stackmode(const char *);
 static void updatestatus();
 static void *wintoclient(Window);
 static void workspace(const char *);
@@ -238,7 +239,7 @@ void drawbar() {
 		XDrawString(dpy,bar,gc[ (c==focused ? TitleSel : TitleNorm)],
 			i,FONTHEIGHT,c->title,(c->tlen > 62 ? 62 : c->tlen));
 	/* STACK TABS */
-	i = sw/2;
+	i = sw*fact;
 	if (clients[wksp]) for ( c=clients[wksp]->next; c; c=c->next ) {
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
 			(c==top[wksp]?StackAct:StackNorm) ) ],i,3,35,8);
@@ -340,12 +341,30 @@ void stack() {
 		XSetInputFocus(dpy,c->win,RevertToPointerRoot,CurrentTime);
 		return;
 	}
-	else XMoveResizeWindow(dpy,c->win,0,BARHEIGHT,sw/2,sh);
+	else XMoveResizeWindow(dpy,c->win,0,BARHEIGHT,
+			(bstack ? sw		: sw*fact),
+			(bstack ? sh*fact	: sh));
 	for (c=c->next; c; c=c->next)
-		XMoveResizeWindow(dpy,c->win,sw/2,BARHEIGHT,sw/2,sh);
+		XMoveResizeWindow(dpy,c->win,
+			(bstack ? 0 				: sw*fact),
+			(bstack ? BARHEIGHT+sh*fact	: BARHEIGHT),
+			(bstack ? sw 				: sw*(1-fact)),
+			(bstack ? sh*(1-fact)		: sh));
 //	if (top[wksp]) XRaiseWindow(dpy, top[wksp]->win);
 	if (focused) XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 	drawbar();
+}
+
+void stackmode(const char *arg) {
+	if (arg[0] == 'i') fact += FACT_ADJUST;
+	else if (arg[0] == 'd') fact -= FACT_ADJUST;
+	else if (arg[0] == 'b') bstack = 1;
+	else if (arg[0] == 'r') bstack = 0;
+	else if (arg[0] == 't') bstack = 1-bstack;
+	else return;
+	if (fact < FACT_MIN) fact = FACT_MIN;
+	else if (fact > 100 - FACT_MIN) fact = FACT_MIN;
+	stack();
 }
 
 void updatestatus() {
@@ -353,7 +372,7 @@ void updatestatus() {
 	static int n;
 	static char c;
 	if ( (in=fopen(CPU_FILE,"r")) ) {	/* CPU MONITOR */
-		n = fscanf(in,"cpu %ld %ld %ld %ld",&ln1,&ln2,&ln3,&ln4);
+		fscanf(in,"cpu %ld %ld %ld %ld",&ln1,&ln2,&ln3,&ln4);
 		fclose(in);
 		if (ln4>j4) n=(int)100*(ln1-j1+ln2-j2+ln3-j3)/(ln1-j1+ln2-j2+ln3-j3+ln4-j4);
 		else n=0;
@@ -364,7 +383,7 @@ void updatestatus() {
 		status.cpu = (n > 100 ? 100 : n) / 2;
 	}
 	if ( (in=fopen(AUD_FILE,"r")) ) {	/* AUDIO VOLUME MONITOR */
-		ln1 = fscanf(in,"%d",&n);
+		fscanf(in,"%d",&n);
 		fclose(in);
 		if (n == -1) status.vol_col = BarsAlarm;
 		else if (n == 100) status.vol_col = BarsFull;
@@ -373,9 +392,9 @@ void updatestatus() {
 		if (n > -1) status.vol = n / 2;
 	}
 	if ( (in=fopen(BATT_NOW,"r")) ) {	/* BATTERY MONITOR */
-		n = fscanf(in,"%ld\n",&ln1); fclose(in);
-		if ( (in=fopen(BATT_FULL,"r")) ) { n = fscanf(in,"%ld\n",&ln2); fclose(in); }
-		if ( (in=fopen(BATT_STAT,"r")) ) { n = fscanf(in,"%c",&c); fclose(in); }
+		fscanf(in,"%ld\n",&ln1); fclose(in);
+		if ( (in=fopen(BATT_FULL,"r")) ) { fscanf(in,"%ld\n",&ln2); fclose(in); }
+		if ( (in=fopen(BATT_STAT,"r")) ) { fscanf(in,"%c",&c); fclose(in); }
 		n = (ln1 ? ln1 * 100 / ln2 : 0);
 		if (c == 'C') status.bat_col = BarsCharge;
 		else if (n < 10) status.bat_col = BarsAlarm;
