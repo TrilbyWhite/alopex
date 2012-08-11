@@ -51,7 +51,16 @@ TinyTiler does not, and will not have layouts, modes, nor window rules.  If this
 
 The fullscreen command works similarly.  When given the fullscreen command, the active window will be expanded to fit the screen and cover the status bar.  Here it is perfectly reasonable for this to be a transient state: as soon as you have reason to switch workspaces or switch focus to another window, you no longer need the current window in fullscreen.  It is similarly restacked as normal.  "Toggling" fullscreen in fact only either fits a window to the screen, or just calls the stack window function.
 
-## Development Directions ##
+## Recommended usage ##
+
+Be sure to change USERNAME in config.h to your username and chose a font in the font string.  Currently TTWM does not have much error checking, if the font in the font string can't be found do not expect ttwm to function.
+
+Launch ttwm from ~/.xinitrc as 
+	xsetroot -solid "#040408" -cursor_name left_ptr
+	exec ttwm
+	# or exec dbus-launch --exit-with-session dwm
+
+## Development directions ##
 
 1. Implement move-client-to-workspace function.  Squash the known bug from windows closing in workspaces other than the currently focused workspace.  I've only experienced this when I close virtualbox or gimp and immediately switch workspaces while they are still shutting down.  Of course this is still an anunacceptable bug, but it should not get in the way of trying out ttwm as a "prototype".  These fixes can be expected in the next few days.
 
