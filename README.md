@@ -59,7 +59,7 @@ Launch ttwm from ~/.xinitrc as
 ``` bash
 xsetroot -solid "#040408" -cursor_name left_ptr
 exec ttwm
-#or exec dbus-launch --exit-with-session dwm
+#or exec dbus-launch --exit-with-session ttwm
 ```
 ## Development directions ##
 
