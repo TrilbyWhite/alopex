@@ -309,8 +309,24 @@ void move(const char *arg) {
 
 static void putclient(const char *arg) {
 	if (!focused) return;
-	//int i = arg[0] - 49;
-	// move focused to workspace i
+	int i = arg[0] - 49;
+	if (i == wksp || i < 0 || i > WORKSPACES - 1) return;
+	Client *t, *c = focused;
+	focused=(focused->next ? focused->next : clients[wksp]);
+	if (top[wksp] == c) top[wksp]=(c->next ? c->next : 
+			(clients[wksp]->next == c ? NULL : clients[wksp]->next));
+	if (clients[wksp] == c) clients[wksp] = c->next;
+	else {
+		for (t = clients[wksp]; t->next != c; t = t->next);
+		t->next = c->next;
+	}
+	if (top[wksp] && top[wksp] == clients[wksp])
+		top[wksp]=top[wksp]->next;
+	c->next = clients[i];
+	top[i] = clients[i];
+	clients[i] = c;
+	XMoveWindow(dpy,c->win,sw,BARHEIGHT);
+	stack();
 }
 
 void spawn(const char *arg) { system(arg); }

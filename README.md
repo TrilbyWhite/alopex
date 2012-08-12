@@ -1,17 +1,17 @@
-**NOTE** I just pushed an update to add a bottom stacking mode and an option to adjust master-stack sizes.  I'm not up for incorporating any documentation below just yet - but have a look at the new default config.h.
-
 # TTWM: Tiny Tiler WM / Tabbed Tiler WM #
 #### - Tiny and Tabbed! ####
 
-**TTWM** is a minimal tiling window manager combining concepts or elements from TinyWM, DWM, and i3wm.  Inspiration has also been drawn from other great tilers like MonsertWM.  TinyTiler is currently under 500 lines of code.  In contrast to other tilers, TinyTiler does *not* have layouts, it does *not* have modes, and it does *not* have window rules.  These choices were by design.  TinyTiler instead gives you two screen sections, the "master" on the left half of the screen, and the "stack" on the right half.  In TinyWM only one stack window is visibile at a time, the others have tabs in the statusbar.
+**TTWM** is a minimal tiling window manager combining concepts or elements from TinyWM, DWM, and i3wm.  Inspiration has also been drawn from other great tilers like MonsertWM.  TinyTiler is currently under 500 lines of code.  In contrast to other tilers, TinyTiler ~does *not* have layouts~, it does *not* have modes, and it does *not* have window rules.  These choices were by design.  TinyTiler instead gives you two screen sections, the "master" on the left half of the screen, and the "stack" on the right half.  In TinyWM only one stack window is visibile at a time, the others have tabs in the statusbar.
+
+* TinyTiler now has right stack and bottom stack layouts.
 
 ## History and motivation ##
 
 I had been happily using dwm for some time when I tried out i3.  I loved i3's tabbed mode in a container.  I would always have one window open on the left half of my screen, then have several others in a tabbed container on the right.  I loved that I could shift windows in and out of the container into the "master" region and that I could scroll focus through the tabbed windows and the window in the other container with a single binding of Mod+direction.
 
-I faced three challenges with i3 though.  First and foremost I couldn't get a decent customization for my netbook.  These problems are outside the scope of this readme, but in the end I wasn't pleased with it on my netbook which is my main use computer.  Because of this I was using i3 on my desktop and dwm on my netbook, but I began forcing dwm into an i3-like form by opening two terminals side by side.  In the one on the right I would use urxvt tabs or tmux.  This produced a similar effect as an i3 tabbed container, but had two drawbacks: There was no way to move windows in and out of this "container" or swap them with the other window, and I had to switch between two sets of keybindings, one for tmux, one for dwm.
+I faced three challenges with i3 though.  First and foremost I couldn't get a decent customization for my netbook.  These problems are outside the scope of this readme, but in the end I wasn't pleased with it on my netbook which is my main use computer.  Because of this I was using i3 on my desktop and dwm on my netbook, but I began forcing dwm into an i3-like form by opening two terminals side by side.  In the one on the right I would use urxvt tabs or tmux.  This produced a similar effect as an i3 tabbed container, but had three drawbacks: There was no way to move windows in and out of this "container" or swap them with the other window; I had to switch between two sets of keybindings, one for tmux, one for dwm; and my "tabbed container" could only have terminal windows.
 
-My second concern with i3 was that while I do like having a status bar for a few little bits of info most of the bar space was empty or wasted; meanwhile an i3 tabbed container used yet another line for all the tabbed window names.  Additionally, i3, while reasonably streamlined, is much larger than dwm.  I didn't feel like I could dive into the source code and get comfortable enough to make changes confidently.
+My second concern with i3 was that while I do like having a status bar for a few little bits of info (see status bar discussion below) most of the bar space was empty or wasted; meanwhile an i3 tabbed container used yet another line for all the tabbed window names.  Additionally, i3, while reasonably streamlined, is much larger than dwm.  I didn't feel like I could dive into the source code and get comfortable enough to make changes confidently.
 
 These concerns and desires drove me to try my hand at making my own window manager.  Initially I planned to base it on dwm and only make a few changes.  But as I proceeded I found myself bogged down in functions and data structures that were no longer relevant.  I was spending more time pruning and deleting that creating anything new.  I scrapped this approach and instead started with TinyWM as a base.  If you know what you are looking for you will find nearly all of TinyWM's code still in tact at the heart of TinyTiler ... (all ~42 lines of it!  TinyTiler, however, is a very different creature.  Several bits of code were still borrowed from dwm.
 
@@ -35,15 +35,15 @@ Right side of bar:
 
 Starting from the left you'll see a clock.  Next are some vertical rectangles - these are your workspace indicators.  An empty workspace is shorter and light grey.  An occupied workspace is full height and blue, and the focused workspace is full height and yellow.  Note that all colors are customizable in the config.h file.
 
-To the right of the workspace indicators are three system monitor bars.  The top is for CPU use (near zero in this image).  The middle is the audio volume setting.  On the bottom is the battery status.  These all indicate a percent and have customizable colors for warning (high cpu, low battery), alert (very high cpu, very low battery), full status for volume and battery, and charging status for the battery.
+To the right of the workspace indicators are three system monitor bars.  While it can be fun to have a variety of system monitors, the only ones I've ever had any practical use for are CPU use, audio volume, and battery status; so these are the three that TTWM monitors.  The top bar is for CPU use (near zero in this image).  The middle is the audio volume setting.  On the bottom is the battery status.  These all indicate a percent and have customizable colors for warning (high cpu, low battery), alert (very high cpu, very low battery), full status for volume and battery, and charging status for the battery.
 
-To the right of the status bars is the title of the window currently in the left panel.  This has two colors, one for when this is the focused window, another for when it is unfocused.
+To the right of the status bars is the title of the window currently in the master (default: left) panel.  This has two colors, one for when this is the focused window, another for when it is unfocused.
 
-The right half of the status bar begins with a row of "tabs".  There is a tab for each window in the "stack" region.  There is a blue indicator for the window that is currently on the top of the stack, and a yellow indicator if that is the currently focued window.  To the right of the tabs is the title of the window on the top of the stack also colored to indicate focus.  **note:** see below for the future development of these "tabs".
+The right half of the status bar begins with a row of "tabs".  There is a tab for each window in the "stack" (default: right) region.  There is a blue indicator for the window that is currently on the top of the stack, and a yellow indicator if that is the currently focued window.  To the right of the tabs is the title of the window on the top of the stack also colored to indicate focus.  **note:** see below for the future development of these "tabs".
 
 ### The volume script ###
 
-**Under construction** check back later, or just have a look at the script, it may be self explanatory.  Just note that ttwm's statusbar function looks for the ".audio_volume" file in the location specified in config.h.
+**Under construction** check back later, or just have a look at the script, it may be self explanatory.  Just note that ttwm's statusbar function looks for the ".audio\_volume" file in the location specified in config.h.
 
 ## What about floating and fullscreen modes? ##
 
@@ -65,8 +65,9 @@ exec ttwm
 ```
 ## Development directions ##
 
-1. Implement move-client-to-workspace function.  ~~Squash the known bug from windows closing in workspaces other than the currently focused workspace.~~
+1. ~~Implement move-client-to-workspace function.~~  ~~Squash the known bug from windows closing in workspaces other than the currently focused workspace.~~
 	* Fixed: clients closing on non-focused workspace works.
+	* Implemented move to workspace function.
 1. Streamline code, remove some old kludges, and improve stability by addressing bug reports.  This will be my main focus over the coming months.
 
 1. Consider what to do with "tabs".  Initially the colored blocks that serve as tabs know were intended as a placeholder while I worked on all the window management aspects.  I planned on going back to them to make them more tab-like (think i3wm's tabbed containers) with each window name being displayed in a tab that chagned size depending on the number of tabs present.  That was the plan, and it would be reasonably easy to implement ... but I really like how these "placeholders" look.  They may just make it to the finished product.  **I'd like community feedback on this decision**, if you start using ttwm, let me know if you like these block-tags, or if you want title-bar style tags and I'll consider maintaining one branch with each.  This branch will not happen, however, until the current code has been cleaned up and proven stable.
