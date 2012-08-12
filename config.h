@@ -40,7 +40,7 @@ static uint8_t bstack	= False;	/* start with bottom stack? */
 static float fact		= 0.50;		/* portion of screen for master window */
 
 #define DMENU		"dmenu_run -fn \"-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
-#define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc
+#define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc */
 #define CMD(app)	app "&"
 
 /* key definitions */
