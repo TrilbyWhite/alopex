@@ -65,8 +65,8 @@ exec ttwm
 ```
 ## Development directions ##
 
-1. Implement move-client-to-workspace function.  Squash the known bug from windows closing in workspaces other than the currently focused workspace.  I've only experienced this when I close virtualbox or gimp and immediately switch workspaces while they are still shutting down.  Of course this is still an anunacceptable bug, but it should not get in the way of trying out ttwm as a "prototype".  These fixes can be expected in the next few days.
-
+1. Implement move-client-to-workspace function.  ~~Squash the known bug from windows closing in workspaces other than the currently focused workspace.~~
+	* Fixed: clients closing on non-focused workspace works.
 1. Streamline code, remove some old kludges, and improve stability by addressing bug reports.  This will be my main focus over the coming months.
 
 1. Consider what to do with "tabs".  Initially the colored blocks that serve as tabs know were intended as a placeholder while I worked on all the window management aspects.  I planned on going back to them to make them more tab-like (think i3wm's tabbed containers) with each window name being displayed in a tab that chagned size depending on the number of tabs present.  That was the plan, and it would be reasonably easy to implement ... but I really like how these "placeholders" look.  They may just make it to the finished product.  **I'd like community feedback on this decision**, if you start using ttwm, let me know if you like these block-tags, or if you want title-bar style tags and I'll consider maintaining one branch with each.  This branch will not happen, however, until the current code has been cleaned up and proven stable.

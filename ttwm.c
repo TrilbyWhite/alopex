@@ -90,6 +90,7 @@ struct {
 } status;
 static long j1,j2,j3,j4;
 static FILE *in;
+static uint8_t onwksp;
 enum {Background, Clock, SpacesNorm, SpacesActive, SpacesSel, SpacesUrg,
 		BarsNorm, BarsFull, BarsCharge, BarsWarn, BarsAlarm,
 		TitleNorm, TitleSel, StackNorm, StackAct, StackSel };
@@ -151,7 +152,7 @@ void maprequest(XEvent *ev) {
 	if(!XGetWindowAttributes(dpy, e->window, &wa)) return;
 	if(wa.override_redirect) return;
 	if(!wintoclient(e->window)) {
-		if (!(c=calloc(1,sizeof(Client)))) exit(1);
+		if (!(c=calloc(1,sizeof(Client))))exit(1);
 		c->win = e->window;
 		c->next = clients[wksp];
 		top[wksp] = clients[wksp];
@@ -162,6 +163,8 @@ void maprequest(XEvent *ev) {
 		focused = c;
 		stack();
 	}
+fprintf(stderr,"end maprequest\n");
+fflush(stderr);
 }
 
 void motionnotify(XEvent *ev) {
@@ -194,17 +197,18 @@ void unmapnotify(XEvent *ev) {
 	Client *c, *t;
 	XUnmapEvent *e = &ev->xunmap;
 	if(!(c = wintoclient(e->window))) return;
-	if(e->send_event); // set invisible...
+	if(e->send_event); // ignore send_events for now.
 	else {
 		if (focused == c) focused=(focused->next ? focused->next : clients[wksp]);
-		if (top[wksp] == c) top[wksp]=(c->next ? c->next : 
-				(clients[wksp]->next == c ? NULL : clients[wksp]->next));
-		if (clients[wksp] == c) clients[wksp] = c->next;
+		if (top[onwksp] == c) top[onwksp]=(c->next ? c->next : 
+				(clients[onwksp]->next == c ? NULL : clients[onwksp]->next));
+		if (clients[onwksp] == c) clients[onwksp] = c->next;
 		else {
-			for (t = clients[wksp]; t->next != c; t = t->next);
+			for (t = clients[onwksp]; t->next != c; t = t->next);
 			t->next = c->next;
 		}
-		if (top[wksp] && top[wksp] == clients[wksp]) top[wksp]=top[wksp]->next;
+		if (top[onwksp] && top[onwksp] == clients[onwksp])
+			top[onwksp]=top[onwksp]->next;
 		XFree(c->title);
 		free(c);
 	}
@@ -409,10 +413,14 @@ void updatestatus() {
 
 
 void *wintoclient(Window w) {
-/* currently only checks current workspace */
-	Client *c = NULL;
-	for (c = clients[wksp]; c && c->win != w; c = c->next);
-	return c;
+	Client *c;
+	int i;
+	for (i = 0; i < WORKSPACES; i++) {
+		onwksp = i;
+		for (c = clients[i]; c && c->win != w; c = c->next);
+		if (c) return c;
+	}
+	return NULL;
 }
 
 void workspace(const char *arg) {
