@@ -1,11 +1,54 @@
-<html>
+<?xml version="1.0" encoding="UTF-8"?>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<style type="text/css">
+html, body, div {
+	padding: 0px;
+	margin: 0px;
+}
+#menu1 {
+	float: left;
+	width: 240px;
+	border: 2px solid #679;
+	padding:10px;
+	background-color: #ccc;
+	margin-right: 20px;
+	margin-bottom: 20px;
+}
+#menu2 {
+	padding: 5px;
+}
+#main {
+	max-width: 800px;
+	padding-top: 20px;
+	margin-left: auto;
+	margin-right: auto;
+}
+h1, h2, h3 {
+	color: #001834;
+}
+</style>
+</head>
+
+
 
 <body>
+<div id="menu1">
+<img src="./ttwm.png" style="width: 100%;"/>
+<div id="menu2">
 
+by: <a href="mailto:jmcclure@cns.umass.edu">Jesse McClure</a><br/>
 
-<div id="main" style="width: 800px; margin-left: auto; margin-right: auto">
+<p style="color: #d00">Under construction</p>
+<p>links to source code, installation instructions, and a navigation menu will be here</p>
+</div>
+</div>
+
+<div id="main">
 <h1>TTWM: Tiny Tiler WM / Tabbed Tiler WM</h1>
-<h3>- Tiny and Tabbed!</h3>
+<h3><i>Tiny and Tabbed!</i></h3>
 
 <p>
 <b>TTWM</b> is a minimal tiling window manager combining concepts or elements from TinyWM, DWM, and i3wm.  Inspiration has also been drawn from other great tilers like MonsertWM.  TinyTiler is currently under 500 lines of code.  In contrast to other tilers, TinyTiler does <i>not</i> have modes nor does have window rules.  TinyTiler has only two layouts: right stack and bottom stack.  These choices were by design.  TinyTiler instead provides two screen sections, the <i>master</i> and the <i>stack</i>.  In TinyTiler only one stack window is visibile at a time, the others have tabs in the statusbar.
@@ -73,7 +116,7 @@ Be sure to change USERNAME in config.h to your username and chose a font in the 
 </p><p>
 Launch ttwm from ~/.xinitrc:<br/>
 <p style="margin-left: 20px; border: 1px solid #004; padding: 8px">
-<code style="color: #004">
+<code style="color: #043">
 &nbsp;xsetroot -solid "#040408" -cursor_name left_ptr<br/>
 &nbsp;exec ttwm<br/>
 &nbsp;#or exec dbus-launch --exit-with-session ttwm
