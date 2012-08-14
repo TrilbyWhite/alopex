@@ -453,6 +453,11 @@ void workspace(const char *arg) {
 
 void quit(const char *arg) { running = False; };
 
+int xerror(Display *d, XErrorEvent *ev) {
+	fprintf(stderr,"ttwm error: request=%d; error=%d\n",ev->request_code,ev->error_code);
+	return 0;
+}
+
 /************************* [3] MAIN & MAIN LOOP ****************************/
 int main() {
 	if(!(dpy = XOpenDisplay(0x0))) return 1;
@@ -460,6 +465,7 @@ int main() {
 	root = RootWindow(dpy,screen);
 	sw = DisplayWidth(dpy,screen);
 	sh = DisplayHeight(dpy,screen) - BARHEIGHT;
+	XSetErrorHandler(xerror);
 
 	/* CONFIGURE GRAPHIC CONTEXTS */
 	bar = XCreatePixmap(dpy,root,sw,BARHEIGHT,DefaultDepth(dpy,screen));
