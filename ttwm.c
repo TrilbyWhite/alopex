@@ -164,8 +164,6 @@ void maprequest(XEvent *ev) {
 		if (focused->next) top[wksp] = focused->next;
 		stack();
 	}
-fprintf(stderr,"end maprequest\n");
-fflush(stderr);
 }
 
 void motionnotify(XEvent *ev) {
