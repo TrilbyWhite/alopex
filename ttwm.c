@@ -161,6 +161,7 @@ void maprequest(XEvent *ev) {
 		clients[wksp] = c;
 		XMapWindow(dpy,c->win);
 		focused = c;
+		if (focused->next) top[wksp] = focused->next;
 		stack();
 	}
 fprintf(stderr,"end maprequest\n");
@@ -370,7 +371,7 @@ void stack() {
 			(bstack ? BARHEIGHT+sh*fact	: BARHEIGHT),
 			(bstack ? sw 				: sw*(1-fact)),
 			(bstack ? sh*(1-fact)		: sh));
-//	if (top[wksp]) XRaiseWindow(dpy, top[wksp]->win);
+	if (top[wksp]) XRaiseWindow(dpy, top[wksp]->win);
 	if (focused) XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 	drawbar();
 }
