@@ -11,14 +11,14 @@ html, body, div {
 #menu1 {
 	float: left;
 	width: 240px;
-	border: 2px solid #679;
 	padding:10px;
-	background-color: #ccc;
 	margin-right: 20px;
 	margin-bottom: 20px;
+	padding-bottom: 0px;
 }
 #menu2 {
 	padding: 5px;
+	padding-bottom: 0px;
 }
 #main {
 	max-width: 800px;
@@ -28,6 +28,36 @@ html, body, div {
 }
 h1, h2, h3 {
 	color: #001834;
+}
+#menu2 ul { 
+	padding: 0px;
+	margin-bottom: 5px;
+	margin-left: -10px;
+	margin-right: -10px;
+	border: 1px solid #679;
+	list-style: none;
+	text-align: center;
+	background-color: #89b;
+}
+#menu2 ul li { 
+	padding: 0px;
+	line-height: 30px;
+}
+#menu2 ul li a {
+	text-decoration: none;
+	font-weight: bold;
+	color: #001834;
+	display: block;
+	width: 100%;
+	height: 30px;
+
+}
+#menu2 ul a:hover {
+	color: #ffdd0e;
+	background-color: #679;
+}
+:focus {
+	outline: 0px;
 }
 </style>
 </head>
@@ -42,7 +72,21 @@ h1, h2, h3 {
 by: <a href="mailto:jmcclure@cns.umass.edu">Jesse McClure</a><br/>
 
 <p style="color: #d00">Under construction</p>
-<p>links to source code, installation instructions, and a navigation menu will be here</p>
+
+<a href="http://github.com/TrilbyWhite/ttwm.git">source on github</a>
+<ul>
+<li style="font-weight: bold; background: #679">CONTENTS</li>
+<li><a href="#HistoryMotivation">History and Motivation</a></li>
+<li><a href="#Why2Panels">Why Two Panels</a></li>
+<li><a href="#StatusBar">Status Bar</a></li>
+<li><a href="#VolScript">Volume Script</a></li>
+<li><a href="#FloatFull">Floating and Fullscreen</a></li>
+<li><a href="#Usage">Recommended Usage</a></li>
+<li><a href="#Development">Development Directions</a></li>
+<li><a href="#Why2Names">Why Two Names</a></li>
+<li><a href="#Acknowledge">Acknowledgements</a></li>
+</ul>
+
 </div>
 </div>
 
@@ -54,20 +98,20 @@ by: <a href="mailto:jmcclure@cns.umass.edu">Jesse McClure</a><br/>
 <b>TTWM</b> is a minimal tiling window manager combining concepts or elements from TinyWM, DWM, and i3wm.  Inspiration has also been drawn from other great tilers like MonsertWM.  TinyTiler is currently under 500 lines of code.  In contrast to other tilers, TinyTiler does <i>not</i> have modes nor does have window rules.  TinyTiler has only two layouts: right stack and bottom stack.  These choices were by design.  TinyTiler instead provides two screen sections, the <i>master</i> and the <i>stack</i>.  In TinyTiler only one stack window is visibile at a time, the others have tabs in the statusbar.
 </p>
 
-<h2>History and motivation</h2>
+<h2 id="HistoryMotivation">History and motivation</h2>
 <p>
 I had been happily using dwm for some time when I first tried i3.  I loved i3's tabbed mode in a container.  I would always have one window open on the left half of my screen, then have several others in a tabbed container on the right.  I loved that I could shift windows in and out of the container into the "master" region and that I could scroll focus through the tabbed windows and the window in the other container with a single binding of Mod+direction.
 </p><p>
 I faced three challenges with i3 though.  First and foremost I couldn't get a decent customization for my netbook.  These problems are outside the scope of this readme, but in the end I wasn't pleased with it on my netbook which is my most often used computer.  Because of this I was using i3 on my desktop and dwm on my netbook, but I began forcing dwm into an i3-like form by opening two terminals side by side.  In the one on the right I would use urxvt tabs or tmux.  This produced a similar effect as an i3 tabbed container, but had three drawbacks: There was no way to move windows in and out of this "container" or swap them with the other window; I had to switch between two sets of keybindings, one for tmux, one for dwm; and my "tabbed container" could only have terminal windows.
 </p><p>
-My second concern with i3 was that, while I do like having a status bar for a few bits, of information (see <a href="#statusbar">status bar</a> discussion below) most of the bar space was empty or wasted; meanwhile an i3 tabbed container used yet another line for all the tabbed window names.  Finally, i3, while reasonably streamlined, is much larger than dwm.  I didn't feel like I could dive into the source code and get comfortable enough to make changes confidently.
+My second concern with i3 was that, while I do like having a status bar for a few bits, of information (see <a href="#StatusBar">status bar</a> discussion below) most of the bar space was empty or wasted; meanwhile an i3 tabbed container used yet another line for all the tabbed window names.  Finally, i3, while reasonably streamlined, is much larger than dwm.  I didn't feel like I could dive into the source code and get comfortable enough to make changes confidently.
 </p><p>
 These concerns and desires drove me to try my hand at making my own window manager.  Initially I planned to base it on dwm and only make a few changes.  But as I proceeded I found myself bogged down in functions and data structures that were no longer relevant.  I was spending more time pruning and deleting that creating anything new.  I scrapped this approach and instead started with TinyWM as a base.  If you know what you are looking for you will find nearly all of TinyWM's code still in tact at the heart of TinyTiler ... all ~42 lines of it!  TinyTiler, however, is a very different creature.  Several bits of code were still borrowed from dwm.
 </p><p>
 <b>In Summary:</b> TinyTiler is a direct descendent of TinyWM, with some code borrowed from dwm and other code ideas inspired by dwm, and based on a tab concept from i3.
 </p>
 
-<h2>Why two panels?</h2>
+<h2 id="Why2Panels">Why two panels?</h2>
 <p>
 In my use of a handful of Tilers, I have found that I rarely want to see more than two windows at a time.  Ratpoison users, or users of other fullscreen WMs, often point out that one rarely is paying attention to more than one window at a time: if you need to see another window, switch to that window in fullscreen.  In contrast, I find myself <i>often</i> wanting to see two windows ... but never more than two.
 </p><p>
@@ -76,7 +120,7 @@ When working on papers or publications, I'll have one window open editting the L
 <b>In other words</b> I <i>do</i> often want to see two windows at a time, but rarely three.  Other windows can be hidden in the stack until I need them or until I switch to work on another task.
 </p>
 
-<h2 id="statusbar">TinyTiler's status bar</h2>
+<h2 id="StatusBar">TinyTiler's status bar</h2>
 <p>
 TinyTiler has a built in status bar.  Below are two images with the default settings.
 </p>
@@ -95,13 +139,13 @@ To the right of the status bars is the title of the window currently in the mast
 The right half of the status bar begins with a row of <i>tabs</i>.  There is a tab for each window in the stack panel.  There is a blue indicator for the window that is currently on the top of the stack, and a yellow indicator if that is the currently focued window.  To the right of the tabs is the title of the window on the top of the stack also colored to indicate focus.  <b>note:</b> <a href="#see_below">see below</a> for the future development of these tabs.
 </p>
 
-<h3>The volume script</h3>
+<h3 id="VolScript">The volume script</h3>
 
 <p>
 <b>Under construction</b> check back later, or just have a look at the script, it may be self explanatory.  Just note that ttwm's statusbar function looks for the ".audio_volume" file in the location specified in config.h.
 </p>
 
-<h2>What about floating and fullscreen modes?</h2>
+<h2 id="FloatFull">What about floating and fullscreen modes?</h2>
 <p>
 TinyTiler does not, and will not have complext layouts, modes, nor window rules.  If this is what you want, you do not want ttwm.
 </p><p>
@@ -110,7 +154,7 @@ TinyTiler does not, and will not have complext layouts, modes, nor window rules.
 The fullscreen command works similarly.  When given the fullscreen command, the active window will be expanded to fit the screen and cover the status bar.  Here it is perfectly reasonable for this to be a transient state: as soon as you have reason to switch workspaces or switch focus to another window, you no longer need the current window in fullscreen.  It is similarly restacked as normal.  Toggling fullscreen in fact only either fits a window to the screen, or just calls the stack window function.
 </p>
 
-<h2>Recommended usage</h2>
+<h2 id="Usage">Recommended usage</h2>
 <p>
 Be sure to change USERNAME in config.h to your username and chose a font in the font string.  Currently TTWM does not have much error checking, if the font in the font string can't be found do not expect ttwm to function properly.
 </p><p>
@@ -123,7 +167,7 @@ Launch ttwm from ~/.xinitrc:<br/>
 </code>
 </p></p>
 
-<h2>Development directions</h2>
+<h2 id="Development">Development directions</h2>
 <ol>
 <li><del>Implement move-client-to-workspace function.</del>  <del>Squash the known bug from windows closing in workspaces other than the currently focused workspace.</del>
 	<ul>
@@ -139,7 +183,7 @@ Launch ttwm from ~/.xinitrc:<br/>
 </li>
 </ol>
 
-<h2>Why two names?</h2>
+<h2 id="Why2Names">Why two names?</h2>
 <p>
 Because I'm indecisive.
 </p><p>
@@ -148,7 +192,7 @@ But, I am also concerned over the name conflict with another "ttwm" on github wh
 Call it what you wish.  It's tiny, and it's tabbed, and it tiles.  But no, I don't want to consider tttwm. 
 </p>
 
-<h2>Acknowledgements</h2>
+<h2 id="Acknowledge">Acknowledgements</h2>
 <ul>
 <li><a href="http://incise.org/tinywm.html">Nick Welch (TinyWM)</a></li>
 <li><a href="http://suckless.org">The suckless team (dwm)</a></li>
