@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <time.h>
@@ -16,14 +17,39 @@
 #include <X11/Xatom.h>
 #include <X11/XKBlib.h>
 #include <string.h>
-
 #include <sys/select.h>
 
 #define CLEANMASK(mask)	(mask & ~(LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define MAX(a, b)		((a) > (b) ? (a) : (b))
 
 /************************* [1] GLOBAL DECLARATIONS *************************/
-/* 1.0 FUNCTION PROTOTPYES */
+/* 1.0 TYPEDEFS & STRUCTS */
+typedef struct Client Client;
+struct Client {
+	char *title;
+	int tlen;
+	Client *next;
+	Window win;
+};
+typedef struct {
+	unsigned int mask, button;
+	void (*func)();
+} Button;
+typedef struct {
+	unsigned int mod;
+	KeySym keysym;
+	void (*func)(const char *);
+	const char *arg;
+} Key;
+struct {
+	uint8_t cpu,vol,bat;
+	uint8_t cpu_col,vol_col,bat_col;
+} status;
+enum {Background, Clock, SpacesNorm, SpacesActive, SpacesSel, SpacesUrg,
+		BarsNorm, BarsFull, BarsCharge, BarsWarn, BarsAlarm,
+		TitleNorm, TitleSel, StackNorm, StackAct, StackSel };
+
+/* 1.1 FUNCTION PROTOTPYES */
 static void buttonpress(XEvent *);
 static void buttonrelease(XEvent *);
 static void expose(XEvent *);
@@ -33,6 +59,7 @@ static void motionnotify(XEvent *);
 static void propertynotify(XEvent *);
 static void unmapnotify(XEvent *);
 
+static void die(const char *msg, ...);
 static void drawbar();
 static void focus(const char *);
 static void fullscreen(const char *);
@@ -43,16 +70,17 @@ static void spawn(const char *);
 static void swap(const char *);
 static void stack();
 static void stackmode(const char *);
+static void swapclients(Client *, Client *);
 static void updatestatus();
 static void *wintoclient(Window);
 static void workspace(const char *);
 static void quit(const char *);
 
-/* 1.1 VARIABLE DECLARATIONS */
-static Bool running;
+/* 1.2 VARIABLE DECLARATIONS */
 static Display *dpy;
 static int screen, sw, sh;
 static Window root;
+static Bool running;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]		= buttonpress,
 	[ButtonRelease]		= buttonrelease,
@@ -65,37 +93,15 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 };
 static Drawable bar;
 static GC *gc;
-typedef struct Client Client;
-struct Client {
-	char *title;
-	int tlen;
-	Client *next;
-	Window win;
-};
-static int wksp;
-typedef struct {
-	unsigned int mask, button;
-	void (*func)();
-} Button;
-typedef struct {
-	unsigned int mod;
-	KeySym keysym;
-	void (*func)(const char *);
-	const char *arg;
-} Key;
+static int wksp, onwksp;
 static Bool zoomed;
-struct {
-	uint8_t cpu,vol,bat;
-	uint8_t cpu_col,vol_col,bat_col;
-} status;
 static long j1,j2,j3,j4;
 static FILE *in;
-static uint8_t onwksp;
-enum {Background, Clock, SpacesNorm, SpacesActive, SpacesSel, SpacesUrg,
-		BarsNorm, BarsFull, BarsCharge, BarsWarn, BarsAlarm,
-		TitleNorm, TitleSel, StackNorm, StackAct, StackSel };
 
-void swapclients(Client *, Client *);
+static Client *focused=NULL;
+#include "config.h"
+static Client *clients[WORKSPACES];
+static Client *top[WORKSPACES];
 
 /* These next two variables seem awkward and out of place.  They are holdovers
 from Tinywm.  I'd get rid of them, but they just work so darn well and, with
@@ -105,23 +111,14 @@ are here to stay.  -J McClure 2012 */
 XWindowAttributes attr;
 XButtonEvent start;
 
-#include "config.h"
-static Client *clients[WORKSPACES];
-static Client *top[WORKSPACES];
-static Client *focused=NULL;
-
 /************************* [2] FUNCTION DEFINITIONS ************************/
 /* 2.0 EVENT HANDLERS */
 
 void buttonpress(XEvent *ev) {
 	if (ev->xbutton.subwindow == None) return;
-	if (ev->xbutton.button == 2) {
-		stack();
-		return;
-	}
-	XGrabPointer(dpy, ev->xbutton.subwindow, True,
-		PointerMotionMask|ButtonReleaseMask, GrabModeAsync,
-		GrabModeAsync, None, None, CurrentTime);
+	if (ev->xbutton.button == 2) { stack(); return; }
+	XGrabPointer(dpy, ev->xbutton.subwindow, True, PointerMotionMask |
+		ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XGetWindowAttributes(dpy, ev->xbutton.subwindow, &attr);
 	start = ev->xbutton;
 }
@@ -137,7 +134,6 @@ void expose(XEvent *ev) {
 void keypress(XEvent *ev) {
 	unsigned int i;
 	XKeyEvent *e = &ev->xkey;
-	//KeySym keysym = XKeycodeToKeysym(dpy,(KeyCode)e->keycode,0);
 	KeySym keysym = XkbKeycodeToKeysym(dpy,(KeyCode)e->keycode,0,0);
 	for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
 		if ( (keysym==keys[i].keysym) && keys[i].func &&
@@ -149,10 +145,11 @@ void maprequest(XEvent *ev) {
 	Client *c;
 	static XWindowAttributes wa;
 	XMapRequestEvent *e = &ev->xmaprequest;
-	if(!XGetWindowAttributes(dpy, e->window, &wa)) return;
-	if(wa.override_redirect) return;
-	if(!wintoclient(e->window)) {
-		if (!(c=calloc(1,sizeof(Client))))exit(1);
+	if (!XGetWindowAttributes(dpy, e->window, &wa)) return;
+	if (wa.override_redirect) return;
+	if (!wintoclient(e->window)) {
+		if (!(c=calloc(1,sizeof(Client))))
+			die("Failed to allocate %d bytes for new client\n",sizeof(Client));
 		c->win = e->window;
 		c->next = clients[wksp];
 		top[wksp] = clients[wksp];
@@ -161,7 +158,7 @@ void maprequest(XEvent *ev) {
 		clients[wksp] = c;
 		XMapWindow(dpy,c->win);
 		focused = c;
-		if (focused->next) top[wksp] = focused->next;
+//		if (focused->next) top[wksp] = focused->next;
 		stack();
 	}
 }
@@ -216,61 +213,65 @@ void unmapnotify(XEvent *ev) {
 
 /* 2.1 OTHER FUNCTIONS */
 
+static void die(const char *msg, ...) {
+	va_list args;
+	va_start(args,msg);
+	vfprintf(stderr,msg,args);
+	va_end(args);
+	exit(1);
+}
+
 void drawbar() {
 	XFillRectangle(dpy,bar,gc[Background],0,0,sw,BARHEIGHT);
 	/* CLOCK */
 	static char buf[8];
 	static time_t now;
 	time(&now);
-	int len = strftime(buf,7,"%H:%M",localtime(&now));
-	XDrawString(dpy,bar,gc[Clock],2,FONTHEIGHT,buf,len);
-	/*workspaces*/
-	int i;
+	int i = strftime(buf,7,"%H:%M",localtime(&now));
+	XDrawString(dpy,bar,gc[Clock],2,FONTHEIGHT,buf,i);
+	/* WORKSPACES */
 	for (i = 0; i < WORKSPACES; i++)
 		XFillRectangle(dpy,bar,gc[(wksp==i ? SpacesSel : (clients[i] ?
 			SpacesActive : SpacesNorm))], 6*i+40, (clients[i]?3:6),3,
 			BARHEIGHT-(clients[i]?5:8));
 	/* STATUS MONITORS */
-	i = 6*i+45;
+	i = 6*i+45; /* 6px for each workspace + 45px space */
 	XFillRectangle(dpy,bar,gc[status.cpu_col],i,BARHEIGHT-10,status.cpu,2);
 	XFillRectangle(dpy,bar,gc[status.vol_col],i,BARHEIGHT-7,status.vol,2);
 	XFillRectangle(dpy,bar,gc[status.bat_col],i,BARHEIGHT-4,status.bat,2);
 	/* MASTER WINDOW NAME */
-	i+=60;
+	i+=60; /* 50px for bars + 10px space */
 	Client *c = clients[wksp];
-	if (c)
-		XDrawString(dpy,bar,gc[ (c==focused ? TitleSel : TitleNorm)],
+	if (c) XDrawString(dpy,bar,gc[ (c==focused ? TitleSel : TitleNorm)],
 			i,FONTHEIGHT,c->title,(c->tlen > 62 ? 62 : c->tlen));
 	/* STACK TABS */
-	i = sw*fact;
+	i = sw*fact; /* screen width * master portion = start of stack region */
 	if (clients[wksp]) for ( c=clients[wksp]->next; c; c=c->next ) {
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
 			(c==top[wksp]?StackAct:StackNorm) ) ],i,3,35,8);
 		i+=40;
 	}
-	/* STACK WINDOW NAME */
-	if (top[wksp])
-		XDrawString(dpy,bar,gc[ (top[wksp]==focused ? TitleSel : TitleNorm)],
-			i,FONTHEIGHT,top[wksp]->title,top[wksp]->tlen);
+	/* TOP STACK WINDOW NAME */
+	if (top[wksp]) XDrawString(dpy,bar,gc[ (top[wksp]==focused ?
+			TitleSel : TitleNorm)],i,FONTHEIGHT,top[wksp]->title,top[wksp]->tlen);
 	/* DRAW IT */
 	XCopyArea(dpy,bar,root,gc[0],0,0,sw,BARHEIGHT,0,0);
 	XSync(dpy,False);
 }
 
 void focus(const char *arg) {
-	if (!top[wksp]) return;
+	if (!top[wksp]) return; /* only one client, do nothing */
 	Client *c;
-	if (!focused) focused = clients[wksp];
-	if (arg[0] == 'r') {
+	if (!focused) focused = clients[wksp]; /* nothing focused? focus master */
+	if (arg[0] == 'r') { /* focus right */
 		focused = focused->next;
 		if (!focused) focused = clients[wksp];
 	}
-	else if (arg[0] == 'l') { 
+	else if (arg[0] == 'l') {  /* focus left */
 		for (c=clients[wksp]; c && c->next != focused; c = c->next);
 		if (!c) for (c=clients[wksp]; c->next; c = c->next);
 		focused = c;
 	}
-	XRaiseWindow(dpy, focused->win);
 	if (focused != clients[wksp]) top[wksp] = focused;
 	stack();
 }
@@ -295,22 +296,23 @@ void killclient(const char *arg) {
 
 void move(const char *arg) {
 	if (!top[wksp]) return;
-	Client *t=NULL;
+	Client *t=NULL; /* t is target client to swap with focused client */
 	if (arg[0] == 'r')
 		t = focused->next;
 	else if (arg[0] == 'l')
 		for (t=clients[wksp]; t->next != focused && t->next; t = t->next);
 	if (!t) t = clients[wksp];
-	swapclients(t,focused);
+	swapclients(t,focused); /* switch focused client with target */
 	focused = t;
 	stack();
 }
 
 static void putclient(const char *arg) {
 	if (!focused) return;
-	int i = arg[0] - 49;
-	if (i == wksp || i < 0 || i > WORKSPACES - 1) return;
-	Client *t, *c = focused;
+	int i = arg[0] - 49; /* cheap way to convert char number to int number */
+	if (i == wksp || i < 0 || i > WORKSPACES - 1) return; /* valid workspace #? */
+	Client *t, *c = focused; /* c=client to move; t=client pointing to c */
+	/* remove c from clients[wksp] */
 	focused=(focused->next ? focused->next : clients[wksp]);
 	if (top[wksp] == c) top[wksp]=(c->next ? c->next : 
 			(clients[wksp]->next == c ? NULL : clients[wksp]->next));
@@ -321,14 +323,18 @@ static void putclient(const char *arg) {
 	}
 	if (top[wksp] && top[wksp] == clients[wksp])
 		top[wksp]=top[wksp]->next;
+	/* prepend c to clients[i] a.k.a. the target workspace */
 	c->next = clients[i];
 	top[i] = clients[i];
 	clients[i] = c;
+	/* "hide" c by moving off screen */
 	XMoveWindow(dpy,c->win,sw,BARHEIGHT);
 	stack();
 }
 
-void spawn(const char *arg) { system(arg); }
+void spawn(const char *arg) {
+	system(arg);
+}
 
 void swap(const char *arg) {
 	swapclients(clients[wksp],top[wksp]);
@@ -336,7 +342,7 @@ void swap(const char *arg) {
 }
 
 void swapclients(Client *a, Client *b) {
-	if (!a || !b) return;
+	if (!a || !b) return; /* no clients? do nothing */
 	char *title;
 	int tlen;
 	Window win;
@@ -354,13 +360,13 @@ void swapclients(Client *a, Client *b) {
 void stack() {
 	zoomed = False;
 	Client *c = clients[wksp];
-	if (!c) return;
-	if (!c->next) {
+	if (!c) return; /* no clients = nothing to do */
+	if (!c->next) { /* only one client = full screen */
 		XMoveResizeWindow(dpy,c->win,0,BARHEIGHT,sw,sh);
 		XSetInputFocus(dpy,c->win,RevertToPointerRoot,CurrentTime);
 		return;
 	}
-	else XMoveResizeWindow(dpy,c->win,0,BARHEIGHT,
+	else XMoveResizeWindow(dpy,c->win,0,BARHEIGHT, 
 			(bstack ? sw		: sw*fact),
 			(bstack ? sh*fact	: sh));
 	for (c=c->next; c; c=c->next)
@@ -370,7 +376,10 @@ void stack() {
 			(bstack ? sw 				: sw*(1-fact)),
 			(bstack ? sh*(1-fact)		: sh));
 	if (top[wksp]) XRaiseWindow(dpy, top[wksp]->win);
-	if (focused) XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
+	if (focused) {
+		XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
+		XRaiseWindow(dpy, focused->win);
+	}
 	drawbar();
 }
 
@@ -425,8 +434,6 @@ void updatestatus() {
 	drawbar();
 }
 	
-
-
 void *wintoclient(Window w) {
 	Client *c;
 	int i;
@@ -439,11 +446,11 @@ void *wintoclient(Window w) {
 }
 
 void workspace(const char *arg) {
-	int i = arg[0] - 49;
+	int i = arg[0] - 49; /* cheap way to convert char number to int */
 	if ( (i<0) || (i>WORKSPACES) || (wksp==i) ) return;
 	wksp = i;
 	Client *c;
-	for (i = 0; i < WORKSPACES; i++)
+	for (i = 0; i < WORKSPACES; i++) /* "hide" all, by moving off screen */
 		for (c = clients[i]; c; c = c->next)
 			XMoveWindow(dpy,c->win,sw,BARHEIGHT);
 	focused = clients[wksp];
@@ -451,7 +458,9 @@ void workspace(const char *arg) {
 	drawbar();
 }
 
-void quit(const char *arg) { running = False; };
+void quit(const char *arg) {
+	running = False;
+};
 
 int xerror(Display *d, XErrorEvent *ev) {
 	fprintf(stderr,"ttwm error: request=%d; error=%d\n",ev->request_code,ev->error_code);
@@ -476,12 +485,8 @@ int main() {
 	XGCValues val;
 	val.font = XLoadFont(dpy,font);
 	for (i = 0; i < NUMCOLORS; i++) {
-		//XAllocNamedColor(dpy,cmap,colors[i][0],&color,&color);
-		//val.border = color.pixel;
 		XAllocNamedColor(dpy,cmap,colors[i],&color,&color);
 		val.foreground = color.pixel;
-		//XAllocNamedColor(dpy,cmap,colors[i][2,&color,&color);
-		//val.background = color.pixel;
 		gc[i] = XCreateGC(dpy,root,GCForeground|GCFont,&val);
 	}
 	XSetWindowAttributes wa;
@@ -500,32 +505,36 @@ int main() {
 	for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
 		if ( (code=XKeysymToKeycode(dpy,keys[i].keysym)) )
 			XGrabKey(dpy,code,keys[i].mod,root,True,GrabModeAsync,GrabModeAsync);
-	XGrabButton(dpy,AnyButton,MODKEY,root,True,ButtonPressMask,GrabModeAsync,GrabModeAsync,None,None);
+	XGrabButton(dpy,AnyButton,MODKEY,root,True,ButtonPressMask,GrabModeAsync,
+		GrabModeAsync,None,None);
 	/* MAIN LOOP */
 	XEvent ev;
+	/* prepare "previous" values for cpu jiffies */
 	in = fopen(CPU_FILE,"r");
 	fscanf(in,"cpu %ld %ld %ld %ld",&j1,&j2,&j3,&j4);
 	fclose(in);
 	updatestatus();
+	/* get connection to read from */
 	int fd,r;
 	struct timeval tv;
 	fd_set rfds;
 	fd = ConnectionNumber(dpy);
 	running = True;
-	while (running) {
+	while (running) { /* main loop */
 		memset(&tv,0,sizeof(tv));
-		tv.tv_usec = 250000;
+		tv.tv_usec = 250000; /* update status bar every 0.25 seconds */
 		FD_ZERO(&rfds);
 		FD_SET(fd,&rfds);
 		r = select(fd+1,&rfds,0,0,&tv);
-		if (r == 0)
+		if (r == 0) /* timed out, update status */
 			updatestatus();
-		else
+		else /* received event before timeout */
 			while (XPending(dpy)) {
 				XNextEvent(dpy,&ev);
 				if (handler[ev.type]) handler[ev.type](&ev);
 			}
 	}
+	/* clean up needed here */
 	return 0;
 }
 
