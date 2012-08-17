@@ -1,4 +1,4 @@
-CFLAGS?=-Os -Wall
+CFLAGS+=-Os -Wall -Wno-unused-result
 PROG=ttwm
 LIBS=-lX11
 
