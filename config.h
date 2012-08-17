@@ -8,7 +8,7 @@ static const char font[] = "-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*";
 #define WORKSPACES	5
 
 #define CPU_FILE	"/proc/stat"
-#define AUD_FILE	"/home/jmcclure/.audio_volume"
+#define AUD_FILE	"/home/USERNAME/.audio_volume"
 #define BATT_NOW	"/sys/class/power_supply/BAT1/charge_now"
 #define BATT_FULL	"/sys/class/power_supply/BAT1/charge_full"
 #define BATT_STAT	"/sys/class/power_supply/BAT1/status"
