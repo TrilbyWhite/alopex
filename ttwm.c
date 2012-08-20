@@ -272,6 +272,10 @@ void focus(const char *arg) {
 		if (!c) for (c=clients[wksp]; c->next; c = c->next);
 		focused = c;
 	}
+	else if (arg[0] == 'o') { /* swap focus between master/stack */
+		if (focused == top[wksp]) focused = clients[wksp];
+		else focused = top[wksp];
+	}
 	if (focused != clients[wksp]) top[wksp] = focused;
 	stack();
 }
