@@ -63,7 +63,7 @@ static void die(const char *msg, ...);
 static void drawbar();
 static void focus(const char *);
 static void fullscreen(const char *);
-static void killclient();
+static void killclient(const char *);
 static void move(const char *);
 static void putclient(const char *);
 static void spawn(const char *);
@@ -115,8 +115,11 @@ XButtonEvent start;
 /* 2.0 EVENT HANDLERS */
 
 void buttonpress(XEvent *ev) {
+fprintf(stderr,"button A\n");
 	if (ev->xbutton.subwindow == None) return;
+fprintf(stderr,"button B\n");
 	if (ev->xbutton.button == 2) { stack(); return; }
+fprintf(stderr,"button C\n");
 	XGrabPointer(dpy, ev->xbutton.subwindow, True, PointerMotionMask |
 		ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XGetWindowAttributes(dpy, ev->xbutton.subwindow, &attr);
@@ -164,7 +167,6 @@ void maprequest(XEvent *ev) {
 }
 
 void motionnotify(XEvent *ev) {
-	if (ev->xkey.subwindow == None) return;
 	int xdiff, ydiff;
 	while(XCheckTypedEvent(dpy, MotionNotify, ev));
 	xdiff = ev->xbutton.x_root - start.x_root;
