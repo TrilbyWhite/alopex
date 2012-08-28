@@ -115,11 +115,8 @@ XButtonEvent start;
 /* 2.0 EVENT HANDLERS */
 
 void buttonpress(XEvent *ev) {
-fprintf(stderr,"button A\n");
 	if (ev->xbutton.subwindow == None) return;
-fprintf(stderr,"button B\n");
 	if (ev->xbutton.button == 2) { stack(); return; }
-fprintf(stderr,"button C\n");
 	XGrabPointer(dpy, ev->xbutton.subwindow, True, PointerMotionMask |
 		ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XGetWindowAttributes(dpy, ev->xbutton.subwindow, &attr);
