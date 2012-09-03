@@ -63,7 +63,7 @@ static void die(const char *msg, ...);
 static void drawbar();
 static void focus(const char *);
 static void fullscreen(const char *);
-static void killclient();
+static void killclient(const char *);
 static void move(const char *);
 static void putclient(const char *);
 static void spawn(const char *);
@@ -371,8 +371,8 @@ void stack() {
 		return;
 	}
 	else XMoveResizeWindow(dpy,c->win,0,BARHEIGHT, 
-			(bstack ? sw		: sw*fact),
-			(bstack ? sh*fact	: sh));
+			(bstack ? sw			: sw - sw*fact),
+			(bstack ? sh - sh*fact	: sh));
 	for (c=c->next; c; c=c->next)
 		XMoveResizeWindow(dpy,c->win,
 			(bstack ? 0 				: sw*fact),
@@ -403,6 +403,7 @@ void updatestatus() {
 	static long ln1,ln2,ln3,ln4;
 	static int n;
 	static char c;
+#ifdef CPU_FILE
 	if ( (in=fopen(CPU_FILE,"r")) ) {	/* CPU MONITOR */
 		fscanf(in,"cpu %ld %ld %ld %ld",&ln1,&ln2,&ln3,&ln4);
 		fclose(in);
@@ -414,6 +415,8 @@ void updatestatus() {
 		else status.cpu_col = BarsNorm;
 		status.cpu = (n > 100 ? 100 : n) / 2;
 	}
+#endif /* CPU_FILE */
+#ifdef AUD_FILE
 	if ( (in=fopen(AUD_FILE,"r")) ) {	/* AUDIO VOLUME MONITOR */
 		fscanf(in,"%d",&n);
 		fclose(in);
@@ -423,6 +426,8 @@ void updatestatus() {
 		else status.vol_col = BarsNorm;
 		if (n > -1) status.vol = n / 2;
 	}
+#endif /* AUD_FILE */
+#ifdef BATT_NOW
 	if ( (in=fopen(BATT_NOW,"r")) ) {	/* BATTERY MONITOR */
 		fscanf(in,"%ld\n",&ln1); fclose(in);
 		if ( (in=fopen(BATT_FULL,"r")) ) { fscanf(in,"%ld\n",&ln2); fclose(in); }
@@ -435,6 +440,7 @@ void updatestatus() {
 		else status.bat_col = BarsNorm;
 		status.bat = n / 2;
 	}
+#endif /* BATT_NOW */
 	drawbar();
 }
 	
@@ -496,7 +502,8 @@ int main() {
 	XSetWindowAttributes wa;
 	wa.event_mask =	ExposureMask				|
 					SubstructureNotifyMask		|
-					ButtonPressMask				|
+//					ButtonPressMask				|
+					ButtonReleaseMask			|
 					PointerMotionMask			|
 					PropertyChangeMask			|
 					SubstructureRedirectMask	|
