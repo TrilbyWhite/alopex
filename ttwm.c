@@ -19,7 +19,7 @@
 #include <string.h>
 #include <sys/select.h>
 
-#define CLEANMASK(mask)	(mask & ~(LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
+#define CLEANMASK(mask)	( (mask&~LockMask)&~Mod2Mask )
 #define MAX(a, b)		((a) > (b) ? (a) : (b))
 
 /************************* [1] GLOBAL DECLARATIONS *************************/
@@ -137,7 +137,7 @@ void keypress(XEvent *ev) {
 	KeySym keysym = XkbKeycodeToKeysym(dpy,(KeyCode)e->keycode,0,0);
 	for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
 		if ( (keysym==keys[i].keysym) && keys[i].func &&
-			(CLEANMASK(keys[i].mod) == CLEANMASK(e->state)) )
+				keys[i].mod == ((e->state&~Mod2Mask)&~LockMask) )
 			keys[i].func(keys[i].arg);
 }
 
@@ -164,7 +164,6 @@ void maprequest(XEvent *ev) {
 }
 
 void motionnotify(XEvent *ev) {
-	if (ev->xkey.subwindow == None) return;
 	int xdiff, ydiff;
 	while(XCheckTypedEvent(dpy, MotionNotify, ev));
 	xdiff = ev->xbutton.x_root - start.x_root;
@@ -488,7 +487,7 @@ int main() {
 
 	/* CONFIGURE GRAPHIC CONTEXTS */
 	bar = XCreatePixmap(dpy,root,sw,BARHEIGHT,DefaultDepth(dpy,screen));
-	int i;
+	int i,j;
 	gc = (GC *) calloc(NUMCOLORS, sizeof(GC));
 	Colormap cmap = DefaultColormap(dpy,screen);
 	XColor color;
@@ -511,11 +510,12 @@ int main() {
 	XChangeWindowAttributes(dpy,root,CWEventMask,&wa);
 	XSelectInput(dpy,root,wa.event_mask);
 	/* GRAB KEYS & BUTTONS */
+	unsigned int mods[] = {0, LockMask,Mod2Mask,LockMask|Mod2Mask};
 	KeyCode code;
 	XUngrabKey(dpy,AnyKey,AnyModifier,root);
-	for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
-		if ( (code=XKeysymToKeycode(dpy,keys[i].keysym)) )
-			XGrabKey(dpy,code,keys[i].mod,root,True,GrabModeAsync,GrabModeAsync);
+	for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++) 
+		if ( (code=XKeysymToKeycode(dpy,keys[i].keysym)) ) for (j = 0; j < 4; j++)
+			XGrabKey(dpy,code,keys[i].mod|mods[j],root,True,GrabModeAsync,GrabModeAsync);
 	XGrabButton(dpy,AnyButton,MODKEY,root,True,ButtonPressMask,GrabModeAsync,
 		GrabModeAsync,None,None);
 	/* MAIN LOOP */
