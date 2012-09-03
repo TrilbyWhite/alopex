@@ -369,14 +369,14 @@ void stack() {
 		return;
 	}
 	else XMoveResizeWindow(dpy,c->win,0,BARHEIGHT, 
-			(bstack ? sw			: sw - sw*fact),
-			(bstack ? sh - sh*fact	: sh));
+			(bstack ? sw		: sw*fact),
+			(bstack ? sh*fact	: sh));
 	for (c=c->next; c; c=c->next)
 		XMoveResizeWindow(dpy,c->win,
-			(bstack ? 0 				: sw*fact),
-			(bstack ? BARHEIGHT+sh*fact	: BARHEIGHT),
-			(bstack ? sw 				: sw*(1-fact)),
-			(bstack ? sh*(1-fact)		: sh));
+			(bstack ? 0 					: sw*fact),
+			(bstack ? BARHEIGHT+sh*fact		: BARHEIGHT),
+			(bstack ? sw 					: sw*(1-fact)),
+			(bstack ? sh*(1-fact)			: sh));
 	if (top[wksp]) XRaiseWindow(dpy, top[wksp]->win);
 	if (focused) {
 		XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
