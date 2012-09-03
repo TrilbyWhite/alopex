@@ -158,7 +158,6 @@ void maprequest(XEvent *ev) {
 		clients[wksp] = c;
 		XMapWindow(dpy,c->win);
 		focused = c;
-//		if (focused->next) top[wksp] = focused->next;
 		stack();
 	}
 }
@@ -501,7 +500,6 @@ int main() {
 	XSetWindowAttributes wa;
 	wa.event_mask =	ExposureMask				|
 					SubstructureNotifyMask		|
-//					ButtonPressMask				|
 					ButtonReleaseMask			|
 					PointerMotionMask			|
 					PropertyChangeMask			|
