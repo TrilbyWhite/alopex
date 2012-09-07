@@ -460,7 +460,7 @@ void workspace(const char *arg) {
 	Client *c;
 	for (i = 0; i < WORKSPACES; i++) /* "hide" all, by moving off screen */
 		for (c = clients[i]; c; c = c->next)
-			XMoveWindow(dpy,c->win,sw,BARHEIGHT);
+			XMoveWindow(dpy,c->win,-sw,BARHEIGHT);
 	focused = clients[wksp];
 	stack();
 	drawbar();

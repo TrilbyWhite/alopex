@@ -83,12 +83,17 @@ static Key keys[] = {
 	{ MODKEY,			XK_3,		workspace,	"3"	},
 	{ MODKEY,			XK_4,		workspace,	"4"	},
 	{ MODKEY,			XK_5,		workspace,	"5"	},
-	/* move client to workspace: !! Not implemented yet !! */
+	/* move client to workspace: */
 	{ MODKEY|ShiftMask,	XK_1,		putclient,	"1"	},
 	{ MODKEY|ShiftMask,	XK_2,		putclient,	"2"	},
 	{ MODKEY|ShiftMask,	XK_3,		putclient,	"3"	},
 	{ MODKEY|ShiftMask,	XK_4,		putclient,	"4"	},
 	{ MODKEY|ShiftMask,	XK_5,		putclient,	"5"	},
+	/* external monitor support: HIGHLY EXPERIMENTAL, will likely break! */
+//	{ MODKEY|ShiftMask,	XK_e,		exscreen,	"xrandr --auto"	}, /* activate */
+//	{ MODKEY|ShiftMask,	XK_s,		exscreen,	NULL			}, /* deactivate */
+//	{ MODKEY|ShiftMask,	XK_g,		exscreen,	"go"			}, /* send current win */
+//	{ MODKEY|ShiftMask,	XK_r,		exscreen,	"return"		}, /* bring win back */
 };
 
 // vim: ts=4
