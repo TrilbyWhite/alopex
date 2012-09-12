@@ -5,6 +5,7 @@ static const char font[] = "-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*";
 #define NUMCOLORS	16
 #define BARHEIGHT	13
 #define FONTHEIGHT	11
+#define FONTWIDTH	6
 #define WORKSPACES	5
 
 #define CPU_FILE	"/proc/stat"

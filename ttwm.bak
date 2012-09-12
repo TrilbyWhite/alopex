@@ -247,22 +247,14 @@ void drawbar() {
 			i,FONTHEIGHT,c->title,(c->tlen > 62 ? 62 : c->tlen));
 	/* STACK TABS */
 	i = sw*fact; /* screen width * master portion = start of stack region */
-	int tab_count = 0;
-	int tab_width = 0;
-	int max_tlen;
-	if (clients[wksp]) {
-		for ( c=clients[wksp]->next; c; c=c->next ) tab_count++;
-		if (tab_count) tab_width = (sw-i)/tab_count;
-		for ( c=clients[wksp]->next; c; c=c->next ) {
-			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
-				(c==top[wksp]?StackAct:StackNorm) ) ],i,0,tab_width,BARHEIGHT);
-			XFillRectangle(dpy,bar,gc[Background],i+1,1,tab_width-2,BARHEIGHT);
-			max_tlen = (tab_width > 8 ? (tab_width-8)/FONTWIDTH : 1);
-			XDrawString(dpy,bar,gc[(c==focused ? TitleSel : TitleNorm)],i+4,
-				FONTHEIGHT,c->title,(c->tlen > max_tlen ? max_tlen : c->tlen));
-			i+=tab_width;
-		}
+	if (clients[wksp]) for ( c=clients[wksp]->next; c; c=c->next ) {
+		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
+			(c==top[wksp]?StackAct:StackNorm) ) ],i,3,35,8);
+		i+=40;
 	}
+	/* TOP STACK WINDOW NAME */
+	if (top[wksp]) XDrawString(dpy,bar,gc[ (top[wksp]==focused ?
+			TitleSel : TitleNorm)],i,FONTHEIGHT,top[wksp]->title,top[wksp]->tlen);
 	/* DRAW IT */
 	XCopyArea(dpy,bar,root,gc[0],0,0,sw,BARHEIGHT,0,0);
 	XSync(dpy,False);
