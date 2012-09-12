@@ -1,6 +1,6 @@
 CFLAGS+=-Os -Wall -Wno-unused-result
 PROG=ttwm
-LIBS=-lX11 -lXinerama
+LIBS=-lX11 -lXrandr
 
 all: $(PROG).c config.h
 	@$(CC) $(CFLAGS) $(LIBS) -o $(PROG) $(PROG).c

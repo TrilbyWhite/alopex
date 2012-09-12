@@ -16,7 +16,7 @@
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
 #include <X11/XKBlib.h>
-#include <X11/extensions/Xinerama.h>
+#include <X11/extensions/Xrandr.h>
 #include <string.h>
 #include <sys/select.h>
 
@@ -81,7 +81,7 @@ static void quit(const char *);
 /* 1.2 VARIABLE DECLARATIONS */
 static Display *dpy;
 static int screen, sw, sh, exsw, exsh;
-static Window root, exwin=0;
+static Window root;
 static Bool running;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]		= buttonpress,
@@ -101,6 +101,7 @@ static long j1,j2,j3,j4;
 static FILE *in;
 
 static Client *focused=NULL;
+static Window exwin = 0;
 #include "config.h"
 static Client *clients[WORKSPACES];
 static Client *top[WORKSPACES];
@@ -242,13 +243,11 @@ void drawbar() {
 	/* MASTER WINDOW NAME */
 	i+=60; /* 50px for bars + 10px space */
 	Client *c = clients[wksp];
-	if (c->win == exwin) c = c->next;
 	if (c) XDrawString(dpy,bar,gc[ (c==focused ? TitleSel : TitleNorm)],
 			i,FONTHEIGHT,c->title,(c->tlen > 62 ? 62 : c->tlen));
 	/* STACK TABS */
 	i = sw*fact; /* screen width * master portion = start of stack region */
-	if (c) for ( c=c->next; c; c=c->next ) {
-		if (c->win == exwin) continue;
+	if (clients[wksp]) for ( c=clients[wksp]->next; c; c=c->next ) {
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
 			(c==top[wksp]?StackAct:StackNorm) ) ],i,3,35,8);
 		i+=40;
@@ -266,21 +265,26 @@ void exscreen(const char *arg) {
 	if (arg[0] == 'd') {
 		exwin = 0;
 		system("xrandr --output " VIDEO1 " --auto --output " VIDEO2 " --off");
+		screen = DefaultScreen(dpy);
+		sw = DisplayWidth(dpy,screen);
+		sh = DisplayHeight(dpy,screen) - BARHEIGHT;
 	}
-	else if (arg[0] == 's') exwin = (focused ? focused->win : 0);
+	else if (arg[0] == 's') exwin = (focused ? focused->win : clients[wksp]->win);
 	else if (arg[0] == 'r') exwin = 0;
 	else if (arg[0] == 'a') {
 		system("xrandr --output " VIDEO1 " --auto --output " VIDEO2 " --auto --below " VIDEO1);
-		int snum;
-		XineramaScreenInfo *xin = XineramaQueryScreens(dpy,&snum);
-		if (snum != 2) {
-			fprintf(stderr,"Wrong number of screens.  Found %d screens.\n",snum);
-			exscreen("d");
-			return;
+		screen = DefaultScreen(dpy);
+		sw = DisplayWidth(dpy,screen);
+		sh = DisplayHeight(dpy,screen) - BARHEIGHT;
+		int nsizes;
+		XRRScreenSize *xrrs = XRRSizes(dpy,screen,&nsizes);
+		if (nsizes != 2) {
+			/* wrong number of monitors */
 		}
-		exsw = xin->width;
-		exsh = xin->height;
+		exsw = xrrs[0].width;
+		exsh = xrrs[0].height;
 	}
+	else return;
 	stack();
 }
 
@@ -390,31 +394,32 @@ void stack() {
 	zoomed = False;
 	Client *c = clients[wksp];
 	if (!c) return; /* no clients = nothing to do */
-	if (c->win == exwin) c = c->next;
-	else if (!c->next) { /* only one client = full screen */
+	if (exwin) /* client on external monitor? */
+		XMoveResizeWindow(dpy,exwin,0,sh+BARHEIGHT,exsw,exsh);
+	if (c->win == exwin) c=c->next;
+	if (!c) return; /* no remaining clients = nothing to do */
+	else if ( (!c->next) || (c->next->win == exwin && !c->next->next) ) {
+		/* only one client = full screen */
 		XMoveResizeWindow(dpy,c->win,0,BARHEIGHT,sw,sh);
-		XSetInputFocus(dpy,c->win,RevertToPointerRoot,CurrentTime);
-		return;
+		//XSetInputFocus(dpy,c->win,RevertToPointerRoot,CurrentTime);
 	}
-	else if (c->next->win == exwin && !c->next->next) 
-		XMoveResizeWindow(dpy,c->win,0,BARHEIGHT,sw,sh);
-	else XMoveResizeWindow(dpy,c->win,0,BARHEIGHT, 
+	else {
+		XMoveResizeWindow(dpy,c->win,0,BARHEIGHT, 
 			(bstack ? sw		: sw*fact),
 			(bstack ? sh*fact	: sh));
-	for (c=c->next; c; c=c->next)
-		if (c->win != exwin)
-			XMoveResizeWindow(dpy,c->win,
+		for (c=c->next; c; c=c->next)
+			if (c->win != exwin)
+				XMoveResizeWindow(dpy,c->win,
 					(bstack ? 0 					: sw*fact),
 					(bstack ? BARHEIGHT+sh*fact		: BARHEIGHT),
 					(bstack ? sw 					: sw*(1-fact)),
 					(bstack ? sh*(1-fact)			: sh));
+	}
 	if (top[wksp]) XRaiseWindow(dpy, top[wksp]->win);
 	if (focused) {
 		XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 		XRaiseWindow(dpy, focused->win);
 	}
-	if (exwin) /* client on external monitor? */
-		XMoveResizeWindow(dpy,exwin,0,sh+BARHEIGHT,exsw,exsh);
 	drawbar();
 }
 
@@ -493,7 +498,7 @@ void workspace(const char *arg) {
 	Client *c;
 	for (i = 0; i < WORKSPACES; i++) /* "hide" all, by moving off screen */
 		for (c = clients[i]; c; c = c->next)
-			XMoveWindow(dpy,c->win,-sw,BARHEIGHT);
+			XMoveWindow(dpy,c->win,-sw-exsw,BARHEIGHT);
 	focused = clients[wksp];
 	stack();
 	drawbar();

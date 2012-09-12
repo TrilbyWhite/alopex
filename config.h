@@ -13,8 +13,8 @@ static const char font[] = "-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*";
 #define BATT_FULL	"/sys/class/power_supply/BAT1/charge_full"
 #define BATT_STAT	"/sys/class/power_supply/BAT1/status"
 
-#define VIDEO1	"LVDS"
-#define VIDEO2	"DVI-0"
+#define VIDEO1	"LVDS1"
+#define VIDEO2	"VGA1"
 
 static const char colors[NUMCOLORS][9] = {
 	[Background]	=	"#101010",
