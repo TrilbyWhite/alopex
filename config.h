@@ -13,6 +13,9 @@ static const char font[] = "-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*";
 #define BATT_FULL	"/sys/class/power_supply/BAT1/charge_full"
 #define BATT_STAT	"/sys/class/power_supply/BAT1/status"
 
+#define VIDEO1	"LVDS"
+#define VIDEO2	"DVI-0"
+
 static const char colors[NUMCOLORS][9] = {
 	[Background]	=	"#101010",
 	[Clock]			=	"#484862",
@@ -90,10 +93,10 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,	XK_4,		putclient,	"4"	},
 	{ MODKEY|ShiftMask,	XK_5,		putclient,	"5"	},
 	/* external monitor support: HIGHLY EXPERIMENTAL, will likely break! */
-//	{ MODKEY|ShiftMask,	XK_e,		exscreen,	"xrandr --auto"	}, /* activate */
-//	{ MODKEY|ShiftMask,	XK_s,		exscreen,	NULL			}, /* deactivate */
-//	{ MODKEY|ShiftMask,	XK_g,		exscreen,	"go"			}, /* send current win */
-//	{ MODKEY|ShiftMask,	XK_r,		exscreen,	"return"		}, /* bring win back */
+	{ MODKEY|ShiftMask,	XK_a,		exscreen,	"activate"		},
+	{ MODKEY|ShiftMask,	XK_d,		exscreen,	"deactivate"	},
+	{ MODKEY|ShiftMask,	XK_s,		exscreen,	"send"			},
+	{ MODKEY|ShiftMask,	XK_r,		exscreen,	"return"		},
 };
 
 // vim: ts=4
