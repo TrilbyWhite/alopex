@@ -48,7 +48,8 @@ struct {
 } status;
 enum {Background, Clock, SpacesNorm, SpacesActive, SpacesSel, SpacesUrg,
 		BarsNorm, BarsFull, BarsCharge, BarsWarn, BarsAlarm,
-		TitleNorm, TitleSel, StackNorm, StackAct, StackSel };
+		TitleNorm, TitleSel, StackNorm, StackAct, StackSel,
+		StackNormBG, StackActBG, StackSelBG };
 
 /* 1.1 FUNCTION PROTOTPYES */
 static void buttonpress(XEvent *);
@@ -258,7 +259,8 @@ void drawbar() {
 				(c==top[wksp]?StackAct:StackNorm) ) ],i+1,0,tab_width-2,BARHEIGHT);
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
 				(c==top[wksp]?StackAct:StackNorm) ) ],i,1,tab_width,BARHEIGHT-1);
-			XFillRectangle(dpy,bar,gc[Background],i+1,1,tab_width-2,BARHEIGHT);
+			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSelBG :
+				(c==top[wksp]?StackActBG:StackNormBG) ) ],i+1,1,tab_width-2,BARHEIGHT);
 			max_tlen = (tab_width > 8 ? (tab_width-8)/FONTWIDTH : 1);
 			XDrawString(dpy,bar,gc[(c==focused ? TitleSel : TitleNorm)],i+4,
 				FONTHEIGHT,c->title,(c->tlen > max_tlen ? max_tlen : c->tlen));

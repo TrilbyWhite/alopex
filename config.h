@@ -2,7 +2,7 @@
 
 static const char font[] = "-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*";
 
-#define NUMCOLORS	16
+#define NUMCOLORS	19
 #define BARHEIGHT	13
 #define FONTHEIGHT	11
 #define FONTWIDTH	6
@@ -34,6 +34,10 @@ static const char colors[NUMCOLORS][9] = {
 	[StackNorm]		=	"#484862",
 	[StackAct]		=	"#4466FF",
 	[StackSel]		=	"#FFDD0E",
+	[StackNormBG]	=	"#000000",
+	[StackActBG]	=	"#080808",
+	/* set StackSelBG to same as term background for good tab look */
+	[StackSelBG]	=	"#080808",
 };
 
 /* minimum percentage of screen that a window can take */
