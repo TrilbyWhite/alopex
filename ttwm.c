@@ -102,7 +102,7 @@ static long j1,j2,j3,j4;
 static FILE *in;
 
 static Client *focused=NULL;
-static Window exwin = 0;
+static Window *exwin;
 #include "config.h"
 static Client *clients[WORKSPACES];
 static Client *top[WORKSPACES];
@@ -285,14 +285,14 @@ void drawbar() {
 /* exscreen is EXPERIMENTAL and UNTESTED.  Not ready for use */
 void exscreen(const char *arg) {
 	if (arg[0] == 'd') {
-		exwin = 0;
+		exwin[wksp] = 0;
 		system("xrandr --output " VIDEO1 " --auto --output " VIDEO2 " --off");
 		screen = DefaultScreen(dpy);
 		sw = DisplayWidth(dpy,screen);
 		sh = DisplayHeight(dpy,screen) - BARHEIGHT;
 	}
-	else if (arg[0] == 's') exwin = (focused ? focused->win : clients[wksp]->win);
-	else if (arg[0] == 'r') exwin = 0;
+	else if (arg[0] == 's') exwin[wksp] = (focused ? focused->win : clients[wksp]->win);
+	else if (arg[0] == 'r') exwin[wksp] = 0;
 	else if (arg[0] == 'a') {
 		system("xrandr --output " VIDEO1 " --auto --output " VIDEO2 " --auto --below " VIDEO1);
 		screen = DefaultScreen(dpy);
@@ -416,11 +416,11 @@ void stack() {
 	zoomed = False;
 	Client *c = clients[wksp];
 	if (!c) return; /* no clients = nothing to do */
-	if (exwin) /* client on external monitor? */
-		XMoveResizeWindow(dpy,exwin,0,sh+BARHEIGHT,exsw,exsh);
-	if (c->win == exwin) c=c->next;
+	if (exwin[wksp]) /* client on external monitor? */
+		XMoveResizeWindow(dpy,exwin[wksp],0,sh+BARHEIGHT,exsw,exsh);
+	if (c->win == exwin[wksp]) c=c->next;
 	if (!c) return; /* no remaining clients = nothing to do */
-	else if ( (!c->next) || (c->next->win == exwin && !c->next->next) ) {
+	else if ( (!c->next) || (c->next->win == exwin[wksp] && !c->next->next) ) {
 		/* only one client = full screen */
 		XMoveResizeWindow(dpy,c->win,0,BARHEIGHT,sw,sh);
 		//XSetInputFocus(dpy,c->win,RevertToPointerRoot,CurrentTime);
@@ -430,7 +430,7 @@ void stack() {
 			(bstack ? sw		: sw*fact),
 			(bstack ? sh*fact	: sh));
 		for (c=c->next; c; c=c->next)
-			if (c->win != exwin)
+			if (c->win != exwin[wksp])
 				XMoveResizeWindow(dpy,c->win,
 					(bstack ? 0 					: sw*fact),
 					(bstack ? BARHEIGHT+sh*fact		: BARHEIGHT),
@@ -543,6 +543,7 @@ int main() {
 	sw = DisplayWidth(dpy,screen);
 	sh = DisplayHeight(dpy,screen) - BARHEIGHT;
 	XSetErrorHandler(xerror);
+	exwin = (Window *) calloc(WORKSPACES,sizeof(Window));
 
 	/* CONFIGURE GRAPHIC CONTEXTS */
 	bar = XCreatePixmap(dpy,root,sw,BARHEIGHT,DefaultDepth(dpy,screen));
@@ -604,6 +605,7 @@ int main() {
 			}
 	}
 	/* clean up needed here */
+	free(exwin);
 	return 0;
 }
 
