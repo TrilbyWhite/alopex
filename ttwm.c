@@ -255,7 +255,9 @@ void drawbar() {
 		if (tab_count) tab_width = (sw-i)/tab_count;
 		for ( c=clients[wksp]->next; c; c=c->next ) {
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
-				(c==top[wksp]?StackAct:StackNorm) ) ],i,0,tab_width,BARHEIGHT);
+				(c==top[wksp]?StackAct:StackNorm) ) ],i+1,0,tab_width-2,BARHEIGHT);
+			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
+				(c==top[wksp]?StackAct:StackNorm) ) ],i,1,tab_width,BARHEIGHT-1);
 			XFillRectangle(dpy,bar,gc[Background],i+1,1,tab_width-2,BARHEIGHT);
 			max_tlen = (tab_width > 8 ? (tab_width-8)/FONTWIDTH : 1);
 			XDrawString(dpy,bar,gc[(c==focused ? TitleSel : TitleNorm)],i+4,
