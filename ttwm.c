@@ -241,15 +241,25 @@ void drawbar() {
 	XFillRectangle(dpy,bar,gc[status.cpu_col],i,BARHEIGHT-10,status.cpu,2);
 	XFillRectangle(dpy,bar,gc[status.vol_col],i,BARHEIGHT-7,status.vol,2);
 	XFillRectangle(dpy,bar,gc[status.bat_col],i,BARHEIGHT-4,status.bat,2);
-	/* MASTER WINDOW NAME */
-	i+=60; /* 50px for bars + 10px space */
+	/* MASTER WINDOW TAB & NAME */
+	i+=56; /* 50px for bars + 6px space */
+	int tab_width = sw-i;
 	Client *c = clients[wksp];
-	if (c) XDrawString(dpy,bar,gc[ (c==focused ? TitleSel : TitleNorm)],
-			i,FONTHEIGHT,c->title,(c->tlen > 62 ? 62 : c->tlen));
+	if (c) {
+		if (c->next)
+			tab_width = sw*fact-i;
+		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel : StackAct) ],
+			i+1,0,tab_width-2,BARHEIGHT);
+		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel : StackAct) ],
+			i,1,tab_width,BARHEIGHT-1);
+		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSelBG : StackActBG) ],
+			i+1,1,tab_width-2,BARHEIGHT);
+		XDrawString(dpy,bar,gc[ (c==focused ? TitleSel : TitleNorm)],
+			i+4,FONTHEIGHT,c->title,(c->tlen > 62 ? 62 : c->tlen));
+	}
 	/* STACK TABS */
 	i = sw*fact; /* screen width * master portion = start of stack region */
 	int tab_count = 0;
-	int tab_width = 0;
 	int max_tlen;
 	if (clients[wksp]) {
 		for ( c=clients[wksp]->next; c; c=c->next ) tab_count++;
