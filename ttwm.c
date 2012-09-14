@@ -106,6 +106,7 @@ static Window *exwin;
 #include "config.h"
 static Client *clients[WORKSPACES];
 static Client *top[WORKSPACES];
+static Bool urg[WORKSPACES];
 
 /* These next two variables seem awkward and out of place.  They are holdovers
 from Tinywm.  I'd get rid of them, but they just work so darn well and, with
@@ -189,6 +190,14 @@ void propertynotify(XEvent *ev) {
 		if (XFetchName(dpy,c->win,&c->title)) c->tlen = strlen(c->title);
 		drawbar();
 	}
+	else if (e->atom == XA_WM_HINTS) {
+		XWMHints *hint;
+		if ( (hint=XGetWMHints(dpy,c->win)) && (hint->flags & XUrgencyHint) ) {
+			wintoclient(c->win);
+			urg[onwksp] = True;
+		}
+		drawbar();
+	}
 }
 
 void unmapnotify(XEvent *ev) {
@@ -224,6 +233,7 @@ static void die(const char *msg, ...) {
 }
 
 void drawbar() {
+	urg[wksp] = False;
 	XFillRectangle(dpy,bar,gc[Background],0,0,sw,BARHEIGHT);
 	/* CLOCK */
 	static char buf[8];
@@ -233,9 +243,11 @@ void drawbar() {
 	XDrawString(dpy,bar,gc[Clock],2,FONTHEIGHT,buf,i);
 	/* WORKSPACES */
 	for (i = 0; i < WORKSPACES; i++)
-		XFillRectangle(dpy,bar,gc[(wksp==i ? SpacesSel : (clients[i] ?
-			SpacesActive : SpacesNorm))], 6*i+40, (clients[i]?3:6),3,
-			BARHEIGHT-(clients[i]?5:8));
+		XFillRectangle(dpy,bar,gc[
+			(wksp==i	?	SpacesSel 		:
+			(urg[i]		?	SpacesUrg 		: 
+			(clients[i] ?	SpacesActive 	: SpacesNorm ))) ],
+			6*i+40, (clients[i]?3:6),3,BARHEIGHT-(clients[i]?5:8));
 	/* STATUS MONITORS */
 	i = 6*i+45; /* 6px for each workspace + 45px space */
 	XFillRectangle(dpy,bar,gc[status.cpu_col],i,BARHEIGHT-10,status.cpu,2);
@@ -282,7 +294,6 @@ void drawbar() {
 	XSync(dpy,False);
 }
 
-/* exscreen is EXPERIMENTAL and UNTESTED.  Not ready for use */
 void exscreen(const char *arg) {
 	if (arg[0] == 'd') {
 		exwin[wksp] = 0;
@@ -547,7 +558,7 @@ int main() {
 
 	/* CONFIGURE GRAPHIC CONTEXTS */
 	bar = XCreatePixmap(dpy,root,sw,BARHEIGHT,DefaultDepth(dpy,screen));
-	int i,j;
+	unsigned int i,j;
 	gc = (GC *) calloc(NUMCOLORS, sizeof(GC));
 	Colormap cmap = DefaultColormap(dpy,screen);
 	XColor color;

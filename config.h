@@ -23,7 +23,7 @@ static const char colors[NUMCOLORS][9] = {
 	[SpacesNorm]	=	"#484862",
 	[SpacesActive]	=	"#6284FF",
 	[SpacesSel]		=	"#FFDD0E",
-	[SpacesUrg]		=	"#FF0000",  /* "Urgent" not yet implemented */
+	[SpacesUrg]		=	"#FF0000",
 	[BarsNorm]		=	"#303030",
 	[BarsFull]		=	"#122864",
 	[BarsCharge]	=	"#308030",
@@ -40,12 +40,12 @@ static const char colors[NUMCOLORS][9] = {
 	[StackSelBG]	=	"#080808",
 };
 
-/* minimum percentage of screen that a window can take */
-/*  and granularity in adjustment of master window size */
+/* minimum portion of screen that a window can take */
+/* and granularity in adjustment of master window size */
 #define FACT_MIN	0.2
 #define FACT_ADJUST	0.02
-static uint8_t bstack	= False;	/* start with bottom stack? */
-static float fact		= 0.50;		/* portion of screen for master window */
+static Bool bstack	= False;	/* start with bottom stack? */
+static float fact	= 0.50;		/* portion of screen for master window */
 
 #define DMENU		"dmenu_run -fn \"-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
 #define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc */
@@ -86,18 +86,18 @@ static Key keys[] = {
 	{ MODKEY,			XK_r,		stackmode,	"right"			},
 	{ MODKEY,			XK_t,		stackmode,	"toggle"		},
 	/* change workspaces: */
-	{ MODKEY,			XK_1,		workspace,	"1"	},
-	{ MODKEY,			XK_2,		workspace,	"2"	},
-	{ MODKEY,			XK_3,		workspace,	"3"	},
-	{ MODKEY,			XK_4,		workspace,	"4"	},
-	{ MODKEY,			XK_5,		workspace,	"5"	},
+	{ MODKEY,			XK_1,		workspace,	"1"				},
+	{ MODKEY,			XK_2,		workspace,	"2"				},
+	{ MODKEY,			XK_3,		workspace,	"3"				},
+	{ MODKEY,			XK_4,		workspace,	"4"				},
+	{ MODKEY,			XK_5,		workspace,	"5"				},
 	/* move client to workspace: */
-	{ MODKEY|ShiftMask,	XK_1,		putclient,	"1"	},
-	{ MODKEY|ShiftMask,	XK_2,		putclient,	"2"	},
-	{ MODKEY|ShiftMask,	XK_3,		putclient,	"3"	},
-	{ MODKEY|ShiftMask,	XK_4,		putclient,	"4"	},
-	{ MODKEY|ShiftMask,	XK_5,		putclient,	"5"	},
-	/* external monitor support: HIGHLY EXPERIMENTAL, will likely break! */
+	{ MODKEY|ShiftMask,	XK_1,		putclient,	"1"				},
+	{ MODKEY|ShiftMask,	XK_2,		putclient,	"2"				},
+	{ MODKEY|ShiftMask,	XK_3,		putclient,	"3"				},
+	{ MODKEY|ShiftMask,	XK_4,		putclient,	"4"				},
+	{ MODKEY|ShiftMask,	XK_5,		putclient,	"5"				},
+	/* external monitor support: EXPERIMENTAL, will likely break! */
 	{ MODKEY|ShiftMask,	XK_a,		exscreen,	"activate"		},
 	{ MODKEY|ShiftMask,	XK_d,		exscreen,	"deactivate"	},
 	{ MODKEY|ShiftMask,	XK_s,		exscreen,	"send"			},
