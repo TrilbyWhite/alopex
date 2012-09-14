@@ -1,4 +1,4 @@
-CFLAGS	+=	-Os -Wall -Werror -Wextra -Wno-unused-parameter
+CFLAGS	+=	-Os -Wall -Werror -Wextra -Wno-unused-parameter -Wno-unused-result
 PROG	=	ttwm
 LIBS	=	-lX11 -lXrandr
 PREFIX	?=	/usr
