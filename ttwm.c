@@ -99,6 +99,7 @@ static GC *gc;
 static int wksp, onwksp;
 static Bool zoomed;
 static long j1,j2,j3,j4;
+static char *aud_file;
 static FILE *in;
 
 static Client *focused=NULL;
@@ -485,8 +486,7 @@ void updatestatus() {
 		status.cpu = (n > 100 ? 100 : n) / 2;
 	}
 #endif /* CPU_FILE */
-#ifdef AUD_FILE
-	if ( (in=fopen(AUD_FILE,"r")) ) {	/* AUDIO VOLUME MONITOR */
+	if ( (in=fopen(aud_file,"r")) ) {	/* AUDIO VOLUME MONITOR */
 		fscanf(in,"%d",&n);
 		fclose(in);
 		if (n == -1) status.vol_col = BarsAlarm;
@@ -495,7 +495,6 @@ void updatestatus() {
 		else status.vol_col = BarsNorm;
 		if (n > -1) status.vol = n / 2;
 	}
-#endif /* AUD_FILE */
 #ifdef BATT_NOW
 	if ( (in=fopen(BATT_NOW,"r")) ) {	/* BATTERY MONITOR */
 		fscanf(in,"%ld\n",&ln1); fclose(in);
@@ -590,10 +589,17 @@ int main() {
 		GrabModeAsync,None,None);
 	/* MAIN LOOP */
 	XEvent ev;
-	/* prepare "previous" values for cpu jiffies */
+	/* prepare "previous" values for cpu jiffies, and create aud_file variable */
 	in = fopen(CPU_FILE,"r");
 	fscanf(in,"cpu %ld %ld %ld %ld",&j1,&j2,&j3,&j4);
 	fclose(in);
+	char *homedir = getenv("HOME");
+	if (homedir != NULL) {
+		aud_file = (char *) calloc(strlen(homedir)+15,sizeof(char));
+		strcpy(aud_file,homedir);
+		strcat(aud_file,"/.audio_volume");
+	}
+	else aud_file = NULL;
 	updatestatus();
 	/* get connection to read from */
 	int fd,r;

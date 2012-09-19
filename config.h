@@ -1,6 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
-static const char font[] = "-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*";
+//static const char font[] = "-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*";
+static const char font[] = "-*-terminus-bold-r-*--12-120-72-72-c-60-*-*";
 
 #define NUMCOLORS	19
 #define BARHEIGHT	13
@@ -9,11 +10,11 @@ static const char font[] = "-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*";
 #define WORKSPACES	5
 
 #define CPU_FILE	"/proc/stat"
-#define AUD_FILE	"/home/USERNAME/.audio_volume"
 #define BATT_NOW	"/sys/class/power_supply/BAT1/charge_now"
 #define BATT_FULL	"/sys/class/power_supply/BAT1/charge_full"
 #define BATT_STAT	"/sys/class/power_supply/BAT1/status"
 
+// VIDEO1 = local monitor VIDEO2 = any external monitor connection
 #define VIDEO1	"LVDS1"
 #define VIDEO2	"VGA1"
 

@@ -21,7 +21,5 @@ install:
 	@mkdir -p ${DESTDIR}${PREFIX}/bin
 	@install -m755 ttwm ${DESTDIR}${PREFIX}/bin/ttwm
 	@install -Dm666 $(PROG).1.gz ${DESTDIR}${MANDIR}/man1/$(PROG).1.gz
-
-install_vol_script:
 	@install -m755 vol ${DESTDIR}${PREFIX}/bin/vol
 
