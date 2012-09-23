@@ -1,7 +1,7 @@
 # Maintainer: Jesse McClure AKA "Trilby" <jmcclure [at] cns [dot] umass [dot] edu>
 pkgname=ttwm-git
 pkgver=20120811
-pkgrel=2
+pkgrel=4
 pkgdesc="Tiny Tiler/Tabbed Tiler Window Manager"
 url="http://github.com/TrilbyWhite/ttwm.git"
 arch=('any')
@@ -28,6 +28,7 @@ build() {
 	if [[ -f ~/.ttwm_conf.h ]]; then
 		msg "Using user config from ~/.ttwm_conf.h"
 		msg "  Be sure to check for changes to default config.h"
+		cp ~/.ttwm_conf.h ./config.h
 	else
 		msg "Using default config"
 	fi
@@ -37,6 +38,5 @@ build() {
 package() {
 	cd "$srcdir/$_gitname-build"
 	make PREFIX=/usr DESTDIR=$pkgdir install
-	make PREFIX=/usr DESTDIR=$pkgdir install_vol_script
 }
 
