@@ -1,6 +1,5 @@
 /* See LICENSE file for copyright and license details. */
 
-//static const char font[] = "-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*";
 static const char font[] = "-*-terminus-bold-r-*--12-120-72-72-c-60-*-*";
 
 #define NUMCOLORS	19
@@ -48,7 +47,7 @@ static const char colors[NUMCOLORS][9] = {
 static Bool bstack	= False;	/* start with bottom stack? */
 static float fact	= 0.50;		/* portion of screen for master window */
 
-#define DMENU		"dmenu_run -fn \"-*-terminus2-medium-r-*-*-*-*-*-*-*-*-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
+#define DMENU		"dmenu_run -fn \"-*-terminus-bold-r-*--12-120-72-72-c-60-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
 #define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc */
 #define CMD(app)	app "&"
 
@@ -86,6 +85,8 @@ static Key keys[] = {
 	{ MODKEY,			XK_b,		stackmode,	"bottom"		},
 	{ MODKEY,			XK_r,		stackmode,	"right"			},
 	{ MODKEY,			XK_t,		stackmode,	"toggle"		},
+	{ MODKEY,			XK_Up,		stackmode,	"single"		},
+	{ MODKEY,			XK_Down,	stackmode,	"multiple"		},
 	/* change workspaces: */
 	{ MODKEY,			XK_1,		workspace,	"1"				},
 	{ MODKEY,			XK_2,		workspace,	"2"				},
