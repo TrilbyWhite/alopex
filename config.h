@@ -45,6 +45,7 @@ static const char colors[NUMCOLORS][9] = {
 #define FACT_MIN	0.2
 #define FACT_ADJUST	0.02
 static Bool bstack	= False;	/* start with bottom stack? */
+static Bool columns = True;		/* start with two columns - or monocle-like mode */
 static float fact	= 0.50;		/* portion of screen for master window */
 
 #define DMENU		"dmenu_run -fn \"-*-terminus-bold-r-*--12-120-72-72-c-60-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""

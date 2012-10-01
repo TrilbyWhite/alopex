@@ -263,7 +263,7 @@ void drawbar() {
 		for ( c=clients[wksp]; c; c=c->next ) tab_count++;
 		c = clients[wksp];
 		if (c->next) tab_width = sw*fact-i;
-		if (!fact) tab_width = (sw-i)/tab_count;
+		if (!columns) tab_width = (sw-i)/tab_count;
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel : StackAct) ],
 			i+1,0,tab_width-2,BARHEIGHT);
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel : StackAct) ],
@@ -277,7 +277,7 @@ void drawbar() {
 	i+=tab_width;
 	int max_tlen;
 	if (c && clients[wksp]->next) {
-		if (fact) tab_width = (sw-i)/(tab_count-1);
+		if (columns) tab_width = (sw-i)/(tab_count-1);
 		for ( c=clients[wksp]->next; c; c=c->next ) {
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
 				(c==top[wksp]?StackAct:StackNorm) ) ],i+1,0,tab_width-2,BARHEIGHT);
@@ -439,7 +439,7 @@ void stack() {
 		//XSetInputFocus(dpy,c->win,RevertToPointerRoot,CurrentTime);
 	}
 	else {
-		if (fact) {
+		if (columns) {
 			XMoveResizeWindow(dpy,c->win,0,BARHEIGHT, 
 				(bstack ? sw		: sw*fact),
 				(bstack ? sh*fact	: sh));
@@ -448,8 +448,8 @@ void stack() {
 					XMoveResizeWindow(dpy,c->win,
 						(bstack ? 0 					: sw*fact),
 						(bstack ? BARHEIGHT+sh*fact		: BARHEIGHT),
-						(bstack ? sw 					: sw*(1-fact)),
-						(bstack ? sh*(1-fact)			: sh));
+						(bstack ? sw 					: sw - (int)(sw*fact)),
+						(bstack ? sh - (int)(sh*fact)	: sh));
 		}
 		else {
 			for (c=c; c; c=c->next)
@@ -470,13 +470,11 @@ void stackmode(const char *arg) {
 	else if (arg[0] == 'b') bstack = 1;
 	else if (arg[0] == 'r') bstack = 0;
 	else if (arg[0] == 't') bstack = 1-bstack;
-	else if (arg[0] == 's') fact = 0;
-	else if (arg[0] == 'm') fact = 0.5;
+	else if (arg[0] == 's') columns = False;
+	else if (arg[0] == 'm') columns = True;
 	else return;
-	if (fact) {
-		if (fact < FACT_MIN) fact = FACT_MIN;
-		else if (fact > 100 - FACT_MIN) fact = FACT_MIN;
-	}
+	if (fact < FACT_MIN) fact = FACT_MIN;
+	else if (fact > 100 - FACT_MIN) fact = FACT_MIN;
 	stack();
 }
 
