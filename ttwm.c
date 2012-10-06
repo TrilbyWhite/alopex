@@ -47,9 +47,8 @@ struct {
 	uint8_t cpu_col,vol_col,bat_col;
 } status;
 enum {Background, Clock, SpacesNorm, SpacesActive, SpacesSel, SpacesUrg,
-		BarsNorm, BarsFull, BarsCharge, BarsWarn, BarsAlarm,
 		TitleNorm, TitleSel, StackNorm, StackAct, StackSel,
-		StackNormBG, StackActBG, StackSelBG };
+		StackNormBG, StackActBG, StackSelBG, LASTColor };
 
 /* 1.1 FUNCTION PROTOTPYES */
 static void buttonpress(XEvent *);
@@ -74,7 +73,6 @@ static void swap(const char *);
 static void stack();
 static void stackmode(const char *);
 static void swapclients(Client *, Client *);
-static void updatestatus();
 static void *wintoclient(Window);
 static void workspace(const char *);
 static void quit(const char *);
@@ -83,7 +81,7 @@ static void quit(const char *);
 static Display *dpy;
 static int screen, sw, sh, exsw, exsh;
 static Window root;
-static Bool running;
+static Bool running=True;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]		= buttonpress,
 	[ButtonRelease]		= buttonrelease,
@@ -98,9 +96,6 @@ static Drawable bar;
 static GC *gc;
 static int wksp, onwksp;
 static Bool zoomed;
-static long j1,j2,j3,j4;
-static char *aud_file;
-static FILE *in;
 
 static Client *focused=NULL;
 static Window *exwin;
@@ -249,13 +244,8 @@ void drawbar() {
 			(urg[i]		?	SpacesUrg 		: 
 			(clients[i] ?	SpacesActive 	: SpacesNorm ))) ],
 			6*i+40, (clients[i]?3:6),3,BARHEIGHT-(clients[i]?5:8));
-	/* STATUS MONITORS */
-	i = 6*i+45; /* 6px for each workspace + 45px space */
-	XFillRectangle(dpy,bar,gc[status.cpu_col],i,BARHEIGHT-10,status.cpu,2);
-	XFillRectangle(dpy,bar,gc[status.vol_col],i,BARHEIGHT-7,status.vol,2);
-	XFillRectangle(dpy,bar,gc[status.bat_col],i,BARHEIGHT-4,status.bat,2);
+	i = 6*i+45+STATUSBARSPACE; /* 6px for each workspace + 45px space */
 	/* MASTER WINDOW TAB & NAME */
-	i+=56; /* 50px for bars + 6px space */
 	int tab_width = sw-i;
 	int tab_count = 0;
 	Client *c = clients[wksp];
@@ -478,49 +468,6 @@ void stackmode(const char *arg) {
 	stack();
 }
 
-void updatestatus() {
-	static long ln1,ln2,ln3,ln4;
-	static int n;
-	static char c;
-#ifdef CPU_FILE
-	if ( (in=fopen(CPU_FILE,"r")) ) {	/* CPU MONITOR */
-		fscanf(in,"cpu %ld %ld %ld %ld",&ln1,&ln2,&ln3,&ln4);
-		fclose(in);
-		if (ln4>j4) n=(int)100*(ln1-j1+ln2-j2+ln3-j3)/(ln1-j1+ln2-j2+ln3-j3+ln4-j4);
-		else n=0;
-		j1=ln1; j2=ln2; j3=ln3; j4=ln4;
-		if (n > 85) status.cpu_col = BarsAlarm;
-		else if (n > 60) status.cpu_col = BarsWarn;
-		else status.cpu_col = BarsNorm;
-		status.cpu = (n > 100 ? 100 : n) / 2;
-	}
-#endif /* CPU_FILE */
-	if ( (in=fopen(aud_file,"r")) ) {	/* AUDIO VOLUME MONITOR */
-		fscanf(in,"%d",&n);
-		fclose(in);
-		if (n == -1) status.vol_col = BarsAlarm;
-		else if (n == 100) status.vol_col = BarsFull;
-		else if (n < 15) status.vol_col = BarsWarn;
-		else status.vol_col = BarsNorm;
-		if (n > -1) status.vol = n / 2;
-	}
-#ifdef BATT_NOW
-	if ( (in=fopen(BATT_NOW,"r")) ) {	/* BATTERY MONITOR */
-		fscanf(in,"%ld\n",&ln1); fclose(in);
-		if ( (in=fopen(BATT_FULL,"r")) ) { fscanf(in,"%ld\n",&ln2); fclose(in); }
-		if ( (in=fopen(BATT_STAT,"r")) ) { fscanf(in,"%c",&c); fclose(in); }
-		n = (ln1 ? ln1 * 100 / ln2 : 0);
-		if (c == 'C') status.bat_col = BarsCharge;
-		else if (n < 10) status.bat_col = BarsAlarm;
-		else if (n < 20) status.bat_col = BarsWarn;
-		else if (n > 95) status.bat_col = BarsFull;
-		else status.bat_col = BarsNorm;
-		status.bat = n / 2;
-	}
-#endif /* BATT_NOW */
-	drawbar();
-}
-	
 void *wintoclient(Window w) {
 	Client *c;
 	int i;
@@ -567,12 +514,12 @@ int main() {
 	/* CONFIGURE GRAPHIC CONTEXTS */
 	bar = XCreatePixmap(dpy,root,sw,BARHEIGHT,DefaultDepth(dpy,screen));
 	unsigned int i,j;
-	gc = (GC *) calloc(NUMCOLORS, sizeof(GC));
+	gc = (GC *) calloc(LASTColor, sizeof(GC));
 	Colormap cmap = DefaultColormap(dpy,screen);
 	XColor color;
 	XGCValues val;
 	val.font = XLoadFont(dpy,font);
-	for (i = 0; i < NUMCOLORS; i++) {
+	for (i = 0; i < LASTColor; i++) {
 		XAllocNamedColor(dpy,cmap,colors[i],&color,&color);
 		val.foreground = color.pixel;
 		gc[i] = XCreateGC(dpy,root,GCForeground|GCFont,&val);
@@ -598,38 +545,9 @@ int main() {
 		GrabModeAsync,None,None);
 	/* MAIN LOOP */
 	XEvent ev;
-	/* prepare "previous" values for cpu jiffies, and create aud_file variable */
-	in = fopen(CPU_FILE,"r");
-	fscanf(in,"cpu %ld %ld %ld %ld",&j1,&j2,&j3,&j4);
-	fclose(in);
-	char *homedir = getenv("HOME");
-	if (homedir != NULL) {
-		aud_file = (char *) calloc(strlen(homedir)+15,sizeof(char));
-		strcpy(aud_file,homedir);
-		strcat(aud_file,"/.audio_volume");
-	}
-	else aud_file = NULL;
-	updatestatus();
-	/* get connection to read from */
-	int fd,r;
-	struct timeval tv;
-	fd_set rfds;
-	fd = ConnectionNumber(dpy);
-	running = True;
-	while (running) { /* main loop */
-		memset(&tv,0,sizeof(tv));
-		tv.tv_usec = 250000; /* update status bar every 0.25 seconds */
-		FD_ZERO(&rfds);
-		FD_SET(fd,&rfds);
-		r = select(fd+1,&rfds,0,0,&tv);
-		if (r == 0) /* timed out, update status */
-			updatestatus();
-		else /* received event before timeout */
-			while (XPending(dpy)) {
-				XNextEvent(dpy,&ev);
-				if (handler[ev.type]) handler[ev.type](&ev);
-			}
-	}
+	drawbar();
+	while (running && ! XNextEvent(dpy,&ev))
+		if (handler[ev.type]) handler[ev.type](&ev);
 	/* clean up needed here */
 	free(exwin);
 	return 0;

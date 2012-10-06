@@ -2,33 +2,23 @@
 
 static const char font[] = "-*-terminus-bold-r-*--12-120-72-72-c-60-*-*";
 
-#define NUMCOLORS	19
-#define BARHEIGHT	13
-#define FONTHEIGHT	11
-#define FONTWIDTH	6
-#define WORKSPACES	5
-
-#define CPU_FILE	"/proc/stat"
-#define BATT_NOW	"/sys/class/power_supply/BAT1/charge_now"
-#define BATT_FULL	"/sys/class/power_supply/BAT1/charge_full"
-#define BATT_STAT	"/sys/class/power_supply/BAT1/status"
+#define BARHEIGHT		13
+#define STATUSBARSPACE	56
+#define FONTHEIGHT		11
+#define FONTWIDTH		6
+#define WORKSPACES		5
 
 // VIDEO1 = local monitor VIDEO2 = any external monitor connection
 #define VIDEO1	"LVDS1"
 #define VIDEO2	"VGA1"
 
-static const char colors[NUMCOLORS][9] = {
+static const char colors[LASTColor][9] = {
 	[Background]	=	"#101010",
 	[Clock]			=	"#484862",
 	[SpacesNorm]	=	"#484862",
 	[SpacesActive]	=	"#6284FF",
 	[SpacesSel]		=	"#FFDD0E",
 	[SpacesUrg]		=	"#FF0000",
-	[BarsNorm]		=	"#303030",
-	[BarsFull]		=	"#122864",
-	[BarsCharge]	=	"#308030",
-	[BarsWarn]		=	"#997700",
-	[BarsAlarm]		=	"#990000",
 	[TitleNorm]		=	"#696969",
 	[TitleSel]		=	"#4466FF",
 	[StackNorm]		=	"#484862",
@@ -80,12 +70,13 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,	XK_Right,	move,		"right"			},
 	{ MODKEY,			XK_Tab,		focus,		"other"			},
 	/* increase or decrease master size.  */
-	/* set bottom stack, right stack, or toggle between the two */
 	{ MODKEY,			XK_i,		stackmode,	"increase"		},
 	{ MODKEY,			XK_d,		stackmode,	"decrease"		},
+	/* set bottom stack, right stack, or toggle between the two */
 	{ MODKEY,			XK_b,		stackmode,	"bottom"		},
 	{ MODKEY,			XK_r,		stackmode,	"right"			},
 	{ MODKEY,			XK_t,		stackmode,	"toggle"		},
+	/* single window (monocle-like) or master+stack */
 	{ MODKEY,			XK_Up,		stackmode,	"single"		},
 	{ MODKEY,			XK_Down,	stackmode,	"multiple"		},
 	/* change workspaces: */
@@ -100,7 +91,7 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,	XK_3,		putclient,	"3"				},
 	{ MODKEY|ShiftMask,	XK_4,		putclient,	"4"				},
 	{ MODKEY|ShiftMask,	XK_5,		putclient,	"5"				},
-	/* external monitor support: EXPERIMENTAL, will likely break! */
+	/* external monitor support: */
 	{ MODKEY|ShiftMask,	XK_a,		exscreen,	"activate"		},
 	{ MODKEY|ShiftMask,	XK_d,		exscreen,	"deactivate"	},
 	{ MODKEY|ShiftMask,	XK_s,		exscreen,	"send"			},
