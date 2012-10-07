@@ -94,6 +94,8 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 };
 static Drawable bar;
 static GC *gc;
+static XFontStruct *fontstruct;
+static int fontheight;
 static int wksp, onwksp;
 static Bool zoomed;
 
@@ -230,21 +232,23 @@ static void die(const char *msg, ...) {
 
 void drawbar() {
 	urg[wksp] = False;
-	XFillRectangle(dpy,bar,gc[Background],0,0,sw,BARHEIGHT);
+	XFillRectangle(dpy,bar,gc[Background],0,0,sw,barheight);
 	/* CLOCK */
 	static char buf[8];
 	static time_t now;
 	time(&now);
-	int i = strftime(buf,7,"%H:%M",localtime(&now));
-	XDrawString(dpy,bar,gc[Clock],2,FONTHEIGHT,buf,i);
+	int i,j;
+	i = strftime(buf,7,"%H:%M",localtime(&now));
+	XDrawString(dpy,bar,gc[Clock],2,fontheight,buf,i);
+	i = XTextWidth(fontstruct,buf,i) + 7 + fontstruct->max_bounds.lbearing;
 	/* WORKSPACES */
-	for (i = 0; i < WORKSPACES; i++)
+	for (j = 0; j < WORKSPACES; j++)
 		XFillRectangle(dpy,bar,gc[
-			(wksp==i	?	SpacesSel 		:
-			(urg[i]		?	SpacesUrg 		: 
-			(clients[i] ?	SpacesActive 	: SpacesNorm ))) ],
-			6*i+40, (clients[i]?3:6),3,BARHEIGHT-(clients[i]?5:8));
-	i = 6*i+45+STATUSBARSPACE; /* 6px for each workspace + 45px space */
+			(wksp==j	?	SpacesSel 		:
+			(urg[j]		?	SpacesUrg 		: 
+			(clients[j] ?	SpacesActive 	: SpacesNorm ))) ],
+			6*j+i, (clients[j]?3:6),3,fontheight-(clients[j]?3:6));
+	i += 6*j+STATUSBARSPACE; /* 6px for each workspace */
 	/* MASTER WINDOW TAB & NAME */
 	int tab_width = sw-i;
 	int tab_count = 0;
@@ -255,13 +259,13 @@ void drawbar() {
 		if (c->next) tab_width = sw*fact-i;
 		if (!columns) tab_width = (sw-i)/tab_count;
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel : StackAct) ],
-			i+1,0,tab_width-2,BARHEIGHT);
+			i+1,0,tab_width-2,barheight);
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel : StackAct) ],
-			i,1,tab_width,BARHEIGHT-1);
+			i,1,tab_width,barheight-1);
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSelBG : StackActBG) ],
-			i+1,1,tab_width-2,BARHEIGHT);
+			i+1,1,tab_width-2,barheight);
 		XDrawString(dpy,bar,gc[ (c==focused ? TitleSel : TitleNorm)],
-			i+4,FONTHEIGHT,c->title,(c->tlen > 62 ? 62 : c->tlen));
+			i+4,fontheight,c->title,(c->tlen > 62 ? 62 : c->tlen));
 	}
 	/* STACK TABS */
 	i+=tab_width;
@@ -270,19 +274,19 @@ void drawbar() {
 		if (columns) tab_width = (sw-i)/(tab_count-1);
 		for ( c=clients[wksp]->next; c; c=c->next ) {
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
-				(c==top[wksp]?StackAct:StackNorm) ) ],i+1,0,tab_width-2,BARHEIGHT);
+				(c==top[wksp]?StackAct:StackNorm) ) ],i+1,0,tab_width-2,barheight);
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
-				(c==top[wksp]?StackAct:StackNorm) ) ],i,1,tab_width,BARHEIGHT-1);
+				(c==top[wksp]?StackAct:StackNorm) ) ],i,1,tab_width,barheight-1);
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSelBG :
-				(c==top[wksp]?StackActBG:StackNormBG) ) ],i+1,1,tab_width-2,BARHEIGHT);
-			max_tlen = (tab_width > 8 ? (tab_width-8)/FONTWIDTH : 1);
+				(c==top[wksp]?StackActBG:StackNormBG) ) ],i+1,1,tab_width-2,barheight);
+			max_tlen = (tab_width > 8 ? (tab_width-8)/fontstruct->max_bounds.width : 1);
 			XDrawString(dpy,bar,gc[(c==focused ? TitleSel : TitleNorm)],i+4,
-				FONTHEIGHT,c->title,(c->tlen > max_tlen ? max_tlen : c->tlen));
+				fontheight,c->title,(c->tlen > max_tlen ? max_tlen : c->tlen));
 			i+=tab_width;
 		}
 	}
 	/* DRAW IT */
-	XCopyArea(dpy,bar,root,gc[0],0,0,sw,BARHEIGHT,0,0);
+	XCopyArea(dpy,bar,root,gc[0],0,0,sw,barheight,0,0);
 	XSync(dpy,False);
 }
 
@@ -292,7 +296,7 @@ void exscreen(const char *arg) {
 		system("xrandr --output " VIDEO1 " --auto --output " VIDEO2 " --off");
 		screen = DefaultScreen(dpy);
 		sw = DisplayWidth(dpy,screen);
-		sh = DisplayHeight(dpy,screen) - BARHEIGHT;
+		sh = DisplayHeight(dpy,screen) - barheight;
 	}
 	else if (arg[0] == 's') exwin[wksp] = (focused ? focused->win : clients[wksp]->win);
 	else if (arg[0] == 'r') exwin[wksp] = 0;
@@ -300,7 +304,7 @@ void exscreen(const char *arg) {
 		system("xrandr --output " VIDEO1 " --auto --output " VIDEO2 " --auto --below " VIDEO1);
 		screen = DefaultScreen(dpy);
 		sw = DisplayWidth(dpy,screen);
-		sh = DisplayHeight(dpy,screen) - BARHEIGHT;
+		sh = DisplayHeight(dpy,screen) - barheight;
 		int nsizes;
 		XRRScreenSize *xrrs = XRRSizes(dpy,screen,&nsizes);
 		if (nsizes != 2) {
@@ -336,7 +340,7 @@ void focus(const char *arg) {
 
 void fullscreen(const char *arg) {
 	if (!focused) return;
-	if ( (zoomed=~zoomed) ) XMoveResizeWindow(dpy,focused->win,0,0,sw,sh+BARHEIGHT);
+	if ( (zoomed=~zoomed) ) XMoveResizeWindow(dpy,focused->win,0,0,sw,sh+barheight);
 	else stack();
 }
 
@@ -386,7 +390,7 @@ static void putclient(const char *arg) {
 	top[i] = clients[i];
 	clients[i] = c;
 	/* "hide" c by moving off screen */
-	XMoveWindow(dpy,c->win,sw,BARHEIGHT);
+	XMoveWindow(dpy,c->win,sw,barheight);
 	stack();
 }
 
@@ -420,30 +424,30 @@ void stack() {
 	Client *c = clients[wksp];
 	if (!c) return; /* no clients = nothing to do */
 	if (exwin[wksp]) /* client on external monitor? */
-		XMoveResizeWindow(dpy,exwin[wksp],0,sh+BARHEIGHT,exsw,exsh);
+		XMoveResizeWindow(dpy,exwin[wksp],0,sh+barheight,exsw,exsh);
 	if (c->win == exwin[wksp]) c=c->next;
 	if (!c) return; /* no remaining clients = nothing to do */
 	else if ( (!c->next) || (c->next->win == exwin[wksp] && !c->next->next) ) {
 		/* only one client = full screen */
-		XMoveResizeWindow(dpy,c->win,0,BARHEIGHT,sw,sh);
+		XMoveResizeWindow(dpy,c->win,0,barheight,sw,sh);
 		//XSetInputFocus(dpy,c->win,RevertToPointerRoot,CurrentTime);
 	}
 	else {
 		if (columns) {
-			XMoveResizeWindow(dpy,c->win,0,BARHEIGHT, 
+			XMoveResizeWindow(dpy,c->win,0,barheight, 
 				(bstack ? sw		: sw*fact),
 				(bstack ? sh*fact	: sh));
 			for (c=c->next; c; c=c->next)
 				if (c->win != exwin[wksp])
 					XMoveResizeWindow(dpy,c->win,
 						(bstack ? 0 					: sw*fact),
-						(bstack ? BARHEIGHT+sh*fact		: BARHEIGHT),
+						(bstack ? barheight+sh*fact		: barheight),
 						(bstack ? sw 					: sw - (int)(sw*fact)),
 						(bstack ? sh - (int)(sh*fact)	: sh));
 		}
 		else {
 			for (c=c; c; c=c->next)
-				if (c->win != exwin[wksp]) XMoveResizeWindow(dpy,c->win,0,BARHEIGHT,sw,sh);
+				if (c->win != exwin[wksp]) XMoveResizeWindow(dpy,c->win,0,barheight,sw,sh);
 		}
 	}
 	if (top[wksp]) XRaiseWindow(dpy, top[wksp]->win);
@@ -486,7 +490,7 @@ void workspace(const char *arg) {
 	Client *c;
 	for (i = 0; i < WORKSPACES; i++) /* "hide" all, by moving off screen */
 		for (c = clients[i]; c; c = c->next)
-			XMoveWindow(dpy,c->win,-sw-exsw,BARHEIGHT);
+			XMoveWindow(dpy,c->win,-sw-exsw,barheight);
 	focused = clients[wksp];
 	stack();
 	drawbar();
@@ -506,19 +510,22 @@ int main() {
 	if(!(dpy = XOpenDisplay(0x0))) return 1;
 	screen = DefaultScreen(dpy);
 	root = RootWindow(dpy,screen);
-	sw = DisplayWidth(dpy,screen);
-	sh = DisplayHeight(dpy,screen) - BARHEIGHT;
 	XSetErrorHandler(xerror);
 	exwin = (Window *) calloc(WORKSPACES,sizeof(Window));
 
 	/* CONFIGURE GRAPHIC CONTEXTS */
-	bar = XCreatePixmap(dpy,root,sw,BARHEIGHT,DefaultDepth(dpy,screen));
 	unsigned int i,j;
 	gc = (GC *) calloc(LASTColor, sizeof(GC));
 	Colormap cmap = DefaultColormap(dpy,screen);
 	XColor color;
 	XGCValues val;
 	val.font = XLoadFont(dpy,font);
+	fontstruct = XQueryFont(dpy,val.font);
+	fontheight = fontstruct->ascent+1;
+	if (barheight == 0) barheight = fontheight+fontstruct->descent+1;
+	sw = DisplayWidth(dpy,screen);
+	sh = DisplayHeight(dpy,screen) - barheight;
+	bar = XCreatePixmap(dpy,root,sw,barheight,DefaultDepth(dpy,screen));
 	for (i = 0; i < LASTColor; i++) {
 		XAllocNamedColor(dpy,cmap,colors[i],&color,&color);
 		val.foreground = color.pixel;
@@ -550,6 +557,8 @@ int main() {
 		if (handler[ev.type]) handler[ev.type](&ev);
 	/* clean up needed here */
 	free(exwin);
+	XFreeFontInfo(NULL,fontstruct,1);
+	XUnloadFont(dpy,val.font);
 	return 0;
 }
 
