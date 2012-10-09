@@ -105,6 +105,9 @@ static Window *exwin;
 static Client *clients[WORKSPACES];
 static Client *top[WORKSPACES];
 static Bool urg[WORKSPACES];
+#ifdef FIREFOX_QUIRK
+static Client *floater=NULL;
+#endif
 
 /* These next two variables seem awkward and out of place.  They are holdovers
 from Tinywm.  I'd get rid of them, but they just work so darn well and, with
@@ -154,6 +157,27 @@ void maprequest(XEvent *ev) {
 		if (!(c=calloc(1,sizeof(Client))))
 			die("Failed to allocate %d bytes for new client\n",sizeof(Client));
 		c->win = e->window;
+#ifdef FIREFOX_QUIRK
+/* Experimental fix for dialog windows: */
+Atom NetWMType = XInternAtom(dpy,"_NET_WM_WINDOW_TYPE",False);
+Atom NetWMDialog = XInternAtom(dpy,"_NET_WM_WINDOW_TYPE_DIALOG",False);
+Atom da, wtype=None;
+unsigned char *p = NULL;
+unsigned long dl;
+int di;
+if (XGetWindowProperty(dpy,c->win,NetWMType,0L,sizeof(wtype),False,XA_ATOM,
+		&da,&di,&dl,&dl,&p) && p) {
+fprintf(stderr,"processing quirks: got property\n");
+	wtype = *(Atom *)p;
+	XFree(p);
+}
+if (wtype == NetWMDialog) {
+	floater=c;
+	fprintf(stderr,"defined floater\n");
+	XMapWindow(dpy,c->win);
+}
+else {
+#endif
 		c->next = clients[wksp];
 		top[wksp] = clients[wksp];
 		if (XFetchName(dpy,c->win,&c->title)) c->tlen = strlen(c->title);
@@ -161,6 +185,9 @@ void maprequest(XEvent *ev) {
 		clients[wksp] = c;
 		XMapWindow(dpy,c->win);
 		focused = c;
+#ifdef FIREFOX_QUIRK
+}
+#endif
 		stack();
 	}
 }
@@ -201,6 +228,12 @@ void propertynotify(XEvent *ev) {
 void unmapnotify(XEvent *ev) {
 	Client *c, *t;
 	XUnmapEvent *e = &ev->xunmap;
+#ifdef FIREFOX_QUIRK
+if (floater != NULL && e->window == floater->win) {
+	free(floater);
+	floater=NULL;
+}
+#endif
 	if(!(c = wintoclient(e->window))) return;
 	if(e->send_event); // ignore send_events for now.
 	else {
@@ -455,6 +488,10 @@ void stack() {
 		XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 		XRaiseWindow(dpy, focused->win);
 	}
+#ifdef FIREFOX_QUIRK
+if (floater != NULL)
+	XRaiseWindow(dpy,floater->win);
+#endif
 	drawbar();
 }
 

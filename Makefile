@@ -11,6 +11,10 @@ $(PROG): $(PROG).c config.h
 	@strip $(PROG)
 	@gzip -c $(PROG).1 > $(PROG).1.gz
 
+quirks: $(PROG).c config.h tbars
+	@$(CC) -DFIREFOX_QUIRK $(CFLAGS) $(LIBS) -o $(PROG) $(PROG).c
+	@strip $(PROG)
+
 tbars: tbars.c
 	@$(CC) $(CFLAGS) -lX11 -o tbars tbars.c
 	@strip tbars
