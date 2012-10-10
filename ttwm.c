@@ -120,6 +120,10 @@ XButtonEvent start;
 void buttonpress(XEvent *ev) {
 	if (ev->xbutton.subwindow == None) return;
 	if (ev->xbutton.button == 2) { stack(); return; }
+	if (clickToFocus) {
+		focused = wintoclient(ev->xbutton.subwindow);
+		stack();
+	}
 	XGrabPointer(dpy, ev->xbutton.subwindow, True, PointerMotionMask |
 		ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XGetWindowAttributes(dpy, ev->xbutton.subwindow, &attr);
@@ -181,7 +185,6 @@ void propertynotify(XEvent *ev) {
 	XPropertyEvent *e = &ev->xproperty;
 	Client *c;
 	if ( !(c=wintoclient(e->window)) ) return;
-if (c==focused) stack();
 	if (e->atom == XA_WM_NAME) {
 		XFree(c->title);
 		c->title = NULL;
