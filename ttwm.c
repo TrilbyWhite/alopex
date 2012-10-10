@@ -120,10 +120,6 @@ XButtonEvent start;
 void buttonpress(XEvent *ev) {
 	if (ev->xbutton.subwindow == None) return;
 	if (ev->xbutton.button == 2) { stack(); return; }
-	if (clickToFocus) {
-		focused = wintoclient(ev->xbutton.subwindow);
-		stack();
-	}
 	XGrabPointer(dpy, ev->xbutton.subwindow, True, PointerMotionMask |
 		ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XGetWindowAttributes(dpy, ev->xbutton.subwindow, &attr);
@@ -434,7 +430,6 @@ void stack() {
 	else if ( (!c->next) || (c->next->win == exwin[wksp] && !c->next->next) ) {
 		/* only one client = full screen */
 		XMoveResizeWindow(dpy,c->win,0,barheight,sw,sh);
-		//XSetInputFocus(dpy,c->win,RevertToPointerRoot,CurrentTime);
 	}
 	else {
 		if (columns) {
