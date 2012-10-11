@@ -605,6 +605,7 @@ int main() {
 	fd_set rfds;
 	sfd = fileno(stdin);
 	xfd = ConnectionNumber(dpy);
+	XFillRectangle(dpy,sbar,gc[Background],0,0,STATUSBARSPACE,barheight);
 	drawbar();
 	while (running) {
 		memset(&tv,0,sizeof(tv));
