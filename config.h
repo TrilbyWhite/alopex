@@ -4,7 +4,7 @@ static const char font[] = "-*-terminus-bold-r-*--12-120-72-72-c-60-*-*";
 
 static int barheight = 0;	/* zero: ttwm calculates height based on font */
 
-#define STATUSBARSPACE	60
+#define STATUSBARSPACE	50
 #define WORKSPACES		5
 
 // VIDEO1 = local monitor VIDEO2 = any external monitor connection

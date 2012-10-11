@@ -22,6 +22,7 @@
 
 #define CLEANMASK(mask)	( (mask&~LockMask)&~Mod2Mask )
 #define MAX(a, b)		((a) > (b) ? (a) : (b))
+#define RECTABAR_LINELENGTH		256
 
 /************************* [1] GLOBAL DECLARATIONS *************************/
 /* 1.0 TYPEDEFS & STRUCTS */
@@ -68,6 +69,7 @@ static void fullscreen(const char *);
 static void killclient(const char *);
 static void move(const char *);
 static void putclient(const char *);
+static void rectabar();
 static void spawn(const char *);
 static void swap(const char *);
 static void stack();
@@ -92,8 +94,9 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[MotionNotify]		= motionnotify,
 	[UnmapNotify]		= unmapnotify
 };
-static Drawable bar;
-static GC *gc;
+static Drawable bar,sbar;
+static GC *gc,sgc;
+static Colormap cmap;
 static XFontStruct *fontstruct;
 static int fontheight;
 static int wksp, onwksp;
@@ -248,7 +251,9 @@ void drawbar() {
 			(urg[j]		?	SpacesUrg 		: 
 			(clients[j] ?	SpacesActive 	: SpacesNorm ))) ],
 			6*j+i, (clients[j]?3:6),3,fontheight-(clients[j]?3:6));
-	i += 6*j+STATUSBARSPACE; /* 6px for each workspace */
+	i += 6*j+2; /* 6px for each workspace */
+	/* statusbar: */ XCopyArea(dpy,sbar,bar,sgc,0,0,STATUSBARSPACE,barheight,i,0);
+	i += STATUSBARSPACE+4;
 	/* MASTER WINDOW TAB & NAME */
 	int tab_width = sw-i;
 	int tab_count = 0;
@@ -369,7 +374,7 @@ void move(const char *arg) {
 	stack();
 }
 
-static void putclient(const char *arg) {
+void putclient(const char *arg) {
 	if (!focused) return;
 	int i = arg[0] - 49; /* cheap way to convert char number to int number */
 	if (i == wksp || i < 0 || i > WORKSPACES - 1) return; /* valid workspace #? */
@@ -392,6 +397,47 @@ static void putclient(const char *arg) {
 	/* "hide" c by moving off screen */
 	XMoveWindow(dpy,c->win,sw,barheight);
 	stack();
+}
+
+void rectabar() {
+	static XColor color;
+	static char colstring[8];
+	static char line[RECTABAR_LINELENGTH+1];
+	static int rx,ry,rw,rh,l;
+	XFillRectangle(dpy,sbar,gc[Background],0,0,STATUSBARSPACE,barheight);
+	if (fgets(line,RECTABAR_LINELENGTH,stdin) == NULL) return;
+	int x=0; char *t,*c = line;
+	while (*c != '\n') {
+		if (*c == '{') {
+			if (*(++c) == '#') {
+				strncpy(colstring,c,7);
+				XAllocNamedColor(dpy,cmap,colstring,&color,&color);
+				XSetForeground(dpy,sgc,color.pixel);
+			}
+			else if (*c == 'r') {
+				if ( sscanf(c,"r %dx%d+%d+%d}",&rw,&rh,&rx,&ry) == 4)
+					XDrawRectangle(dpy,sbar,sgc,x+rx,ry,rw,rh);
+			}
+			else if (*c == 'R') {
+				if ( sscanf(c,"R %dx%d+%d+%d}",&rw,&rh,&rx,&ry) == 4)
+					XFillRectangle(dpy,sbar,sgc,x+rx,ry,rw,rh);
+			}
+			else if (*c == '+') {
+				if ( sscanf(c,"+%d}",&rw) == 1) x+=rw;
+			}
+			c = strchr(c,'}')+1;
+		}
+		else {
+			if ((t=strchr(c,'{')) == NULL) t=strchr(c,'\n');
+			l = (t == NULL ? 0 : t-c);
+			if (l > 0) {
+				XDrawString(dpy,sbar,sgc,x,fontheight,c,l);
+				x+=XTextWidth(fontstruct,c,l);
+			}
+			c+=l;
+		}
+	}
+	drawbar();
 }
 
 void spawn(const char *arg) {
@@ -515,7 +561,7 @@ int main() {
 	/* CONFIGURE GRAPHIC CONTEXTS */
 	unsigned int i,j;
 	gc = (GC *) calloc(LASTColor, sizeof(GC));
-	Colormap cmap = DefaultColormap(dpy,screen);
+	cmap = DefaultColormap(dpy,screen);
 	XColor color;
 	XGCValues val;
 	val.font = XLoadFont(dpy,font);
@@ -525,11 +571,13 @@ int main() {
 	sw = DisplayWidth(dpy,screen);
 	sh = DisplayHeight(dpy,screen) - barheight;
 	bar = XCreatePixmap(dpy,root,sw,barheight,DefaultDepth(dpy,screen));
+	sbar = XCreatePixmap(dpy,root,STATUSBARSPACE,barheight,DefaultDepth(dpy,screen));
 	for (i = 0; i < LASTColor; i++) {
 		XAllocNamedColor(dpy,cmap,colors[i],&color,&color);
 		val.foreground = color.pixel;
 		gc[i] = XCreateGC(dpy,root,GCForeground|GCFont,&val);
 	}
+	sgc = XCreateGC(dpy,root,GCFont,&val);
 	XSetWindowAttributes wa;
 	wa.event_mask =	ExposureMask				|
 					FocusChangeMask				|
@@ -552,9 +600,27 @@ int main() {
 		GrabModeAsync,None,None);
 	/* MAIN LOOP */
 	XEvent ev;
+	int xfd,sfd,r;
+	struct timeval tv;
+	fd_set rfds;
+	sfd = fileno(stdin);
+	xfd = ConnectionNumber(dpy);
 	drawbar();
-	while (running && ! XNextEvent(dpy,&ev))
-		if (handler[ev.type]) handler[ev.type](&ev);
+	while (running) {
+		memset(&tv,0,sizeof(tv));
+		tv.tv_sec = 10;
+		FD_ZERO(&rfds);
+		FD_SET(sfd,&rfds);
+		FD_SET(xfd,&rfds);
+		r = select(xfd+1,&rfds,0,0,&tv);
+		if (r == 0) drawbar();
+		if (FD_ISSET(sfd,&rfds)) rectabar();
+		if (FD_ISSET(xfd,&rfds))
+			while (XPending(dpy)) {
+				XNextEvent(dpy,&ev);
+				if (handler[ev.type]) handler[ev.type](&ev);
+			}
+	}
 	/* clean up needed here */
 	free(exwin);
 	XFreeFontInfo(NULL,fontstruct,1);
