@@ -108,6 +108,7 @@ static Window *exwin;
 static Client *clients[WORKSPACES];
 static Client *top[WORKSPACES];
 static Bool urg[WORKSPACES];
+static FILE *inpipe;
 
 /* These next two variables seem awkward and out of place.  They are holdovers
 from Tinywm.  I'd get rid of them, but they just work so darn well and, with
@@ -405,7 +406,7 @@ void rectabar() {
 	static char line[RECTABAR_LINELENGTH+1];
 	static int rx,ry,rw,rh,l;
 	XFillRectangle(dpy,sbar,gc[Background],0,0,STATUSBARSPACE,barheight);
-	if (fgets(line,RECTABAR_LINELENGTH,stdin) == NULL) return;
+	if (fgets(line,RECTABAR_LINELENGTH,inpipe) == NULL) return;
 	int x=0; char *t,*c = line;
 	while (*c != '\n') {
 		if (*c == '{') {
@@ -551,7 +552,9 @@ int xerror(Display *d, XErrorEvent *ev) {
 }
 
 /************************* [3] MAIN & MAIN LOOP ****************************/
-int main() {
+int main(int argc, const char **argv) {
+	if (argc > 1) inpipe = popen(argv[1],"r");
+	else inpipe = stdin;
 	if(!(dpy = XOpenDisplay(0x0))) return 1;
 	screen = DefaultScreen(dpy);
 	root = RootWindow(dpy,screen);
@@ -603,7 +606,7 @@ int main() {
 	int xfd,sfd,r;
 	struct timeval tv;
 	fd_set rfds;
-	sfd = fileno(stdin);
+	sfd = fileno(inpipe);
 	xfd = ConnectionNumber(dpy);
 	XFillRectangle(dpy,sbar,gc[Background],0,0,STATUSBARSPACE,barheight);
 	drawbar();
