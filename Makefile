@@ -15,7 +15,7 @@ clean:
 
 tarball: clean
 	@rm -f ttwm.tar.gz
-	@tar -czf ttwm.tar.gz *
+	@tar -czf ttwm-1.0.tar.gz *
 
 install:
 	@mkdir -p ${DESTDIR}${PREFIX}/bin
