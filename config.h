@@ -79,6 +79,7 @@ static Key keys[] = {
 	/* single window (monocle-like) or master+stack */
 	{ MODKEY,			XK_Up,		stackmode,	"single"		},
 	{ MODKEY,			XK_Down,	stackmode,	"multiple"		},
+	{ MODKEY,			XK_a,		stackmode,	"hide bar"		},
 	/* change workspaces: */
 	{ MODKEY,			XK_1,		workspace,	"1"				},
 	{ MODKEY,			XK_2,		workspace,	"2"				},
@@ -96,6 +97,7 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,	XK_d,		exscreen,	"deactivate"	},
 	{ MODKEY|ShiftMask,	XK_s,		exscreen,	"send"			},
 	{ MODKEY|ShiftMask,	XK_r,		exscreen,	"return"		},
+	{ MODKEY|ShiftMask,	XK_m,		sendevent,	"right click"	},
 };
 
 // vim: ts=4

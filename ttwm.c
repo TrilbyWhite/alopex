@@ -43,10 +43,6 @@ typedef struct {
 	void (*func)(const char *);
 	const char *arg;
 } Key;
-struct {
-	uint8_t cpu,vol,bat;
-	uint8_t cpu_col,vol_col,bat_col;
-} status;
 enum {Background, Clock, SpacesNorm, SpacesActive, SpacesSel, SpacesUrg,
 		TitleNorm, TitleSel, StackNorm, StackAct, StackSel,
 		StackNormBG, StackActBG, StackSelBG, LASTColor };
@@ -70,6 +66,7 @@ static void killclient(const char *);
 static void move(const char *);
 static void putclient(const char *);
 static void rectabar();
+static void sendevent(const char *);
 static void spawn(const char *);
 static void swap(const char *);
 static void stack();
@@ -101,6 +98,7 @@ static XFontStruct *fontstruct;
 static int fontheight;
 static int wksp, onwksp;
 static Bool zoomed;
+static int barmode=0; /* 0=visible, 1=hidden, 2=transient (not yet implemented) */
 
 static Client *focused=NULL;
 static Window *exwin;
@@ -441,6 +439,28 @@ void rectabar() {
 	drawbar();
 }
 
+void sendevent(const char *arg) {
+	XEvent ev;
+	memset(&ev, 0x00, sizeof(ev));
+	usleep(100000);
+	if (arg[0] == 'r') {
+		ev.type = ButtonPress;
+		ev.xbutton.button = 3;
+		ev.xbutton.same_screen = True;
+		XQueryPointer(dpy,root,&ev.xbutton.root,&ev.xbutton.window,&ev.xbutton.x_root,&ev.xbutton.y_root,&ev.xbutton.x,&ev.xbutton.y,&ev.xbutton.state);
+		ev.xbutton.subwindow = ev.xbutton.window;
+		ev.xbutton.x = 10; ev.xbutton.y = 10;
+		XSendEvent(dpy,InputFocus,True,0xfff,&ev);
+		XFlush(dpy);
+
+		usleep(100000);
+		ev.type = ButtonRelease;
+		ev.xbutton.state = 0x400;
+		XSendEvent(dpy,InputFocus, True, 0xfff, &ev);
+		XFlush(dpy);
+	}
+}
+
 void spawn(const char *arg) {
 	system(arg);
 }
@@ -505,6 +525,7 @@ void stack() {
 }
 
 void stackmode(const char *arg) {
+	static int oldbarheight;
 	if (arg[0] == 'i') fact += FACT_ADJUST;
 	else if (arg[0] == 'd') fact -= FACT_ADJUST;
 	else if (arg[0] == 'b') bstack = 1;
@@ -512,6 +533,10 @@ void stackmode(const char *arg) {
 	else if (arg[0] == 't') bstack = 1-bstack;
 	else if (arg[0] == 's') columns = False;
 	else if (arg[0] == 'm') columns = True;
+	else if (arg[0] == 'h') {
+		if (barheight > 0) { oldbarheight = barheight; sh+=barheight; barheight = 0; }
+		else { barheight = oldbarheight; sh-=barheight; }
+	}
 	else return;
 	if (fact < FACT_MIN) fact = FACT_MIN;
 	else if (fact > 100 - FACT_MIN) fact = FACT_MIN;
