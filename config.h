@@ -97,7 +97,6 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,	XK_d,		exscreen,	"deactivate"	},
 	{ MODKEY|ShiftMask,	XK_s,		exscreen,	"send"			},
 	{ MODKEY|ShiftMask,	XK_r,		exscreen,	"return"		},
-	{ MODKEY|ShiftMask,	XK_m,		sendevent,	"right click"	},
 };
 
 // vim: ts=4
