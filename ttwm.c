@@ -551,7 +551,10 @@ void quit(const char *arg) {
 };
 
 int xerror(Display *d, XErrorEvent *ev) {
-	fprintf(stderr,"ttwm error: request=%d; error=%d\n",ev->request_code,ev->error_code);
+	char msg[1024];
+	XGetErrorText(dpy,ev->error_code,msg,sizeof(msg));
+	fprintf(stderr,"======== TTWM ERROR ========\nrequest=%d; error=%d\n%s============================\n",
+		ev->request_code,ev->error_code,msg);
 	return 0;
 }
 
