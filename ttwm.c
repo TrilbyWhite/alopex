@@ -77,7 +77,7 @@ static void quit(const char *);
 
 /* 1.2 VARIABLE DECLARATIONS */
 static Display *dpy;
-static int screen, sw, sh, exsw, exsh, by;
+static int screen, sw, sh, exsw, exsh;
 static Window root;
 static Bool running=True;
 static void (*handler[LASTEvent]) (XEvent *) = {
@@ -290,7 +290,7 @@ void drawbar() {
 		}
 	}
 	/* DRAW IT */
-	XCopyArea(dpy,bar,root,gc[0],0,by,sw,barheight,0,0);
+	XCopyArea(dpy,bar,root,gc[0],0,0,sw,barheight,0,(topbar ? 0 : sh));
 	XSync(dpy,False);
 }
 
@@ -465,6 +465,7 @@ void swapclients(Client *a, Client *b) {
 }
 
 void stack() {
+	int y = (topbar ? barheight : 0);
 	zoomed = False;
 	Client *c = clients[wksp];
 	if (!c) return; /* no clients = nothing to do */
@@ -474,24 +475,24 @@ void stack() {
 	if (!c) return; /* no remaining clients = nothing to do */
 	else if ( (!c->next) || (c->next->win == exwin[wksp] && !c->next->next) ) {
 		/* only one client = full screen */
-		XMoveResizeWindow(dpy,c->win,0,barheight,sw,sh);
+		XMoveResizeWindow(dpy,c->win,0,y,sw,sh);
 	}
 	else {
 		if (columns) {
-			XMoveResizeWindow(dpy,c->win,0,barheight, 
+			XMoveResizeWindow(dpy,c->win,0,y, 
 				(bstack ? sw		: sw*fact),
 				(bstack ? sh*fact	: sh));
 			for (c=c->next; c; c=c->next)
 				if (c->win != exwin[wksp])
 					XMoveResizeWindow(dpy,c->win,
 						(bstack ? 0 					: sw*fact),
-						(bstack ? barheight+sh*fact		: barheight),
+						(bstack ? y+sh*fact				: y),
 						(bstack ? sw 					: sw - (int)(sw*fact)),
 						(bstack ? sh - (int)(sh*fact)	: sh));
 		}
 		else {
 			for (c=c; c; c=c->next)
-				if (c->win != exwin[wksp]) XMoveResizeWindow(dpy,c->win,0,barheight,sw,sh);
+				if (c->win != exwin[wksp]) XMoveResizeWindow(dpy,c->win,0,y,sw,sh);
 		}
 	}
 	if (top[wksp]) XRaiseWindow(dpy, top[wksp]->win);
@@ -576,7 +577,6 @@ int main(int argc, const char **argv) {
 	if (barheight == 0) barheight = fontheight+fontstruct->descent+1;
 	sw = DisplayWidth(dpy,screen);
 	sh = DisplayHeight(dpy,screen) - barheight;
-	by = (topbar ? 0 : sh - barheight);
 	bar = XCreatePixmap(dpy,root,sw,barheight,DefaultDepth(dpy,screen));
 	sbar = XCreatePixmap(dpy,root,STATUSBARSPACE,barheight,DefaultDepth(dpy,screen));
 	for (i = 0; i < LASTColor; i++) {
