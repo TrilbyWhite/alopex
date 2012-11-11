@@ -77,7 +77,7 @@ static void quit(const char *);
 
 /* 1.2 VARIABLE DECLARATIONS */
 static Display *dpy;
-static int screen, sw, sh, exsw, exsh;
+static int screen, sw, sh, exsw, exsh, by;
 static Window root;
 static Bool running=True;
 static void (*handler[LASTEvent]) (XEvent *) = {
@@ -290,7 +290,7 @@ void drawbar() {
 		}
 	}
 	/* DRAW IT */
-	XCopyArea(dpy,bar,root,gc[0],0,0,sw,barheight,0,0);
+	XCopyArea(dpy,bar,root,gc[0],0,by,sw,barheight,0,0);
 	XSync(dpy,False);
 }
 
@@ -576,6 +576,7 @@ int main(int argc, const char **argv) {
 	if (barheight == 0) barheight = fontheight+fontstruct->descent+1;
 	sw = DisplayWidth(dpy,screen);
 	sh = DisplayHeight(dpy,screen) - barheight;
+	by = (topbar ? 0 : sh - barheight);
 	bar = XCreatePixmap(dpy,root,sw,barheight,DefaultDepth(dpy,screen));
 	sbar = XCreatePixmap(dpy,root,STATUSBARSPACE,barheight,DefaultDepth(dpy,screen));
 	for (i = 0; i < LASTColor; i++) {

@@ -36,6 +36,7 @@ static const char colors[LASTColor][9] = {
 static Bool bstack	= False;	/* start with bottom stack? */
 static Bool columns = True;		/* start with two columns - or monocle-like mode */
 static float fact	= 0.50;		/* portion of screen for master window */
+static Bool topbar	= True;		/* bar on top (or bottom) of screen */
 
 #define DMENU		"dmenu_run -fn \"-*-terminus-bold-r-*--12-120-72-72-c-60-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
 #define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc */
