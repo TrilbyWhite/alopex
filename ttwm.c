@@ -309,13 +309,14 @@ void exscreen(const char *arg) {
 		screen = DefaultScreen(dpy);
 		sw = DisplayWidth(dpy,screen);
 		sh = DisplayHeight(dpy,screen) - barheight;
-		int nsizes;
+		int nsizes,i;
 		XRRScreenSize *xrrs = XRRSizes(dpy,screen,&nsizes);
-		if (nsizes != 2) {
-			/* wrong number of monitors */
-		}
-		exsw = xrrs[0].width;
-		exsh = xrrs[0].height;
+		XRRScreenConfiguration *rrConf = XRRGetScreenInfo(dpy,root);
+		Rotation rrRot;
+		i = XRRConfigCurrentConfiguration(rrConf,&rrRot);
+		XRRFreeScreenConfigInfo(rrConf);
+		exsw = xrrs[i].width;
+		exsh = xrrs[i].height;
 	}
 	else return;
 	stack();
