@@ -57,6 +57,7 @@ static Key keys[] = {
 	{ Mod1Mask,			XK_F4,		killclient,	NULL			},
 	{ MODKEY,			XK_Print,	stack,		NULL			},
 	{ MODKEY,			XK_a,		stackmode,	"hide bar"		},
+	{ MODKEY,			XK_x,		stackmode,	"flip bar"		},
 	/* switch focus / rearrange client windows: */
 	{ MODKEY,			XK_j,		focus,		"left"			},
 	{ MODKEY,			XK_k,		focus,		"right"			},
