@@ -24,8 +24,8 @@ static const char colors[LASTColor][9] = {
 	[StackAct]		=	"#4466FF",
 	[StackSel]		=	"#FFDD0E",
 	[StackNormBG]	=	"#000000",
+	/* set Stack{Sel|Act}BG to same as term background for good tab look */
 	[StackActBG]	=	"#080808",
-	/* set StackSelBG to same as term background for good tab look */
 	[StackSelBG]	=	"#080808",
 };
 
@@ -50,15 +50,13 @@ static Key keys[] = {
 	{ MODKEY,			XK_Return,	spawn,		CMD(TERM)		},
 	{ MODKEY,			XK_p,		spawn,		CMD(DMENU)		},
 	{ MODKEY,			XK_w,		spawn,		CMD("luakit")	},
-	{ 0,				0x1008ff11,	spawn,		CMD("vol down")	},
-	{ 0,				0x1008ff13,	spawn,		CMD("vol up")	},
-	{ 0,				0x1008ff12,	spawn,		CMD("vol toggle")},
-	{ 0,				0x1008ff2f,	spawn,		CMD("sleep 1; xset dpms force off")},
 	/* misc: (swap swaps master with top stack client) */
 	{ MODKEY|ShiftMask,	XK_q,		quit,		NULL			},
 	{ MODKEY,			XK_space,	swap,		NULL			},
 	{ MODKEY,			XK_f,		fullscreen,	NULL			},
 	{ Mod1Mask,			XK_F4,		killclient,	NULL			},
+	{ MODKEY,			XK_Print,	stack,		NULL			},
+	{ MODKEY,			XK_a,		stackmode,	"hide bar"		},
 	/* switch focus / rearrange client windows: */
 	{ MODKEY,			XK_j,		focus,		"left"			},
 	{ MODKEY,			XK_k,		focus,		"right"			},
@@ -70,7 +68,6 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,	XK_Right,	move,		"right"			},
 	{ MODKEY,			XK_Tab,		focus,		"other"			},
 	/* increase or decrease master size.  */
-	{ MODKEY,			XK_Print,	stack,		NULL			},
 	{ MODKEY,			XK_i,		stackmode,	"increase"		},
 	{ MODKEY,			XK_d,		stackmode,	"decrease"		},
 	/* set bottom stack, right stack, or toggle between the two */
@@ -80,7 +77,6 @@ static Key keys[] = {
 	/* single window (monocle-like) or master+stack */
 	{ MODKEY,			XK_Up,		stackmode,	"single"		},
 	{ MODKEY,			XK_Down,	stackmode,	"multiple"		},
-	{ MODKEY,			XK_a,		stackmode,	"hide bar"		},
 	/* change workspaces: */
 	{ MODKEY,			XK_1,		workspace,	"1"				},
 	{ MODKEY,			XK_2,		workspace,	"2"				},

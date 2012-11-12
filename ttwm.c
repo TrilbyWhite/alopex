@@ -97,8 +97,6 @@ static XFontStruct *fontstruct;
 static int fontheight;
 static int wksp, onwksp;
 static Bool zoomed;
-/* static int barmode=0; TO BE USED FOR VERSION 2.0 */
-/* 0=visible, 1=hidden, 2=transient (not yet implemented) */
 
 static Client *focused=NULL;
 static Window *exwin;
@@ -251,7 +249,8 @@ void drawbar() {
 			(clients[j] ?	SpacesActive 	: SpacesNorm ))) ],
 			6*j+i, (clients[j]?3:6),3,fontheight-(clients[j]?3:6));
 	i += 6*j+2; /* 6px for each workspace */
-	/* statusbar: */ XCopyArea(dpy,sbar,bar,sgc,0,0,STATUSBARSPACE,barheight,i,0);
+	/* STATUSBAR */
+	XCopyArea(dpy,sbar,bar,sgc,0,0,STATUSBARSPACE,barheight,i,0);
 	i += STATUSBARSPACE+4;
 	/* MASTER WINDOW TAB & NAME */
 	int tab_width = sw-i;
@@ -265,9 +264,9 @@ void drawbar() {
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel : StackAct) ],
 			i+1,0,tab_width-2,barheight);
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel : StackAct) ],
-			i,1,tab_width,barheight-1);
+			i,(topbar ? 1 : 0),tab_width,barheight-1);
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSelBG : StackActBG) ],
-			i+1,1,tab_width-2,barheight);
+			i+1,(topbar ? 1 : 0),tab_width-2,barheight-1);
 		XDrawString(dpy,bar,gc[ (c==focused ? TitleSel : TitleNorm)],
 			i+4,fontheight,c->title,(c->tlen > 62 ? 62 : c->tlen));
 	}
@@ -278,11 +277,14 @@ void drawbar() {
 		if (columns) tab_width = (sw-i)/(tab_count-1);
 		for ( c=clients[wksp]->next; c; c=c->next ) {
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
-				(c==top[wksp]?StackAct:StackNorm) ) ],i+1,0,tab_width-2,barheight);
+				(c==top[wksp] ? StackAct:StackNorm) ) ],
+				i+1,0,tab_width-2,barheight);
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
-				(c==top[wksp]?StackAct:StackNorm) ) ],i,1,tab_width,barheight-1);
+				(c==top[wksp]?StackAct:StackNorm) ) ],
+				i,(topbar ? 1 : 0),tab_width,barheight-1);
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSelBG :
-				(c==top[wksp]?StackActBG:StackNormBG) ) ],i+1,1,tab_width-2,barheight);
+				(c==top[wksp]?StackActBG:StackNormBG) ) ],
+				i+1,(topbar ? 1 : 0),tab_width-2,barheight-1);
 			max_tlen = (tab_width > 8 ? (tab_width-8)/fontstruct->max_bounds.width : 1);
 			XDrawString(dpy,bar,gc[(c==focused ? TitleSel : TitleNorm)],i+4,
 				fontheight,c->title,(c->tlen > max_tlen ? max_tlen : c->tlen));
