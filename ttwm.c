@@ -515,7 +515,10 @@ void stackmode(const char *arg) {
 	else if (arg[0] == 't') bstack = 1-bstack;
 	else if (arg[0] == 's') columns = False;
 	else if (arg[0] == 'm') columns = True;
-	else if (arg[0] == 'f') topbar = (topbar ? False : True);
+	else if (arg[0] == 'f') {
+		topbar = (topbar ? False : True);
+		XClearArea(dpy,root,0,0,sw,sh+barheight,True);
+	}
 	else if (arg[0] == 'h') {
 		if (barheight > 0) { oldbarheight = barheight; sh+=barheight; barheight = 0; }
 		else { barheight = oldbarheight; sh-=barheight; }
