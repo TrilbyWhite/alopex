@@ -560,7 +560,7 @@ void quit(const char *arg) {
 int xerror(Display *d, XErrorEvent *ev) {
 	char msg[1024];
 	XGetErrorText(dpy,ev->error_code,msg,sizeof(msg));
-	fprintf(stderr,"======== TTWM ERROR ========\nrequest=%d; error=%d\n%s============================\n",
+	fprintf(stderr,"======== TTWM ERROR ========\nrequest=%d; error=%d\n%s\n============================\n",
 		ev->request_code,ev->error_code,msg);
 	return 0;
 }
