@@ -1,6 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
-static const char font[] = "-*-terminus-bold-r-*--12-120-72-72-c-60-*-*";
+static const char font[] = "-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*";
+//static const char font[] = "-*-terminus-bold-r-*--12-120-72-72-c-60-*-*";
 
 static int barheight = 0;	/* zero: ttwm calculates height based on font */
 
