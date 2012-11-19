@@ -520,8 +520,15 @@ void stackmode(const char *arg) {
 		XClearArea(dpy,root,0,0,sw,sh+barheight,True);
 	}
 	else if (arg[0] == 'h') {
-		if (barheight > 0) { oldbarheight = barheight; sh+=barheight; barheight = 0; }
-		else { barheight = oldbarheight; sh-=barheight; }
+		if (barheight > 0) {
+			oldbarheight = barheight;
+			sh+=barheight; barheight = 0;
+		}
+		else {
+			barheight = oldbarheight;
+			sh-=barheight;
+		}
+		XClearArea(dpy,root,0,0,sw,sh+barheight,True);
 	}
 	else return;
 	if (fact < FACT_MIN) fact = FACT_MIN;
