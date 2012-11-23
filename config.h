@@ -7,6 +7,7 @@ static int barheight = 0;	/* zero: ttwm calculates height based on font */
 
 #define STATUSBARSPACE	50
 #define WORKSPACES		5
+#define TTWM_CURSOR		XC_left_ptr
 
 // VIDEO1 = local monitor VIDEO2 = any external monitor connection
 #define VIDEO1	"LVDS1"

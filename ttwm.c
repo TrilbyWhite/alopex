@@ -17,6 +17,7 @@
 #include <X11/Xatom.h>
 #include <X11/XKBlib.h>
 #include <X11/extensions/Xrandr.h>
+#include <X11/cursorfont.h>
 #include <string.h>
 #include <sys/select.h>
 
@@ -581,6 +582,7 @@ int main(int argc, const char **argv) {
 	root = RootWindow(dpy,screen);
 	XSetErrorHandler(xerror);
 	exwin = (Window *) calloc(WORKSPACES,sizeof(Window));
+	XDefineCursor(dpy,root,XCreateFontCursor(dpy,TTWM_CURSOR));
 
 	/* CONFIGURE GRAPHIC CONTEXTS */
 	unsigned int i,j;
