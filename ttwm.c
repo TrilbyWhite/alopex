@@ -370,7 +370,10 @@ void focus(const char *arg) {
 
 void fullscreen(const char *arg) {
 	if (!focused) return;
-	if ( (zoomed=~zoomed) ) XMoveResizeWindow(dpy,focused->win,0,0,sw,sh+barheight);
+	if ( (zoomed=~zoomed) ) {
+		XMoveResizeWindow(dpy,focused->win,0,0,sw,sh+barheight);
+		XRaiseWindow(dpy,focused->win);
+	}
 	else stack();
 }
 
