@@ -1,5 +1,5 @@
 /***************************************************************************\
-* TinyTiler AKA TabbedTiler													|
+*' TinyTiler AKA TabbedTiler													|
 * by Jesse McClure <jesse@mccluresk9.com>, 2012								|
 *    based on TinyWM by Nick Welch <mack@incise.org>, 2005					|
 *    with code from DWM by ???????											|
@@ -31,6 +31,7 @@ typedef struct Client Client;
 struct Client {
 	char *title;
 	int tlen;
+	int x, y;
 	Client *next;
 	Window win;
 };
@@ -65,6 +66,8 @@ static void focus(const char *);
 static void fullscreen(const char *);
 static void killclient(const char *);
 static void move(const char *);
+static void pullclient(Client *);
+static void pushclient(Client *,Client **);
 static void putclient(const char *);
 static void rectabar();
 static void spawn(const char *);
@@ -104,6 +107,7 @@ static Window *exwin;
 #include "config.h"
 static Client *clients[WORKSPACES];
 static Client *top[WORKSPACES];
+static Client *floating[WORKSPACES];
 static Bool urg[WORKSPACES];
 static FILE *inpipe;
 
@@ -119,8 +123,21 @@ XButtonEvent start;
 /* 2.0 EVENT HANDLERS */
 
 void buttonpress(XEvent *ev) {
-	if (ev->xbutton.subwindow == None) return;
-	if (ev->xbutton.button == 2) { stack(); return; }
+	Client *c;
+	if (!(c=wintoclient(ev->xbutton.subwindow))) return;
+	if (ev->xbutton.button == 2) {
+		pullclient(c);
+		pushclient(c,&clients[wksp]);
+		focused = c;
+		stack();
+		return;
+	}
+	else {
+		pullclient(c);
+		pushclient(c,&floating[wksp]);
+		focused = c;
+		stack();
+	}
 	XGrabPointer(dpy, ev->xbutton.subwindow, True, PointerMotionMask |
 		ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XGetWindowAttributes(dpy, ev->xbutton.subwindow, &attr);
@@ -155,11 +172,19 @@ void maprequest(XEvent *ev) {
 		if (!(c=calloc(1,sizeof(Client))))
 			die("Failed to allocate %d bytes for new client\n",sizeof(Client));
 		c->win = e->window;
-		c->next = clients[wksp];
-		top[wksp] = clients[wksp];
 		if (XFetchName(dpy,c->win,&c->title)) c->tlen = strlen(c->title);
 		XSelectInput(dpy,c->win,PropertyChangeMask);
-		clients[wksp] = c;
+		pushclient(c,&clients[wksp]);
+		Atom retType;
+		int retFmt;
+		unsigned long retNItems,retBytes;
+		unsigned char *retProp;
+		XGetWindowProperty(dpy,c->win,XInternAtom(dpy,"WM_TRANSIENT_FOR",True),
+			0,0,False,AnyPropertyType,&retType,&retFmt,&retNItems,&retBytes,&retProp);
+		if (retType != None) {
+			pullclient(c);
+			pushclient(c,&floating[wksp]);
+		}
 		XMapWindow(dpy,c->win);
 		focused = c;
 		stack();
@@ -168,14 +193,18 @@ void maprequest(XEvent *ev) {
 
 void motionnotify(XEvent *ev) {
 	int xdiff, ydiff;
+	Client *c;
 	while(XCheckTypedEvent(dpy, MotionNotify, ev));
 	xdiff = ev->xbutton.x_root - start.x_root;
 	ydiff = ev->xbutton.y_root - start.y_root;
-	XMoveResizeWindow(dpy, ev->xmotion.window,
-		attr.x + (start.button==1 ? xdiff : 0),
-		attr.y + (start.button==1 ? ydiff : 0),
-		MAX(1, attr.width + (start.button==3 ? xdiff : 0)),
-		MAX(1, attr.height + (start.button==3 ? ydiff : 0)));
+	if (!(c=wintoclient(ev->xbutton.window))) return;
+	if (start.button == 1) {
+		XMoveWindow(dpy,c->win,attr.x+xdiff,attr.y+ydiff);
+		c->x = attr.x+xdiff; c->y = attr.y+ydiff;
+	}
+	else if (start.button == 3) {
+		XResizeWindow(dpy,c->win,attr.width+xdiff,attr.height+ydiff);
+	}
 }
 
 void propertynotify(XEvent *ev) {
@@ -200,21 +229,11 @@ void propertynotify(XEvent *ev) {
 }
 
 void unmapnotify(XEvent *ev) {
-	Client *c, *t;
+	Client *c;
 	XUnmapEvent *e = &ev->xunmap;
 	if(!(c = wintoclient(e->window))) return;
-	if(e->send_event); // ignore send_events for now.
-	else {
-		if (focused == c) focused=(focused->next ? focused->next : clients[wksp]);
-		if (top[onwksp] == c) top[onwksp]=(c->next ? c->next : 
-				(clients[onwksp]->next == c ? NULL : clients[onwksp]->next));
-		if (clients[onwksp] == c) clients[onwksp] = c->next;
-		else {
-			for (t = clients[onwksp]; t->next != c; t = t->next);
-			t->next = c->next;
-		}
-		if (top[onwksp] && top[onwksp] == clients[onwksp])
-			top[onwksp]=top[onwksp]->next;
+	if(!e->send_event) {
+		pullclient(c);
 		XFree(c->title);
 		free(c);
 	}
@@ -377,28 +396,41 @@ void move(const char *arg) {
 	stack();
 }
 
+void pullclient(Client *c) {
+	Client *t;
+	wintoclient(c->win);
+	if (focused == c) focused = focused->next;
+	if (top[onwksp] == c) top[onwksp]=(c->next ? c->next : 
+			(clients[onwksp]->next == c ? NULL : clients[onwksp]->next));
+	if (clients[onwksp] == c) clients[onwksp] = c->next;
+	else if (floating[onwksp] == c) floating[onwksp] = c->next;
+	else {
+		for (t = clients[onwksp]; t && t->next != c; t = t->next);
+		if (!t) for (t = floating[onwksp]; t && t->next != c; t = t->next);
+		t->next = c->next;
+	}
+	if (top[onwksp] && top[onwksp] == clients[onwksp])
+		top[onwksp]=top[onwksp]->next;
+	if (!focused) focused = floating[onwksp];
+}
+
+void pushclient(Client *c,Client **stack) {
+	c->next = *stack;
+	int i;
+	for (i = 0; i < WORKSPACES; i++)
+		if (*stack == clients[i]) top[i] = clients[i];
+	*stack = c;
+}
+
 void putclient(const char *arg) {
 	if (!focused) return;
 	int i = arg[0] - 49; /* cheap way to convert char number to int number */
 	if (i == wksp || i < 0 || i > WORKSPACES - 1) return; /* valid workspace #? */
-	Client *t, *c = focused; /* c=client to move; t=client pointing to c */
-	/* remove c from clients[wksp] */
+	Client *c = focused; /* c=client to move; t=client pointing to c */
 	focused=(focused->next ? focused->next : clients[wksp]);
-	if (top[wksp] == c) top[wksp]=(c->next ? c->next : 
-			(clients[wksp]->next == c ? NULL : clients[wksp]->next));
-	if (clients[wksp] == c) clients[wksp] = c->next;
-	else {
-		for (t = clients[wksp]; t->next != c; t = t->next);
-		t->next = c->next;
-	}
-	if (top[wksp] && top[wksp] == clients[wksp])
-		top[wksp]=top[wksp]->next;
-	/* prepend c to clients[i] a.k.a. the target workspace */
-	c->next = clients[i];
+	pullclient(c);
 	top[i] = clients[i];
-	clients[i] = c;
-	/* "hide" c by moving off screen */
-	XMoveWindow(dpy,c->win,sw,barheight);
+	pushclient(c,&clients[i]);
 	stack();
 }
 
@@ -472,7 +504,11 @@ void stack() {
 	int y = (topbar ? barheight : 0);
 	zoomed = False;
 	Client *c = clients[wksp];
-	if (!c) return; /* no clients = nothing to do */
+	if (!c) { /* no stacked clients */
+		if (focused)
+			XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
+		return;
+	}
 	if (exwin[wksp]) /* client on external monitor? */
 		XMoveResizeWindow(dpy,exwin[wksp],0,sh+barheight,exsw,exsh);
 	if (c->win == exwin[wksp]) c=c->next;
@@ -504,6 +540,7 @@ void stack() {
 		XRaiseWindow(dpy, focused->win);
 		XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 	}
+	for (c=floating[wksp]; c; c=c->next) XRaiseWindow(dpy,c->win);
 	drawbar();
 }
 
@@ -544,6 +581,8 @@ void *wintoclient(Window w) {
 		onwksp = i;
 		for (c = clients[i]; c && c->win != w; c = c->next);
 		if (c) return c;
+		for (c = floating[i]; c && c->win != w; c = c->next);
+		if (c != NULL) return c;
 	}
 	return NULL;
 }
@@ -553,9 +592,14 @@ void workspace(const char *arg) {
 	if ( (i<0) || (i>WORKSPACES) || (wksp==i) ) return;
 	wksp = i;
 	Client *c;
-	for (i = 0; i < WORKSPACES; i++) /* "hide" all, by moving off screen */
+	for (i = 0; i < WORKSPACES; i++) { /* "hide" all, by moving off screen */
 		for (c = clients[i]; c; c = c->next)
 			XMoveWindow(dpy,c->win,-sw-exsw,barheight);
+		for (c = floating[i]; c; c = c->next)
+			XMoveWindow(dpy,c->win,-sw-exsw,barheight);
+	}
+	for (c = floating[wksp]; c; c = c->next)
+		XMoveWindow(dpy,c->win,c->x,c->y);
 	focused = clients[wksp];
 	stack();
 	drawbar();
