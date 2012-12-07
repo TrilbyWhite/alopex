@@ -514,9 +514,13 @@ void swapclients(Client *a, Client *b) {
 void stack_tile(Client *stack,int x, int y, int w, int h) {
 	if (!stack) return;
 	wintoclient(stack->win); /* get onwksp and onstack */
-	if (!stack->next || !columns) {
+	if (!stack->next) {
 		XMoveResizeWindow(dpy,stack->win,x,y,w,h);
-		if (!columns) XRaiseWindow(dpy,stack->win);
+	}
+	else if (!columns) {
+		if (!focused) return;
+		XMoveResizeWindow(dpy,focused->win,x,y,w,h);
+		if (focused) XRaiseWindow(dpy,focused->win);
 	}
 	else {
 		XMoveResizeWindow(dpy,stack->win,x,y,
