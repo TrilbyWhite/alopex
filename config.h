@@ -2,33 +2,32 @@
 
 static const char font[] = "-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*";
 //static const char font[] = "-*-terminus-bold-r-*--12-120-72-72-c-60-*-*";
-
 static int barheight = 0;	/* zero: ttwm calculates height based on font */
 
+/* STATUSBARSPACE: horizontal pixel space for rectabar input */
 #define STATUSBARSPACE	50
 #define WORKSPACES		5
 #define TTWM_CURSOR		XC_left_ptr
-
-// VIDEO1 = local monitor VIDEO2 = any external monitor connection
+/* VIDEO1 = local monitor VIDEO2 = any external monitor connection */
 #define VIDEO1	"LVDS1"
 #define VIDEO2	"VGA1"
 
 static const char colors[LASTColor][9] = {
-	[Background]	=	"#101010",
-	[Clock]			=	"#484862",
-	[SpacesNorm]	=	"#484862",
-	[SpacesActive]	=	"#6284FF",
-	[SpacesSel]		=	"#FFDD0E",
-	[SpacesUrg]		=	"#FF0000",
-	[TitleNorm]		=	"#696969",
-	[TitleSel]		=	"#4466FF",
-	[StackNorm]		=	"#484862",
-	[StackAct]		=	"#4466FF",
-	[StackSel]		=	"#FFDD0E",
-	[StackNormBG]	=	"#000000",
-	/* set Stack{Sel|Act}BG to same as term background for good tab look */
-	[StackActBG]	=	"#080808",
-	[StackSelBG]	=	"#080808",
+    [Background]    =   "#101010",
+    [Clock]         =   "#484862",
+    [SpacesNorm]    =   "#484862",
+    [SpacesActive]  =   "#6284FF",
+    [SpacesSel]     =   "#FFDD0E",
+    [SpacesUrg]     =   "#FF0000",
+    [TitleNorm]     =   "#646464",
+    [TitleSel]      =   "#8888AA",
+    [StackNorm]     =   "#282828",
+    [StackAct]      =   "#424242",
+    [StackSel]      =   "#848484",
+    [StackNormBG]   =   "#101010",
+    [StackActBG]    =   "#181818",
+    /* set StackSelBG to same as term background for good tab look */
+    [StackSelBG]    =   "#181818",
 };
 
 /* minimum portion of screen that a window can take */

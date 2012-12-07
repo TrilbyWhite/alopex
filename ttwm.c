@@ -6,6 +6,8 @@
 *    and conceptual inspiration from i3wm by ??????							|
 \***************************************************************************/
 
+
+/************************* [0] INCLUDES & DEFINES *************************/
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -48,8 +50,10 @@ typedef struct {
 enum {Background, Clock, SpacesNorm, SpacesActive, SpacesSel, SpacesUrg,
 		TitleNorm, TitleSel, StackNorm, StackAct, StackSel,
 		StackNormBG, StackActBG, StackSelBG, LASTColor };
+enum {Tiled, Floating, ExTiled, ExFloating, LASTStack };
 
-/* 1.1 FUNCTION PROTOTPYES */
+/* 1.1 FUNCTION PROTOTPYES	*/
+/*	1.1.1 Events			*/
 static void buttonpress(XEvent *);
 static void buttonrelease(XEvent *);
 static void expose(XEvent *);
@@ -58,7 +62,7 @@ static void maprequest(XEvent *);
 static void motionnotify(XEvent *);
 static void propertynotify(XEvent *);
 static void unmapnotify(XEvent *);
-
+/*	1.1.2 Other Functions	*/
 static void die(const char *msg, ...);
 static void drawbar();
 static void exscreen(const char *);
@@ -66,12 +70,14 @@ static void focus(const char *);
 static void fullscreen(const char *);
 static void killclient(const char *);
 static void move(const char *);
-static void pullclient(Client *);
-static void pushclient(Client *,Client **);
+static Client *pullclient(Client *);
+static Client * pushclient(Client *,Client **);
 static void putclient(const char *);
 static void rectabar();
 static void spawn(const char *);
 static void swap(const char *);
+static void stack_tile(Client *,int,int,int,int);
+static void stack_float(Client *);
 static void stack();
 static void stackmode(const char *);
 static void swapclients(Client *, Client *);
@@ -99,25 +105,18 @@ static GC *gc,sgc;
 static Colormap cmap;
 static XFontStruct *fontstruct;
 static int fontheight;
-static int wksp, onwksp;
+static int wksp, onwksp, onstack;
 static Bool zoomed;
 
 static Client *focused=NULL;
-static Window *exwin;
 #include "config.h"
-static Client *clients[WORKSPACES];
-static Client *top[WORKSPACES];
-static Client *floating[WORKSPACES];
+static Client *clients[WORKSPACES][LASTStack];
+static Client *top[WORKSPACES][LASTStack];
 static Bool urg[WORKSPACES];
 static FILE *inpipe;
+static XWindowAttributes attr;
+static XButtonEvent start;
 
-/* These next two variables seem awkward and out of place.  They are holdovers
-from Tinywm.  I'd get rid of them, but they just work so darn well and, with
-a couple simpler button handlers, they provide a transient floating option.
-These also serve as a tribute to, and reminder of, ttwm's heritage.  So, they
-are here to stay.  -J McClure 2012 */
-XWindowAttributes attr;
-XButtonEvent start;
 
 /************************* [2] FUNCTION DEFINITIONS ************************/
 /* 2.0 EVENT HANDLERS */
@@ -126,16 +125,12 @@ void buttonpress(XEvent *ev) {
 	Client *c;
 	if (!(c=wintoclient(ev->xbutton.subwindow))) return;
 	if (ev->xbutton.button == 2) {
-		pullclient(c);
-		pushclient(c,&clients[wksp]);
-		focused = c;
+		focused = pushclient(pullclient(c),&clients[wksp][Tiled]);
 		stack();
 		return;
 	}
 	else {
-		pullclient(c);
-		pushclient(c,&floating[wksp]);
-		focused = c;
+		focused = pushclient(pullclient(c),&clients[wksp][Floating]);
 		stack();
 	}
 	XGrabPointer(dpy, ev->xbutton.subwindow, True, PointerMotionMask |
@@ -174,17 +169,15 @@ void maprequest(XEvent *ev) {
 		c->win = e->window;
 		if (XFetchName(dpy,c->win,&c->title)) c->tlen = strlen(c->title);
 		XSelectInput(dpy,c->win,PropertyChangeMask);
-		pushclient(c,&clients[wksp]);
-		Atom retType;
-		int retFmt;
-		unsigned long retNItems,retBytes;
-		unsigned char *retProp;
+		pushclient(c,&clients[wksp][Tiled]);
+		Atom rtype;
+		int fmt;
+		unsigned long nitem,bytes;
+		unsigned char *prop;
 		XGetWindowProperty(dpy,c->win,XInternAtom(dpy,"WM_TRANSIENT_FOR",True),
-			0,0,False,AnyPropertyType,&retType,&retFmt,&retNItems,&retBytes,&retProp);
-		if (retType != None) {
-			pullclient(c);
-			pushclient(c,&floating[wksp]);
-		}
+			0,0,False,AnyPropertyType,&rtype,&fmt,&nitem,&bytes,&prop);
+		if (rtype != None) /* found WM_TRANSIENT_FOR atom */
+			pushclient(pullclient(c),&clients[wksp][Floating]);
 		XMapWindow(dpy,c->win);
 		focused = c;
 		stack();
@@ -198,13 +191,10 @@ void motionnotify(XEvent *ev) {
 	xdiff = ev->xbutton.x_root - start.x_root;
 	ydiff = ev->xbutton.y_root - start.y_root;
 	if (!(c=wintoclient(ev->xbutton.window))) return;
-	if (start.button == 1) {
-		XMoveWindow(dpy,c->win,attr.x+xdiff,attr.y+ydiff);
-		c->x = attr.x+xdiff; c->y = attr.y+ydiff;
-	}
-	else if (start.button == 3) {
+	if (start.button == 1)
+		XMoveWindow(dpy,c->win,(c->x=attr.x+xdiff),(c->y=attr.y+ydiff));
+	else if (start.button == 3)
 		XResizeWindow(dpy,c->win,attr.width+xdiff,attr.height+ydiff);
-	}
 }
 
 void propertynotify(XEvent *ev) {
@@ -258,16 +248,19 @@ void drawbar() {
 	static time_t now;
 	time(&now);
 	int i,j;
+	Bool occupied = False;
 	i = strftime(buf,7,"%H:%M",localtime(&now));
 	XDrawString(dpy,bar,gc[Clock],2,fontheight,buf,i);
 	i = XTextWidth(fontstruct,buf,i) + 7 + fontstruct->max_bounds.lbearing;
 	/* WORKSPACES */
-	for (j = 0; j < WORKSPACES; j++)
+	for (j = 0; j < WORKSPACES; j++) {
+		occupied = clients[j][Tiled] || clients[j][Floating];
 		XFillRectangle(dpy,bar,gc[
 			(wksp==j	?	SpacesSel 		:
 			(urg[j]		?	SpacesUrg 		: 
-			(clients[j] ?	SpacesActive 	: SpacesNorm ))) ],
-			6*j+i, (clients[j]?3:6),3,fontheight-(clients[j]?3:6));
+			(occupied	?	SpacesActive 	: SpacesNorm ))) ],
+			6*j+i, (occupied?3:6),3,fontheight-(occupied?3:6));
+	}
 	i += 6*j+2; /* 6px for each workspace */
 	/* STATUSBAR */
 	XCopyArea(dpy,sbar,bar,sgc,0,0,STATUSBARSPACE,barheight,i,0);
@@ -275,10 +268,10 @@ void drawbar() {
 	/* MASTER WINDOW TAB & NAME */
 	int tab_width = sw-i;
 	int tab_count = 0;
-	Client *c = clients[wksp];
+	Client *c = clients[wksp][Tiled];
 	if (c) {
-		for ( c=clients[wksp]; c; c=c->next ) tab_count++;
-		c = clients[wksp];
+		for ( c=clients[wksp][Tiled]; c; c=c->next ) tab_count++;
+		c = clients[wksp][Tiled];
 		if (c->next) tab_width = sw*fact-i;
 		if (!columns) tab_width = (sw-i)/tab_count;
 		XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel : StackAct) ],
@@ -293,17 +286,17 @@ void drawbar() {
 	/* STACK TABS */
 	i+=tab_width;
 	int max_tlen;
-	if (c && clients[wksp]->next) {
+	if (c && clients[wksp][Tiled]->next) {
 		if (columns) tab_width = (sw-i)/(tab_count-1);
-		for ( c=clients[wksp]->next; c; c=c->next ) {
+		for ( c=clients[wksp][Tiled]->next; c; c=c->next ) {
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
-				(c==top[wksp] ? StackAct:StackNorm) ) ],
+				(c==top[wksp][Tiled] ? StackAct:StackNorm) ) ],
 				i+1,0,tab_width-2,barheight);
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSel :
-				(c==top[wksp]?StackAct:StackNorm) ) ],
+				(c==top[wksp][Tiled]?StackAct:StackNorm) ) ],
 				i,(topbar ? 1 : 0),tab_width,barheight-1);
 			XFillRectangle(dpy,bar,gc[ (c==focused ? StackSelBG :
-				(c==top[wksp]?StackActBG:StackNormBG) ) ],
+				(c==top[wksp][Tiled]?StackActBG:StackNormBG) ) ],
 				i+1,(topbar ? 1 : 0),tab_width-2,barheight-1);
 			max_tlen = (tab_width > 8 ? (tab_width-8)/fontstruct->max_bounds.width : 1);
 			XDrawString(dpy,bar,gc[(c==focused ? TitleSel : TitleNorm)],i+4,
@@ -317,15 +310,25 @@ void drawbar() {
 }
 
 void exscreen(const char *arg) {
+	int i;
 	if (arg[0] == 'd') {
-		exwin[wksp] = 0;
+		for (i = 0; i < WORKSPACES; i++) {
+			while (clients[i][ExTiled])
+				pushclient(pullclient(clients[i][ExTiled]),&clients[i][Tiled]);
+			while (clients[i][ExFloating])
+				pushclient(pullclient(clients[i][ExFloating]),&clients[i][Floating]);
+		}
 		system("xrandr --output " VIDEO1 " --auto --output " VIDEO2 " --off");
 		screen = DefaultScreen(dpy);
 		sw = DisplayWidth(dpy,screen);
 		sh = DisplayHeight(dpy,screen) - barheight;
 	}
-	else if (arg[0] == 's') exwin[wksp] = (focused ? focused->win : clients[wksp]->win);
-	else if (arg[0] == 'r') exwin[wksp] = 0;
+	else if (arg[0] == 's') {
+		if (focused) pushclient(pullclient(focused),&clients[wksp][ExTiled]);
+	}
+	else if (arg[0] == 'r')  {
+		if (focused) pushclient(pullclient(focused),&clients[wksp][Tiled]);
+	}
 	else if (arg[0] == 'a') {
 		system("xrandr --output " VIDEO1 " --auto --output " VIDEO2 " --auto --below " VIDEO1);
 		screen = DefaultScreen(dpy);
@@ -345,23 +348,23 @@ void exscreen(const char *arg) {
 }
 
 void focus(const char *arg) {
-	if (!top[wksp]) return; /* only one client, do nothing */
+	if (!top[wksp][Tiled]) return; /* only one client, do nothing */
 	Client *c;
-	if (!focused) focused = clients[wksp]; /* nothing focused? focus master */
+	if (!focused) focused = clients[wksp][Tiled]; /* nothing focused? focus master */
 	if (arg[0] == 'r') { /* focus right */
 		focused = focused->next;
-		if (!focused) focused = clients[wksp];
+		if (!focused) focused = clients[wksp][Tiled];
 	}
 	else if (arg[0] == 'l') {  /* focus left */
-		for (c=clients[wksp]; c && c->next != focused; c = c->next);
-		if (!c) for (c=clients[wksp]; c->next; c = c->next);
+		for (c=clients[wksp][Tiled]; c && c->next != focused; c = c->next);
+		if (!c) for (c=clients[wksp][Tiled]; c->next; c = c->next);
 		focused = c;
 	}
 	else if (arg[0] == 'o') { /* swap focus between master/stack */
-		if (focused == top[wksp]) focused = clients[wksp];
-		else focused = top[wksp];
+		if (focused == top[wksp][Tiled]) focused = clients[wksp][Tiled];
+		else focused = top[wksp][Tiled];
 	}
-	if (focused != clients[wksp]) top[wksp] = focused;
+	if (focused != clients[wksp][Tiled]) top[wksp][Tiled] = focused;
 	stack();
 }
 
@@ -384,42 +387,46 @@ void killclient(const char *arg) {
 }
 
 void move(const char *arg) {
-	if (!top[wksp]) return;
+	if (!top[wksp][Tiled]) return;
 	Client *t=NULL; /* t is target client to swap with focused client */
 	if (arg[0] == 'r')
 		t = focused->next;
 	else if (arg[0] == 'l')
-		for (t=clients[wksp]; t->next != focused && t->next; t = t->next);
-	if (!t) t = clients[wksp];
+		for (t=clients[wksp][Tiled]; t->next != focused && t->next; t = t->next);
+	if (!t) t = clients[wksp][Tiled];
 	swapclients(t,focused); /* switch focused client with target */
 	focused = t;
 	stack();
 }
 
-void pullclient(Client *c) {
+Client *pullclient(Client *c) {
 	Client *t;
 	wintoclient(c->win);
 	if (focused == c) focused = focused->next;
-	if (top[onwksp] == c) top[onwksp]=(c->next ? c->next : 
-			(clients[onwksp]->next == c ? NULL : clients[onwksp]->next));
-	if (clients[onwksp] == c) clients[onwksp] = c->next;
-	else if (floating[onwksp] == c) floating[onwksp] = c->next;
+	if (top[onwksp][Tiled] == c) top[onwksp][Tiled]=(c->next ? c->next : 
+			(clients[onwksp][Tiled]->next == c ? NULL : clients[onwksp][Tiled]->next));
+	if (clients[onwksp][onstack] == c) clients[onwksp][onstack] = c->next;
 	else {
-		for (t = clients[onwksp]; t && t->next != c; t = t->next);
-		if (!t) for (t = floating[onwksp]; t && t->next != c; t = t->next);
+		for (t = clients[onwksp][onstack]; t && t->next != c; t = t->next);
 		t->next = c->next;
 	}
-	if (top[onwksp] && top[onwksp] == clients[onwksp])
-		top[onwksp]=top[onwksp]->next;
-	if (!focused) focused = floating[onwksp];
+	if (top[onwksp][Tiled] && top[onwksp][Tiled] == clients[onwksp][Tiled])
+		top[onwksp][Tiled]=top[onwksp][Tiled]->next;
+	int i = 0;
+	while (!focused) {
+		focused = clients[onwksp][i];
+		if (++i == LASTStack) break;
+	}
+	return c;
 }
 
-void pushclient(Client *c,Client **stack) {
+Client *pushclient(Client *c,Client **stack) {
 	c->next = *stack;
 	int i;
 	for (i = 0; i < WORKSPACES; i++)
-		if (*stack == clients[i]) top[i] = clients[i];
+		if (*stack == clients[i][Tiled]) top[i][Tiled] = clients[i][Tiled];
 	*stack = c;
+	return c;
 }
 
 void putclient(const char *arg) {
@@ -427,10 +434,11 @@ void putclient(const char *arg) {
 	int i = arg[0] - 49; /* cheap way to convert char number to int number */
 	if (i == wksp || i < 0 || i > WORKSPACES - 1) return; /* valid workspace #? */
 	Client *c = focused; /* c=client to move; t=client pointing to c */
-	focused=(focused->next ? focused->next : clients[wksp]);
+	focused=(focused->next ? focused->next : clients[wksp][Tiled]);
 	pullclient(c);
-	top[i] = clients[i];
-	pushclient(c,&clients[i]);
+	top[i][Tiled] = clients[i][Tiled];
+	pushclient(c,&clients[i][Tiled]);
+	XMoveWindow(dpy,c->win,-sw-exsw,barheight);
 	stack();
 }
 
@@ -480,7 +488,7 @@ void spawn(const char *arg) {
 }
 
 void swap(const char *arg) {
-	swapclients(clients[wksp],top[wksp]);
+	swapclients(clients[wksp][Tiled],top[wksp][Tiled]);
 	stack();
 }
 
@@ -500,47 +508,41 @@ void swapclients(Client *a, Client *b) {
 	b->win = win;
 }
 
-void stack() {
-	int y = (topbar ? barheight : 0);
-	zoomed = False;
-	Client *c = clients[wksp];
-	if (!c) { /* no stacked clients */
-		if (focused)
-			XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
-		return;
-	}
-	if (exwin[wksp]) /* client on external monitor? */
-		XMoveResizeWindow(dpy,exwin[wksp],0,sh+barheight,exsw,exsh);
-	if (c->win == exwin[wksp]) c=c->next;
-	if (!c) return; /* no remaining clients = nothing to do */
-	else if ( (!c->next) || (c->next->win == exwin[wksp] && !c->next->next) ) {
-		/* only one client = full screen */
-		XMoveResizeWindow(dpy,c->win,0,y,sw,sh);
+void stack_tile(Client *stack,int x, int y, int w, int h) {
+	if (!stack) return;
+	else if (!stack->next || !columns) {
+		XMoveResizeWindow(dpy,stack->win,x,y,w,h);
+		if (!columns) XRaiseWindow(dpy,stack->win);
 	}
 	else {
-		if (columns) {
-			XMoveResizeWindow(dpy,c->win,0,y, 
-				(bstack ? sw		: sw*fact),
-				(bstack ? sh*fact	: sh));
-			for (c=c->next; c; c=c->next)
-				if (c->win != exwin[wksp])
-					XMoveResizeWindow(dpy,c->win,
-						(bstack ? 0 					: sw*fact),
-						(bstack ? y+sh*fact				: y),
-						(bstack ? sw 					: sw - (int)(sw*fact)),
-						(bstack ? sh - (int)(sh*fact)	: sh));
-		}
-		else {
-			for (c=c; c; c=c->next)
-				if (c->win != exwin[wksp]) XMoveResizeWindow(dpy,c->win,0,y,sw,sh);
-		}
+		XMoveResizeWindow(dpy,stack->win,x,y,
+			(bstack ? w : w*fact),(bstack ? h*fact : h));
+		while ( (stack=stack->next) )
+			XMoveResizeWindow(dpy,stack->win,
+				(bstack ? x : w*fact), (bstack ? y+h*fact : y),
+				(bstack ? w : w-(int)(w*fact)), (bstack ? h-(int)(h*fact) : h));
 	}
-	if (top[wksp]) XRaiseWindow(dpy, top[wksp]->win);
-	if (focused) {
-		XRaiseWindow(dpy, focused->win);
-		XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
+}
+
+void stack_float(Client *stack) {
+	while (stack) {
+		XMoveWindow(dpy,stack->win,stack->x,stack->y);
+		XRaiseWindow(dpy,stack->win);
+		stack = stack->next;
 	}
-	for (c=floating[wksp]; c; c=c->next) XRaiseWindow(dpy,c->win);
+}
+
+void stack() {
+	zoomed = False;
+	stack_tile(clients[wksp][Tiled],0,(topbar ? barheight : 0),sw,sh);
+	if (top[wksp][Tiled]) XRaiseWindow(dpy, top[wksp][Tiled]->win);
+	stack_float(clients[wksp][Floating]);
+	/* external monitor: */
+	stack_tile(clients[wksp][ExTiled],0,(topbar ? barheight : 0),sw,sh);
+	if (top[wksp][ExTiled]) XRaiseWindow(dpy, top[wksp][ExTiled]->win);
+	stack_float(clients[wksp][ExFloating]);
+	/* input focus: */
+	if (focused) XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 	drawbar();
 }
 
@@ -576,38 +578,35 @@ void stackmode(const char *arg) {
 
 void *wintoclient(Window w) {
 	Client *c;
-	int i;
+	int i,j;
 	for (i = 0; i < WORKSPACES; i++) {
 		onwksp = i;
-		for (c = clients[i]; c && c->win != w; c = c->next);
-		if (c) return c;
-		for (c = floating[i]; c && c->win != w; c = c->next);
-		if (c != NULL) return c;
+		for (j = 0; j < LASTStack; j++) {
+			onstack = j;
+			for (c = clients[i][j]; c && c->win != w; c = c->next);
+			if (c) return c;
+		}
 	}
 	return NULL;
 }
 
 void workspace(const char *arg) {
-	int i = arg[0] - 49; /* cheap way to convert char number to int */
+	int j,i = arg[0] - 49; /* cheap way to convert char number to int */
 	if ( (i<0) || (i>WORKSPACES) || (wksp==i) ) return;
 	wksp = i;
 	Client *c;
-	for (i = 0; i < WORKSPACES; i++) { /* "hide" all, by moving off screen */
-		for (c = clients[i]; c; c = c->next)
+	for (i = 0; i < WORKSPACES; i++) for (j = 0; j < LASTStack; j++) /* "hide" all, by moving off screen */
+		for (c = clients[i][j]; c; c = c->next)
 			XMoveWindow(dpy,c->win,-sw-exsw,barheight);
-		for (c = floating[i]; c; c = c->next)
-			XMoveWindow(dpy,c->win,-sw-exsw,barheight);
-	}
-	for (c = floating[wksp]; c; c = c->next)
-		XMoveWindow(dpy,c->win,c->x,c->y);
-	focused = clients[wksp];
+	focused = clients[wksp][Tiled];
+	if (!focused) focused = clients[wksp][Floating];
 	stack();
 	drawbar();
 }
 
 void quit(const char *arg) {
 	running = False;
-};
+}
 
 int xerror(Display *d, XErrorEvent *ev) {
 	char msg[1024];
@@ -625,7 +624,6 @@ int main(int argc, const char **argv) {
 	screen = DefaultScreen(dpy);
 	root = RootWindow(dpy,screen);
 	XSetErrorHandler(xerror);
-	exwin = (Window *) calloc(WORKSPACES,sizeof(Window));
 	XDefineCursor(dpy,root,XCreateFontCursor(dpy,TTWM_CURSOR));
 
 	/* CONFIGURE GRAPHIC CONTEXTS */
@@ -693,7 +691,6 @@ int main(int argc, const char **argv) {
 			}
 	}
 	/* clean up needed here */
-	free(exwin);
 	XFreeFontInfo(NULL,fontstruct,1);
 	XUnloadFont(dpy,val.font);
 	return 0;
