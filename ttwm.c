@@ -513,7 +513,8 @@ void swapclients(Client *a, Client *b) {
 
 void stack_tile(Client *stack,int x, int y, int w, int h) {
 	if (!stack) return;
-	else if (!stack->next || !columns) {
+	wintoclient(stack->win); /* get onwksp and onstack */
+	if (!stack->next || !columns) {
 		XMoveResizeWindow(dpy,stack->win,x,y,w,h);
 		if (!columns) XRaiseWindow(dpy,stack->win);
 	}
@@ -524,6 +525,7 @@ void stack_tile(Client *stack,int x, int y, int w, int h) {
 			XMoveResizeWindow(dpy,stack->win,
 				(bstack ? x : w*fact), (bstack ? y+h*fact : y),
 				(bstack ? w : w-(int)(w*fact)), (bstack ? h-(int)(h*fact) : h));
+		if (top[onwksp][onstack]) XRaiseWindow(dpy, top[onwksp][onstack]->win);
 	}
 }
 
@@ -538,13 +540,9 @@ void stack_float(Client *stack) {
 void stack() {
 	zoomed = False;
 	stack_tile(clients[wksp][Tiled],0,(topbar ? barheight : 0),sw,sh);
-	if (top[wksp][Tiled]) XRaiseWindow(dpy, top[wksp][Tiled]->win);
 	stack_float(clients[wksp][Floating]);
-	/* external monitor: */
 	stack_tile(clients[wksp][ExTiled],0,(topbar ? barheight : 0),sw,sh);
-	if (top[wksp][ExTiled]) XRaiseWindow(dpy, top[wksp][ExTiled]->win);
 	stack_float(clients[wksp][ExFloating]);
-	/* input focus: */
 	if (focused) XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 	drawbar();
 }
