@@ -125,10 +125,13 @@ void buttonpress(XEvent *ev) {
 	Client *c;
 	if (!(c=wintoclient(ev->xbutton.subwindow))) return;
 	if (ev->xbutton.button == 2) {
+		if (onstack == Tiled) return;
 		focused = pushclient(pullclient(c),&clients[wksp][Tiled]);
+		focused->x=0; focused->y=(topbar?barheight:0);
 		stack();
 		return;
 	}
+	else if (ev->xbutton.button > 3) return;
 	else {
 		focused = pushclient(pullclient(c),&clients[wksp][Floating]);
 		stack();
@@ -180,6 +183,7 @@ void maprequest(XEvent *ev) {
 			pushclient(pullclient(c),&clients[wksp][Floating]);
 		XMapWindow(dpy,c->win);
 		focused = c;
+		focused->x=0; focused->y=(topbar?barheight:0);
 		stack();
 	}
 }
