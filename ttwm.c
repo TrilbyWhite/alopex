@@ -181,9 +181,10 @@ void maprequest(XEvent *ev) {
 			0,0,False,AnyPropertyType,&rtype,&fmt,&nitem,&bytes,&prop);
 		if (rtype != None) /* found WM_TRANSIENT_FOR atom */
 			pushclient(pullclient(c),&clients[wksp][Floating]);
+		else
+			focused = c;
 		XMapWindow(dpy,c->win);
-		focused = c;
-		focused->x=0; focused->y=(topbar?barheight:0);
+		c->x=0; c->y=(topbar?barheight:0);
 		stack();
 	}
 }
