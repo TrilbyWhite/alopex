@@ -34,6 +34,7 @@ struct Client {
 	char *title;
 	int tlen;
 	int x, y;
+	Window transient_for;
 	Client *next;
 	Window win;
 };
@@ -133,7 +134,8 @@ void buttonpress(XEvent *ev) {
 	}
 	else if (ev->xbutton.button > 3) return;
 	else {
-		focused = pushclient(pullclient(c),&clients[wksp][Floating]);
+		if (onstack == Tiled) focused = pushclient(pullclient(c),&clients[wksp][Floating]);
+		else focused = c;
 		stack();
 	}
 	XGrabPointer(dpy, ev->xbutton.subwindow, True, PointerMotionMask |
@@ -173,18 +175,13 @@ void maprequest(XEvent *ev) {
 		if (XFetchName(dpy,c->win,&c->title)) c->tlen = strlen(c->title);
 		XSelectInput(dpy,c->win,PropertyChangeMask);
 		pushclient(c,&clients[wksp][Tiled]);
-		Atom rtype;
-		int fmt;
-		unsigned long nitem,bytes;
-		unsigned char *prop;
-		XGetWindowProperty(dpy,c->win,XInternAtom(dpy,"WM_TRANSIENT_FOR",True),
-			0,0,False,AnyPropertyType,&rtype,&fmt,&nitem,&bytes,&prop);
-		if (rtype != None) /* found WM_TRANSIENT_FOR atom */
+		if (XGetTransientForHint(dpy,c->win,&c->transient_for))
 			pushclient(pullclient(c),&clients[wksp][Floating]);
 		else
 			focused = c;
-		XMapWindow(dpy,c->win);
 		c->x=0; c->y=(topbar?barheight:0);
+		XMapWindow(dpy,c->win);
+		XMoveWindow(dpy,c->win,c->x,c->y);
 		stack();
 	}
 }
@@ -552,7 +549,10 @@ void stack() {
 	stack_float(clients[wksp][Floating]);
 	stack_tile(clients[wksp][ExTiled],0,(topbar ? barheight : 0),sw,sh);
 	stack_float(clients[wksp][ExFloating]);
-	if (focused) XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
+	if (focused) {
+		if (focused->transient_for) focused = wintoclient(focused->transient_for);
+		XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
+	}
 	drawbar();
 }
 
