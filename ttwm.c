@@ -558,7 +558,7 @@ void stack() {
 	stack_tile(clients[wksp][ExTiled],0,(topbar ? barheight : 0),sw,sh);
 	stack_float(clients[wksp][ExFloating]);
 	if (focused) {
-		if (focused->transient_for) focused = wintoclient(focused->transient_for);
+		//if (focused->transient_for) focused = wintoclient(focused->transient_for);
 		XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 	}
 	drawbar();
