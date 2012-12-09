@@ -529,7 +529,11 @@ void stack_tile(Client *stack,int x, int y, int w, int h) {
 	}
 	else if (!columns) {
 		if (!focused) return;
-		XMoveResizeWindow(dpy,focused->win,x,y,w,h);
+		wintoclient(focused->win);
+		if (onstack == Tiled || onstack == ExTiled)
+			XMoveResizeWindow(dpy,focused->win,x,y,w,h);
+		else 
+			XMoveResizeWindow(dpy,clients[onwksp][onstack-1]->win,x,y,w,h);
 		if (focused) XRaiseWindow(dpy,focused->win);
 	}
 	else {
