@@ -123,6 +123,7 @@ static XButtonEvent start;
 /* 2.0 EVENT HANDLERS */
 
 void buttonpress(XEvent *ev) {
+fprintf(stderr,"TTWM: buttonpress() button=%d\n",ev->xbutton.button);
 	Client *c;
 	if (!(c=wintoclient(ev->xbutton.subwindow))) return;
 	if (ev->xbutton.button == 2) {
@@ -142,6 +143,7 @@ void buttonpress(XEvent *ev) {
 		ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XGetWindowAttributes(dpy, ev->xbutton.subwindow, &attr);
 	start = ev->xbutton;
+fprintf(stderr,"TTWM: buttonpress() end\n");
 }
 
 void buttonrelease(XEvent *ev) {
