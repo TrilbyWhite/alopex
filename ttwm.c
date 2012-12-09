@@ -350,23 +350,31 @@ void exscreen(const char *arg) {
 }
 
 void focus(const char *arg) {
-	if (!top[wksp][Tiled]) return; /* only one client, do nothing */
-	Client *c;
-	if (!focused) focused = clients[wksp][Tiled]; /* nothing focused? focus master */
+	if (!focused) return;
+	Client *c = wintoclient(focused->win);
+	if (arg[0] == 't') { /* toggle between tiled and floating layers */
+		if (onstack == Tiled || onstack == ExTiled) onstack++;
+		else onstack--;
+		focused = clients[onwksp][onstack];
+		stack();
+		return;
+	}
+	if (!clients[onwksp][onstack]->next) return; /* only one client, do nothing */
 	if (arg[0] == 'r') { /* focus right */
 		focused = focused->next;
-		if (!focused) focused = clients[wksp][Tiled];
+		if (!focused) focused = clients[onwksp][onstack];
 	}
 	else if (arg[0] == 'l') {  /* focus left */
-		for (c=clients[wksp][Tiled]; c && c->next != focused; c = c->next);
-		if (!c) for (c=clients[wksp][Tiled]; c->next; c = c->next);
+		for (c=clients[onwksp][onstack]; c && c->next != focused; c = c->next);
+		if (!c) for (c=clients[onwksp][onstack]; c->next; c = c->next);
 		focused = c;
 	}
 	else if (arg[0] == 'o') { /* swap focus between master/stack */
 		if (focused == top[wksp][Tiled]) focused = clients[wksp][Tiled];
 		else focused = top[wksp][Tiled];
 	}
-	if (focused != clients[wksp][Tiled]) top[wksp][Tiled] = focused;
+	if (onstack == Tiled || onstack == ExTiled)
+		if (focused != clients[onwksp][onstack]) top[onwksp][onstack] = focused;
 	stack();
 }
 

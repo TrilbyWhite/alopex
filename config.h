@@ -69,6 +69,7 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,	XK_Left,	move,		"left"			},
 	{ MODKEY|ShiftMask,	XK_Right,	move,		"right"			},
 	{ MODKEY,			XK_Tab,		focus,		"other"			},
+	{ MODKEY|ShiftMask,	XK_Tab,		focus,		"toggle"		},
 	/* increase or decrease master size.  */
 	{ MODKEY,			XK_i,		stackmode,	"increase"		},
 	{ MODKEY,			XK_d,		stackmode,	"decrease"		},
