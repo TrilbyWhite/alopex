@@ -123,7 +123,6 @@ static XButtonEvent start;
 /* 2.0 EVENT HANDLERS */
 
 void buttonpress(XEvent *ev) {
-fprintf(stderr,"TTWM: buttonpress() button=%d\n",ev->xbutton.button);
 	Client *c;
 	if (!(c=wintoclient(ev->xbutton.subwindow))) return;
 	if (ev->xbutton.button == 2) {
@@ -143,7 +142,6 @@ fprintf(stderr,"TTWM: buttonpress() button=%d\n",ev->xbutton.button);
 		ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XGetWindowAttributes(dpy, ev->xbutton.subwindow, &attr);
 	start = ev->xbutton;
-fprintf(stderr,"TTWM: buttonpress() end\n");
 }
 
 void buttonrelease(XEvent *ev) {
@@ -684,8 +682,8 @@ int main(int argc, const char **argv) {
 	for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++) 
 		if ( (code=XKeysymToKeycode(dpy,keys[i].keysym)) ) for (j = 0; j < 4; j++)
 			XGrabKey(dpy,code,keys[i].mod|mods[j],root,True,GrabModeAsync,GrabModeAsync);
-	XGrabButton(dpy,AnyButton,MODKEY,root,True,ButtonPressMask,GrabModeAsync,
-		GrabModeAsync,None,None);
+	for (j = 0; j < 4; j++) XGrabButton(dpy,AnyButton,MODKEY|mods[j],root,
+		True,ButtonPressMask,GrabModeAsync,GrabModeAsync,None,None);
 	/* MAIN LOOP */
 	XEvent ev;
 	int xfd,sfd,r;
