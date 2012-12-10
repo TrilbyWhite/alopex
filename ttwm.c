@@ -175,10 +175,15 @@ void maprequest(XEvent *ev) {
 		if (XFetchName(dpy,c->win,&c->title)) c->tlen = strlen(c->title);
 		XSelectInput(dpy,c->win,PropertyChangeMask);
 		pushclient(c,&clients[wksp][Tiled]);
-		if (XGetTransientForHint(dpy,c->win,&c->transient_for))
+		if (XGetTransientForHint(dpy,c->win,&c->transient_for)) {
 			pushclient(pullclient(c),&clients[wksp][Floating]);
-		else
-			focused = c;
+			XSizeHints hints;
+			long ret;
+			XGetWMNormalHints(dpy,c->win,&hints,&ret);
+			XResizeWindow(dpy,c->win,
+				MAX(hints.width,hints.min_width),MAX(hints.height,hints.min_height));
+		}
+		else focused = c;
 		c->x=0; c->y=(topbar?barheight:0);
 		XMapWindow(dpy,c->win);
 		XMoveWindow(dpy,c->win,c->x,c->y);
