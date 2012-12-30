@@ -250,25 +250,18 @@ static void die(const char *msg, ...) {
 void drawbar() {
 	urg[wksp] = False;
 	XFillRectangle(dpy,bar,gc[Background],0,0,sw,barheight);
-	/* CLOCK */
-	static char buf[8];
-	static time_t now;
-	time(&now);
-	int i,j;
+	int i;
 	Bool occupied = False;
-	i = strftime(buf,7,"%H:%M",localtime(&now));
-	XDrawString(dpy,bar,gc[Clock],2,fontheight,buf,i);
-	i = XTextWidth(fontstruct,buf,i) + 7 + fontstruct->max_bounds.lbearing;
 	/* WORKSPACES */
-	for (j = 0; j < WORKSPACES; j++) {
-		occupied = clients[j][Tiled] || clients[j][Floating];
+	for (i = 0; i < WORKSPACES; i++) {
+		occupied = clients[i][Tiled] || clients[i][Floating];
 		XFillRectangle(dpy,bar,gc[
-			(wksp==j	?	SpacesSel 		:
-			(urg[j]		?	SpacesUrg 		: 
+			(wksp==i	?	SpacesSel 		:
+			(urg[i]		?	SpacesUrg 		: 
 			(occupied	?	SpacesActive 	: SpacesNorm ))) ],
-			6*j+i, (occupied?3:6),3,fontheight-(occupied?3:6));
+			6*i, (occupied?3:6),3,fontheight-(occupied?3:6));
 	}
-	i += 6*j+2; /* 6px for each workspace */
+	i = 6*i+2; /* 6px for each workspace */
 	/* STATUSBAR */
 	XCopyArea(dpy,sbar,bar,sgc,0,0,STATUSBARSPACE,barheight,i,0);
 	i += STATUSBARSPACE+4;
