@@ -1,24 +1,24 @@
+
 CFLAGS	+=	-Os -Wall -Wno-unused-parameter -Wno-unused-result
 PROG	=	ttwm
-LIBS	=	-lX11 -lXrandr
+LIBS	=	-lX11
 PREFIX	?=	/usr
 MANDIR	?=	/usr/share/man
+VER		=	2.0a
+HEADERS	=	config.h icons.h
 
-$(PROG): $(PROG).c config.h
-	@$(CC) $(CFLAGS) $(LIBS) -o $(PROG) $(PROG).c
-	@strip $(PROG)
-	@gzip -c $(PROG).1 > $(PROG).1.gz
+${PROG}: ${PROG}.c ${HEADERS}
+	@${CC} ${CFLAGS} ${LIBS} -o ${PROG} ${PROG}.c
+	@strip ${PROG}
 
 clean:
-	@rm -f $(PROG)
-	@rm -f $(PROG).1.gz
+	@rm -f ${PROG}
 
 tarball: clean
-	@rm -f ttwm.tar.gz
-	@tar -czf ttwm-1.0.tar.gz *
+	@rm -f ttwm-${VER}.tar.gz
+	@tar -czf ttwm-${VER}.tar.gz *
 
-install:
-	@mkdir -p ${DESTDIR}${PREFIX}/bin
-	@install -m755 ttwm ${DESTDIR}${PREFIX}/bin/ttwm
-	@install -Dm666 $(PROG).1.gz ${DESTDIR}${MANDIR}/man1/$(PROG).1.gz
+install: ${PROG}
+	@install -Dm755 ${PROG} ${DESTDIR}${PREFIX}/bin/${PROG}
+
 
