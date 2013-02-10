@@ -15,7 +15,7 @@
 
 #define TTWM_FLOATING	0x0001
 #define TTWM_TRANSIENT	0x0003
-#define TTWM_FULLSCREEN	0x0005
+#define TTWM_FULLSCREEN	0x0004
 #define TTWM_TOPSTACK	0x0008
 #define TTWM_URG_HINT	0x0010
 #define TTWM_ANY		0xFFFF
@@ -142,9 +142,8 @@ void buttonrelease(XEvent *ev) {
 void configurerequest(XEvent *ev) {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	Client *c;
-	if ( (c=wintoclient(e->window)) && (e->width==sw) && (e->height==sh) ) {
+	if ( (c=wintoclient(e->window)) && (e->width==sw) && (e->height==sh) )
 		c->flags |= TTWM_FULLSCREEN;
-	}
 	else {
 		XWindowChanges wc;
 		wc.width = e->width; wc.height = e->height;
@@ -187,8 +186,9 @@ void maprequest(XEvent *ev) {
 	if (!wintoclient(e->window)) {
 		if (!(c=calloc(1,sizeof(Client)))) exit(1);
 		c->win = e->window;
-		c->x = wa.x; c->y = wa.y; c->w = wa.width; c->h = wa.height;
-		if ( (c->w==sw) && (c->h==sh) ) c->flags |= TTWM_FULLSCREEN;
+		c->w = wa.width; c->h = wa.height; c->x = (sw-c->w)/2; c->y = (sh-c->h)/2;
+		if ( (c->w==sw) && (c->h==sh) )
+			c->flags |= TTWM_FULLSCREEN;
 		c->tags = tagsSel;
 		if (XGetTransientForHint(dpy,c->win,&c->parent)) c->flags |= TTWM_TRANSIENT;
 		else c->parent = e->parent;
@@ -268,7 +268,9 @@ void unmapnotify(XEvent *ev) {
 /* 2.1 BINDABLE FUNCTIONS */
 
 void fullscreen(const char *arg) {
-	if (focused) focused->flags ^= TTWM_FULLSCREEN;
+	if (!focused) return;
+	focused->flags ^= TTWM_FULLSCREEN;
+	XRaiseWindow(dpy,focused->win);
 	draw();
 }
 
@@ -366,24 +368,30 @@ int draw() {
 	while (stack) {
 		tagsOcc |= stack->tags;
 		if (stack->tags & tagsSel && !(stack->flags & TTWM_FLOATING) ) {
-			if (!master) master = stack;
+			if (!master) {
+				master = stack;
+				if (!focused || !(focused->tags & tagsSel)) focused = master;
+			}
 			if (!slave && master != stack && stack->flags & TTWM_TOPSTACK)
 				slave = stack;
 			stack->flags &= ~TTWM_TOPSTACK;
-			XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
+			if (stack->flags & TTWM_FULLSCREEN )
+				XMoveResizeWindow(dpy,stack->win,-borderwidth,-borderwidth,sw,sh);
+			else
+				XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
 			nstack++;
 		}
 		else if (stack->tags & tagsSel) { /* floating */
+			if (!master && !focused) focused = stack;
 			stack->flags &= ~TTWM_TOPSTACK;
-			if ( (stack->flags & TTWM_FULLSCREEN) == TTWM_FULLSCREEN)
+			if (stack->flags & TTWM_FULLSCREEN )
 				XMoveResizeWindow(dpy,stack->win,-borderwidth,-borderwidth,sw,sh);
 			else
 				XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
 		}
 		else {
-			XMoveWindow(dpy,stack->win,-sw,0);
+			XMoveWindow(dpy,stack->win,-2*sw,0);
 		}
-		if (!focused || !(focused->tags & tagsSel)) focused = master;
 		if (stack == focused && stack != master) slave = stack;
 		if (stack == focused) setcolor(Selected);
 		else setcolor(Occupied);
