@@ -24,7 +24,7 @@ static int			tilebias			= 0;
 
 #define DMENU		"dmenu_run -fn \"-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
 #define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc */
-#define CMD(app)	app " >> /tmp/.TTWM_APP_OUT 2>&1 &"
+#define CMD(app)	app "&"
 
 /* key definitions */
 #define MOD1 Mod4Mask

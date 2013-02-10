@@ -103,6 +103,7 @@ static Client *clients = NULL, *focused = NULL, *nextwin, *prevwin, *altwin;
 static FILE *inpipe;
 static const char *noname_window = "(UNNAMED)";
 static int tagsUrg = 0, tagsSel = 1;
+static int (*xerrorxlib)(Display *, XErrorEvent *);
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]		= buttonpress,
 	[ButtonRelease]		= buttonrelease,
@@ -188,6 +189,8 @@ void maprequest(XEvent *ev) {
 		if (!(c=calloc(1,sizeof(Client)))) exit(1);
 		c->win = e->window;
 		c->w = wa.width; c->h = wa.height; c->x = (sw-c->w)/2; c->y = (sh-c->h)/2;
+if (c->x < 0) c->x = 0;
+if (c->y < 0) c->y = 0;
 		if ( (c->w==sw) && (c->h==sh) )
 			c->flags |= TTWM_FULLSCREEN;
 		c->tags = tagsSel;
@@ -330,10 +333,15 @@ void tile(const char *arg) {
 		if (!tile_modes[++ntilemode]) ntilemode = 0;
 		tile(tile_modes[ntilemode]);
 	}
-	if (focused) XRaiseWindow(dpy,focused->win);
-	for (c = clients; c; c = c->next)
-		if ( (c->tags & tagsSel) && (c->flags & TTWM_FLOATING) )
-			XRaiseWindow(dpy,c->win);
+//	if (focused) XRaiseWindow(dpy,focused->win);
+//	for (c = clients; c; c = c->next)
+//		if ( (c->tags & tagsSel) && (c->flags & TTWM_FLOATING) )
+//			XRaiseWindow(dpy,c->win);
+if ( !(focused->flags & TTWM_FLOATING) )
+XLowerWindow(dpy,focused->win);
+for (c = clients; c; c = c->next)
+if ( (c->tags & tagsSel) && (c != focused) && !(c->flags & TTWM_FLOATING) )
+XLowerWindow(dpy,c->win);
 	draw();
 }
 
@@ -636,9 +644,8 @@ Client *wintoclient(Window w) {
 int xerror(Display *d, XErrorEvent *ev) {
 	char msg[1024];
 	XGetErrorText(dpy,ev->error_code,msg,sizeof(msg));
-	fprintf(stderr,"== TTWM ERROR ==\nrequest=%d error=%d\n%s================\n",
-		ev->request_code,ev->error_code,msg);
-	return 0;
+	fprintf(stderr,"[TTWM] (%d:%d) %s\n",ev->request_code,ev->error_code,msg);
+	return xerrorxlib(d,ev);
 }
 
 int main(int argc, const char **argv) {
@@ -650,7 +657,7 @@ int main(int argc, const char **argv) {
 	sw = DisplayWidth(dpy,scr);
 	sh = DisplayHeight(dpy,scr);
 	root = DefaultRootWindow(dpy);
-	XSetErrorHandler(xerror);
+	xerrorxlib = XSetErrorHandler(xerror);
 	XDefineCursor(dpy,root,XCreateFontCursor(dpy,ttwm_cursor));
 	/* gc init */
 	cmap = DefaultColormap(dpy,scr);
