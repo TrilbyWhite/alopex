@@ -424,7 +424,7 @@ int draw() {
 		setcolor(master == focused ? Title : Default);
 		if (master->flags & TTWM_URG_HINT) setcolor(Urgent);
 		XDrawString(dpy,buf,gc,x,fontheight,master->title,strlen(master->title));
-		x = sw/2 + tilebias;
+		x = sw/2 + tilebias + 8;
 		int titlew = 0, tabw = (nstack ? (sw - x - statuswidth)/nstack : 0) - 8;
 		if (tabw < 20) tabw = 20;
 		for (stack = master->next; stack; stack = stack->next) {
