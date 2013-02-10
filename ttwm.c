@@ -85,6 +85,7 @@ static Client *wintoclient(Window);
 static int xerror(Display *,XErrorEvent *);
 
 /* 1.3 GLOBAL VARIABLES */
+#include "icons.h"
 #include "config.h"
 static Display *dpy;
 static Window root, bar;

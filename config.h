@@ -3,10 +3,6 @@ static const char font[] =  "-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*"
 static const char *tag_name[] = {"one", "two", "three", "four", "five", NULL};
 static const char *tile_modes[] = {"R_ttwm", "B_ttwm", "rstack", "bstack", NULL};
 
-/* comment to disable status icons */
-/* icons are specified in the status input with {i #} format */
-#include "icons.h"
-
 static const char colors[LASTColor][9] = {
 	[Background]	= "#101010",
 	[Default]		= "#686868",
@@ -17,14 +13,14 @@ static const char colors[LASTColor][9] = {
 };
 
 static const char 	ttwm_cursor			= XC_left_ptr;
-static Bool			showbar				= True;
-static Bool			topbar				= True;
-static const Bool	focusfollowmouse	= False;
 static const int	borderwidth			= 1;
 static const int	tilegap				= 4;
-static int			tilebias			= 0;
 static const int	max_status_line		= 256;
 static const int	win_min				= 20;
+static const Bool	focusfollowmouse	= False;
+static Bool			showbar				= True;
+static Bool			topbar				= True;
+static int			tilebias			= 0;
 
 #define DMENU		"dmenu_run -fn \"-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
 #define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc */
@@ -44,7 +40,7 @@ static Key keys[] = {
 	{ MOD1,				XK_f,		fullscreen,	NULL			},
 	{ MOD1,				XK_a,		toggle,		"place bar"		},
 	{ MOD1,				XK_x,		toggle,		"visible bar"	},
-	{ MOD1,				XK_e,		toggle,		"floating"		},
+	{ MOD1|MOD2,		XK_f,		toggle,		"floating"		},
 	/* tiling: */
 	{ MOD1,				XK_space,	tile,		"cycle"			},
 	{ MOD1|MOD2,		XK_t,		tile,		"R_ttwm"		},
@@ -88,8 +84,6 @@ static Key keys[] = {
 	{ MOD1|ShiftMask,	XK_Tab,		window,		"s alt"			},
 };
 
-/* mouse buttons with no modifiers only work when triggered */
-/* with the	mouse pointer over the desktop					*/
 static Button buttons[] = {
 	/* modifier			button		function 	arg */
 	{MOD1,				1,			mouse,		"move"		},
