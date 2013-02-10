@@ -103,7 +103,6 @@ static Client *clients = NULL, *focused = NULL, *nextwin, *prevwin, *altwin;
 static FILE *inpipe;
 static const char *noname_window = "(UNNAMED)";
 static int tagsUrg = 0, tagsSel = 1;
-static int (*xerrorxlib)(Display *, XErrorEvent *);
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]		= buttonpress,
 	[ButtonRelease]		= buttonrelease,
@@ -645,7 +644,7 @@ int xerror(Display *d, XErrorEvent *ev) {
 	char msg[1024];
 	XGetErrorText(dpy,ev->error_code,msg,sizeof(msg));
 	fprintf(stderr,"[TTWM] (%d:%d) %s\n",ev->request_code,ev->error_code,msg);
-	return xerrorxlib(d,ev);
+	return 0;
 }
 
 int main(int argc, const char **argv) {
@@ -657,7 +656,7 @@ int main(int argc, const char **argv) {
 	sw = DisplayWidth(dpy,scr);
 	sh = DisplayHeight(dpy,scr);
 	root = DefaultRootWindow(dpy);
-	xerrorxlib = XSetErrorHandler(xerror);
+	XSetErrorHandler(xerror);
 	XDefineCursor(dpy,root,XCreateFontCursor(dpy,ttwm_cursor));
 	/* gc init */
 	cmap = DefaultColormap(dpy,scr);
