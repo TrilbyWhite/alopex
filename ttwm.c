@@ -354,6 +354,7 @@ void window(const char *arg) {
 	if (!t) return;
 	if (arg[0] == 'f') focused = t;
 	else if (arg[0] == 's') { swap(focused, t); focused = t; }
+	XRaiseWindow(dpy,focused->win);
 	draw();
 }
 
@@ -367,7 +368,12 @@ int draw() {
 	XSetWindowAttributes wa;
 	while (stack) {
 		tagsOcc |= stack->tags;
-		if (stack->tags & tagsSel && !(stack->flags & TTWM_FLOATING) ) {
+		if (!(stack->tags & tagsSel)) { /* not on selected tag(s) */
+			XMoveWindow(dpy,stack->win,-2*sw,0);
+			stack = stack->next;
+			continue;
+		}
+		else if (!(stack->flags & TTWM_FLOATING) ) { /* tiled */
 			if (!master) {
 				master = stack;
 				if (!focused || !(focused->tags & tagsSel)) focused = master;
@@ -375,23 +381,16 @@ int draw() {
 			if (!slave && master != stack && stack->flags & TTWM_TOPSTACK)
 				slave = stack;
 			stack->flags &= ~TTWM_TOPSTACK;
-			if (stack->flags & TTWM_FULLSCREEN )
-				XMoveResizeWindow(dpy,stack->win,-borderwidth,-borderwidth,sw,sh);
-			else
-				XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
 			nstack++;
 		}
-		else if (stack->tags & tagsSel) { /* floating */
+		else { /* floating */
 			if (!master && !focused) focused = stack;
 			stack->flags &= ~TTWM_TOPSTACK;
-			if (stack->flags & TTWM_FULLSCREEN )
-				XMoveResizeWindow(dpy,stack->win,-borderwidth,-borderwidth,sw,sh);
-			else
-				XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
 		}
-		else {
-			XMoveWindow(dpy,stack->win,-2*sw,0);
-		}
+		if (stack->flags & TTWM_FULLSCREEN )
+			XMoveResizeWindow(dpy,stack->win,-borderwidth,-borderwidth,sw,sh);
+		else
+			XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
 		if (stack == focused && stack != master) slave = stack;
 		if (stack == focused) setcolor(Selected);
 		else setcolor(Occupied);
