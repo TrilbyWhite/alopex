@@ -337,7 +337,7 @@ void tile(const char *arg) {
 //	for (c = clients; c; c = c->next)
 //		if ( (c->tags & tagsSel) && (c->flags & TTWM_FLOATING) )
 //			XRaiseWindow(dpy,c->win);
-if ( !(focused->flags & TTWM_FLOATING) )
+if ( focused && !(focused->flags & TTWM_FLOATING) )
 XLowerWindow(dpy,focused->win);
 for (c = clients; c; c = c->next)
 if ( (c->tags & tagsSel) && (c != focused) && !(c->flags & TTWM_FLOATING) )
