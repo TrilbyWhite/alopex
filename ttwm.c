@@ -193,8 +193,10 @@ if (c->y < 0) c->y = 0;
 		if ( (c->w==sw) && (c->h==sh) )
 			c->flags |= TTWM_FULLSCREEN;
 		c->tags = tagsSel;
-		if (XGetTransientForHint(dpy,c->win,&c->parent)) c->flags |= TTWM_TRANSIENT;
-		else c->parent = e->parent;
+		if (XGetTransientForHint(dpy,c->win,&c->parent))
+			c->flags |= TTWM_TRANSIENT;
+		else
+			c->parent = e->parent;
 		if (!XFetchName(dpy,c->win,&c->title) || c->title == NULL) {
 			if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
 			else c->title = strdup(noname_window);
@@ -204,9 +206,11 @@ if (c->y < 0) c->y = 0;
 		c->next = clients; clients = c;
 		XSetWindowBorderWidth(dpy,c->win,borderwidth);
 		XMapWindow(dpy,c->win);
+//XMoveResizeWindow(dpy,c->win,c->x,c->y,c->w,c->h);
 		XRaiseWindow(dpy,c->win);
 		focused = c;
 		if (!(c->flags & TTWM_FLOATING)) {
+			tile(tile_modes[ntilemode]);
 			draw();
 			tile(tile_modes[ntilemode]);
 		}
