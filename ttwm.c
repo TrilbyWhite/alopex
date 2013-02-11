@@ -204,10 +204,9 @@ if (c->y < 0) c->y = 0;
 		c->next = clients; clients = c;
 		XSetWindowBorderWidth(dpy,c->win,borderwidth);
 		XMapWindow(dpy,c->win);
-XFlush(dpy);
 		focused = c;
+		if (!(c->flags & TTWM_FLOATING)) tile(tile_modes[ntilemode]);
 	}
-	tile(tile_modes[ntilemode]);
 	draw();
 }
 
@@ -334,16 +333,18 @@ void tile(const char *arg) {
 		if (!tile_modes[++ntilemode]) ntilemode = 0;
 		tile(tile_modes[ntilemode]);
 	}
-//	if (focused) XRaiseWindow(dpy,focused->win);
-//	for (c = clients; c; c = c->next)
-//		if ( (c->tags & tagsSel) && (c->flags & TTWM_FLOATING) )
-//			XRaiseWindow(dpy,c->win);
-if ( focused && !(focused->flags & TTWM_FLOATING) )
-XLowerWindow(dpy,focused->win);
-for (c = clients; c; c = c->next)
-if ( (c->tags & tagsSel) && (c != focused) && !(c->flags & TTWM_FLOATING) )
-XLowerWindow(dpy,c->win);
-XLowerWindow(dpy,bar);
+	if (focused) {
+		XRaiseWindow(dpy,focused->win);
+		for (c = clients; c; c = c->next)
+			if ( (c->tags & tagsSel) && (c->flags & TTWM_FLOATING) )
+				XRaiseWindow(dpy,c->win);
+	}
+//if ( focused && !(focused->flags & TTWM_FLOATING) )
+//XLowerWindow(dpy,focused->win);
+//for (c = clients; c; c = c->next)
+//if ( (c->tags & tagsSel) && (c != focused) && !(c->flags & TTWM_FLOATING) )
+//XLowerWindow(dpy,c->win);
+//XLowerWindow(dpy,bar);
 	draw();
 }
 
