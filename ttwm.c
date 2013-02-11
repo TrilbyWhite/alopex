@@ -343,6 +343,7 @@ XLowerWindow(dpy,focused->win);
 for (c = clients; c; c = c->next)
 if ( (c->tags & tagsSel) && (c != focused) && !(c->flags & TTWM_FLOATING) )
 XLowerWindow(dpy,c->win);
+XLowerWindow(dpy,bar);
 	draw();
 }
 
