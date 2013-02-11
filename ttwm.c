@@ -123,7 +123,7 @@ void buttonpress(XEvent *ev) {
 	Client *c;
 	XButtonEvent *e = &ev->xbutton;
 	if (!( (c=wintoclient(e->subwindow)) && e->state) ) return;
-	if (c && e->button < 4) focused = c;
+	if (c && e->button < 4) { focused = c; XRaiseWindow(dpy,c->win); }
 	int i;
 	mouseEvent = *e;
 	for (i = 0; i < sizeof(buttons)/sizeof(buttons[0]); i++)
@@ -222,6 +222,7 @@ void motionnotify(XEvent *ev) {
 	else if (mouseMode == MResize) {
 		focused->w+=xdiff; focused->h+=ydiff; draw();
 	}
+	focused->flags |= TTWM_FLOATING;
 	mouseEvent.x_root+=xdiff; mouseEvent.y_root+=ydiff;
 }
 
@@ -354,6 +355,7 @@ void toggle(const char *arg) {
 
 void window(const char *arg) {
 	if (!focused) return;
+	if (focused->flags & TTWM_FLOATING) return;
 	neighbors(focused);
 	Client *t = NULL;
 	if (arg[2] == 'p') t = prevwin;
@@ -461,9 +463,10 @@ int neighbors(Client *c) {
 	Client *stack, *t;
 	for (stack = clients; stack && stack != c; stack = stack->next)
 		if (stack->tags & tagsSel && !(stack->flags & TTWM_FLOATING)) prevwin = stack;
-	for (nextwin = stack->next; nextwin && !(nextwin->tags & tagsSel);
-			nextwin = nextwin->next);
-	for (t = clients; t && !(t->tags & tagsSel); t = t->next);
+	for (nextwin = stack->next; nextwin; nextwin = nextwin->next)
+		if ( (nextwin->tags & tagsSel) && !(nextwin->flags & TTWM_FLOATING) ) break;
+	for (t = clients; t && !(t->tags & tagsSel) && !(t->flags & TTWM_FLOATING);
+			t = t->next);
 	if (!t) return -1;
 	for (stack = t->next; stack && !(stack->flags & TTWM_TOPSTACK);
 			stack = stack->next);
