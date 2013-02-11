@@ -204,6 +204,7 @@ if (c->y < 0) c->y = 0;
 		c->next = clients; clients = c;
 		XSetWindowBorderWidth(dpy,c->win,borderwidth);
 		XMapWindow(dpy,c->win);
+XFlush(dpy);
 		focused = c;
 	}
 	tile(tile_modes[ntilemode]);
