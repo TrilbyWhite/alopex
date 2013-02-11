@@ -205,7 +205,10 @@ if (c->y < 0) c->y = 0;
 		XSetWindowBorderWidth(dpy,c->win,borderwidth);
 		XMapWindow(dpy,c->win);
 		focused = c;
-		if (!(c->flags & TTWM_FLOATING)) tile(tile_modes[ntilemode]);
+		if (!(c->flags & TTWM_FLOATING)) {
+			draw();
+			tile(tile_modes[ntilemode]);
+		}
 	}
 	draw();
 }
