@@ -204,6 +204,7 @@ if (c->y < 0) c->y = 0;
 		c->next = clients; clients = c;
 		XSetWindowBorderWidth(dpy,c->win,borderwidth);
 		XMapWindow(dpy,c->win);
+		XRaiseWindow(dpy,c->win);
 		focused = c;
 		if (!(c->flags & TTWM_FLOATING)) {
 			draw();
@@ -390,24 +391,24 @@ int draw() {
 			continue;
 		}
 		else if (!(stack->flags & TTWM_FLOATING) ) { /* tiled */
-			if (!master) {
-				master = stack;
-				if (!focused || !(focused->tags & tagsSel)) focused = master;
-			}
-			if (!slave && master != stack && stack->flags & TTWM_TOPSTACK)
-				slave = stack;
+			if (!master) master = stack;
+			else if (!slave) slave = stack;
+			else if (stack->flags & TTWM_TOPSTACK) slave = stack;
 			stack->flags &= ~TTWM_TOPSTACK;
 			nstack++;
 		}
 		else { /* floating */
-			if (!master && !focused) focused = stack;
 			stack->flags &= ~TTWM_TOPSTACK;
 		}
 		if (stack->flags & TTWM_FULLSCREEN )
 			XMoveResizeWindow(dpy,stack->win,-borderwidth,-borderwidth,sw,sh);
 		else
 			XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
-		if (stack == focused && stack != master) slave = stack;
+		if (!focused || !(focused->tags & tagsSel)) {
+			focused = master;
+			if (!focused) focused = slave;
+			if (!focused) focused = stack;
+		}
 		if (stack == focused) setcolor(Selected);
 		else setcolor(Occupied);
 		wa.border_pixel = color.pixel;
@@ -471,7 +472,7 @@ int neighbors(Client *c) {
 		if (stack->tags & tagsSel && !(stack->flags & TTWM_FLOATING)) prevwin = stack;
 	for (nextwin = stack->next; nextwin; nextwin = nextwin->next)
 		if ( (nextwin->tags & tagsSel) && !(nextwin->flags & TTWM_FLOATING) ) break;
-	for (t = clients; t && !(t->tags & tagsSel) && !(t->flags & TTWM_FLOATING);
+	for (t = clients; t && (!(t->tags & tagsSel) || (t->flags & TTWM_FLOATING));
 			t = t->next);
 	if (!t) return -1;
 	for (stack = t->next; stack && !(stack->flags & TTWM_TOPSTACK);
