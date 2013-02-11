@@ -143,16 +143,18 @@ void buttonrelease(XEvent *ev) {
 void configurerequest(XEvent *ev) {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	Client *c;
-	if ( (c=wintoclient(e->window)) && (e->width==sw) && (e->height==sh) )
+	if ( (c=wintoclient(e->window)) && (e->width==sw) && (e->height==sh) ) {
 		c->flags |= TTWM_FULLSCREEN;
-	else {
-		XWindowChanges wc;
-		wc.width = e->width; wc.height = e->height;
-		wc.border_width = borderwidth;
-		wc.sibling = e->above; wc.stack_mode = e->detail;
-		XConfigureWindow(dpy,e->window,e->value_mask,&wc);
+		draw();
+		return;
 	}
-	tile(tile_modes[ntilemode]);
+	XWindowChanges wc;
+	wc.x = e->x; wc.y = e->y; 
+	wc.width = e->width; wc.height = e->height;
+	wc.border_width = borderwidth;
+	wc.sibling = e->above; wc.stack_mode = e->detail;
+	XConfigureWindow(dpy,e->window,e->value_mask,&wc);
+	XFlush(dpy);
 }
 
 void enternotify(XEvent *ev) {
@@ -206,14 +208,9 @@ if (c->y < 0) c->y = 0;
 		c->next = clients; clients = c;
 		XSetWindowBorderWidth(dpy,c->win,borderwidth);
 		XMapWindow(dpy,c->win);
-//XMoveResizeWindow(dpy,c->win,c->x,c->y,c->w,c->h);
 		XRaiseWindow(dpy,c->win);
 		focused = c;
-		if (!(c->flags & TTWM_FLOATING)) {
-			tile(tile_modes[ntilemode]);
-			draw();
-			tile(tile_modes[ntilemode]);
-		}
+		if (!(c->flags & TTWM_FLOATING)) tile(tile_modes[ntilemode]);
 	}
 	draw();
 }
@@ -347,12 +344,6 @@ void tile(const char *arg) {
 			if ( (c->tags & tagsSel) && (c->flags & TTWM_FLOATING) )
 				XRaiseWindow(dpy,c->win);
 	}
-//if ( focused && !(focused->flags & TTWM_FLOATING) )
-//XLowerWindow(dpy,focused->win);
-//for (c = clients; c; c = c->next)
-//if ( (c->tags & tagsSel) && (c != focused) && !(c->flags & TTWM_FLOATING) )
-//XLowerWindow(dpy,c->win);
-//XLowerWindow(dpy,bar);
 	draw();
 }
 
