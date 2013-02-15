@@ -1,7 +1,10 @@
 
-static const char font[] =  "-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*";
-static const char *tag_name[] = {"one", "two", "three", "four", "five", NULL};
-static const char *tile_modes[] = {"R_ttwm", "B_ttwm", "rstack", "bstack", NULL};
+static const char font[] =
+	"-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*";
+static const char *tag_name[] =
+	{"one", "two", "three", "four", "five", NULL};
+static const char *tile_modes[] =
+	{"R_ttwm", "B_ttwm", "rstack", "bstack","monocle", NULL};
 
 static const char colors[LASTColor][9] = {
 	[Background]	= "#101010",
@@ -14,12 +17,24 @@ static const char colors[LASTColor][9] = {
 
 static const char 	ttwm_cursor			= XC_left_ptr;
 static const int	borderwidth			= 1;
+/* if tilegap is set to zero, this will activate the seemless tab mode
+   like in ttwm-1.0 (when this is implemented)
+   tilegap > 0 will make the status bar have tabs that should look better
+   with a gap between the bar and the windows */
 static const int	tilegap				= 4;
+/* set to the maximum input you might feed to the stdin reader */
 static const int	max_status_line		= 256;
+/* smallest allowable width or height for a window
+   This effects increasing and decreasing the tilebias, and can protect
+   windows from getting completely "crushed" when too many are opened
+   in rstack/bstack modes */
 static const int	win_min				= 20;
 static const Bool	focusfollowmouse	= False;
 static Bool			showbar				= True;
 static Bool			topbar				= True;
+/* tilebias is set as a number of pixels to increase the master (and thus
+   decrease the stack) from half the screen width.  Zero means the two will
+   share the screen equally. */
 static int			tilebias			= 0;
 
 #define DMENU		"dmenu_run -fn \"-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
@@ -38,8 +53,8 @@ static Key keys[] = {
 	{ MOD1|ShiftMask,	XK_q,		quit,		NULL			},
 	{ MOD2,				XK_F4,		killclient,	NULL			},
 	{ MOD1,				XK_f,		fullscreen,	NULL			},
-	{ MOD1,				XK_a,		toggle,		"place bar"		},
-	{ MOD1,				XK_x,		toggle,		"visible bar"	},
+	{ MOD1,				XK_x,		toggle,		"place bar"		},
+	{ MOD1,				XK_a,		toggle,		"visible bar"	},
 	{ MOD1|MOD2,		XK_f,		toggle,		"floating"		},
 	/* tiling: */
 	{ MOD1,				XK_space,	tile,		"cycle"			},
@@ -79,9 +94,13 @@ static Key keys[] = {
 		s=swap window with previous, next, or alternate  window	*/
 	{ MOD1,				XK_k,		window,		"f prev"		},
 	{ MOD1,				XK_j,		window,		"f next"		},
-	{ MOD1,				XK_Tab,		window,		"f alt"			},
+	{ MOD1,				XK_Left,	window,		"f prev"		},
+	{ MOD1,				XK_Right,	window,		"f next"		},
 	{ MOD1,				XK_h,		window,		"s prev"		},
 	{ MOD1,				XK_l,		window,		"s next"		},
+	{ MOD1,				XK_Up,		window,		"s prev"		},
+	{ MOD1,				XK_Down,	window,		"s next"		},
+	{ MOD1,				XK_Tab,		window,		"f alt"			},
 	{ MOD1|ShiftMask,	XK_Tab,		window,		"s alt"			},
 };
 
