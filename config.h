@@ -46,6 +46,7 @@ static Key keys[] = {
 	{ MOD1|MOD2,		XK_t,		tile,		"R_ttwm"		},
 	{ MOD1|MOD2,		XK_b,		tile,		"bstack"		},
 	{ MOD1|MOD2,		XK_r,		tile,		"rstack"		},
+	{ MOD1|MOD2,		XK_m,		tile,		"monocle"		},
 	{ MOD1,				XK_i,		tile,		"increase"		},
 	{ MOD1,				XK_d,		tile,		"decrease"		},
 	/* tagging:

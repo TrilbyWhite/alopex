@@ -76,9 +76,9 @@ static int draw();
 static int neighbors(Client *);
 static GC setcolor(int);
 static int swap(Client *, Client *);
-static int tile_one();
 static int tile_B_ttwm(int);
 static int tile_bstack(int);
+static int tile_monocle(int);
 static int tile_R_ttwm(int);
 static int tile_rstack(int);
 static Client *wintoclient(Window);
@@ -327,9 +327,10 @@ void tile(const char *arg) {
 	for (i = 0, c = clients; c; c = c->next)
 		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING)) i++;
 	if (i == 0) return;
-	else if (i == 1) tile_one();
+	else if (i == 1) tile_monocle(i);
 	else if (arg[0] == 'B') tile_B_ttwm(i);
 	else if (arg[0] == 'b') tile_bstack(i);
+	else if (arg[0] == 'm') tile_monocle(i);
 	else if (arg[0] == 'R') tile_R_ttwm(i);
 	else if (arg[0] == 'r') tile_rstack(i);
 	else if (arg[0] == 'i') { tilebias += 4; tile(tile_modes[ntilemode]); }
@@ -540,16 +541,6 @@ static inline Bool tile_check(Client *c) {
 	return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) );
 }
 
-int tile_one() {
-	Client *c = clients;
-	for (c = clients; !tile_check(c); c = c->next);
-	c->x = tilegap;
-	c->y = (showbar && topbar ? barheight : 0) + tilegap;
-	c->w = sw - 2*(tilegap + borderwidth);
-	c->h = sh - (showbar ? barheight : 0) - 2*(tilegap + borderwidth);
-	return 0;
-}
-
 int tile_B_ttwm(int count) {
 	Client *c;
 	for (c = clients; !tile_check(c); c = c->next);
@@ -592,6 +583,19 @@ int tile_bstack(int count) {
 		t = c;
 	}
 	if (t) t->w = MAX(sw - t->x - tilegap - 2*borderwidth,win_min);
+	return 0;
+}
+
+int tile_monocle(int count) {
+	Client *c = clients;
+	for (c = clients; !tile_check(c); c = c->next);
+	if (c) do {
+		if (!tile_check(c)) continue;
+		c->x = tilegap;
+		c->y = (showbar && topbar ? barheight : 0) + tilegap;
+		c->w = sw - 2*(tilegap + borderwidth);
+		c->h = sh - (showbar ? barheight : 0) - 2*(tilegap + borderwidth);
+	} while ( (c=c->next) );
 	return 0;
 }
 
