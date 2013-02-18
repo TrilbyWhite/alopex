@@ -1,5 +1,4 @@
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -412,11 +411,13 @@ int draw() {
 		stack = stack->next;
 	}
 	if (!slave && master) slave = master->next;
-	if (slave) slave->flags |= TTWM_TOPSTACK;
 	if (focused) {
+		if ( (focused != master) && !(focused->flags & TTWM_FLOATING) )
+			slave = focused;
 		XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 		focused->flags &= ~TTWM_URG_HINT;
 	}
+	if (slave) slave->flags |= TTWM_TOPSTACK;
 	/* tags */
 	XFillRectangle(dpy,buf,setcolor(Background),0,0,sw,barheight);
 	int i,x=10,w=0,col;
