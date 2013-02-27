@@ -659,7 +659,8 @@ int xerror(Display *d, XErrorEvent *ev) {
 
 int main(int argc, const char **argv) {
 	if (argc > 1) inpipe = popen(argv[1] ,"r");
-	else inpipe = stdin;
+	else if (fileno(stdin) == 0) inpipe = stdin;
+	else inpipe = fopen("/dev/null","r");
 	/* init X */
 	if (!(dpy=XOpenDisplay(0x0))) return 1;
 	scr = DefaultScreen(dpy);
