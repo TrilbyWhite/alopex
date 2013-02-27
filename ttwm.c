@@ -659,8 +659,7 @@ int xerror(Display *d, XErrorEvent *ev) {
 
 int main(int argc, const char **argv) {
 	if (argc > 1) inpipe = popen(argv[1] ,"r");
-	else if (fileno(stdin) == 0) inpipe = stdin;
-	else inpipe = fopen("/dev/null","r");
+	else inpipe = stdin;
 	/* init X */
 	if (!(dpy=XOpenDisplay(0x0))) return 1;
 	scr = DefaultScreen(dpy);
@@ -720,14 +719,14 @@ int main(int argc, const char **argv) {
 	char *line = (char *) calloc(max_status_line+1,sizeof(char));
 	while (running) {
 		FD_ZERO(&fds);
-		FD_SET(sfd,&fds);
+		if (sfd >= 0) FD_SET(sfd,&fds);
 		FD_SET(xfd,&fds);
 		select(xfd+1,&fds,0,0,NULL);
 		if (FD_ISSET(xfd,&fds)) while (XPending(dpy)) {
 			XNextEvent(dpy,&ev);
 			if (handler[ev.type]) handler[ev.type](&ev);
 		}
-		if (FD_ISSET(sfd,&fds)) {
+		if (sfd >= 0 && FD_ISSET(sfd,&fds)) {
 			if (fgets(line,max_status_line,inpipe))
 				status(line);
 		}
