@@ -658,6 +658,7 @@ int xerror(Display *d, XErrorEvent *ev) {
 }
 
 int main(int argc, const char **argv) {
+	freopen("/dev/tty","r",stdin);
 	if (argc > 1) inpipe = popen(argv[1] ,"r");
 	else inpipe = stdin;
 	/* init X */
@@ -719,14 +720,14 @@ int main(int argc, const char **argv) {
 	char *line = (char *) calloc(max_status_line+1,sizeof(char));
 	while (running) {
 		FD_ZERO(&fds);
-		if (sfd >= 0) FD_SET(sfd,&fds);
+		FD_SET(sfd,&fds);
 		FD_SET(xfd,&fds);
 		select(xfd+1,&fds,0,0,NULL);
 		if (FD_ISSET(xfd,&fds)) while (XPending(dpy)) {
 			XNextEvent(dpy,&ev);
 			if (handler[ev.type]) handler[ev.type](&ev);
 		}
-		if (sfd >= 0 && FD_ISSET(sfd,&fds)) {
+		if (FD_ISSET(sfd,&fds)) {
 			if (fgets(line,max_status_line,inpipe))
 				status(line);
 		}
