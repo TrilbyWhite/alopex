@@ -658,9 +658,8 @@ int xerror(Display *d, XErrorEvent *ev) {
 }
 
 int main(int argc, const char **argv) {
-	freopen("/dev/tty","r",stdin);
 	if (argc > 1) inpipe = popen(argv[1] ,"r");
-	else inpipe = stdin;
+	else inpipe = popen("while :; do date \"+%I:%M %p\"; sleep 10; done","r");
 	/* init X */
 	if (!(dpy=XOpenDisplay(0x0))) return 1;
 	scr = DefaultScreen(dpy);
