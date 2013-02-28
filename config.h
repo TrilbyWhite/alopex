@@ -22,6 +22,8 @@ static const int	borderwidth			= 1;
    tilegap > 0 will make the status bar have tabs that should look better
    with a gap between the bar and the windows */
 static const int	tilegap				= 4;
+/* classictabs implement ttwm 1.0 style tabs in the title bar */
+static const Bool	classictabs			= False;
 /* set to the maximum input you might feed to the stdin reader */
 static const int	max_status_line		= 256;
 /* smallest allowable width or height for a window

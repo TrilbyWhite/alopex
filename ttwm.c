@@ -372,6 +372,18 @@ void window(const char *arg) {
 
 /* 2.2 WM INTERNAL FUNCTIONS */
 
+static inline void draw_tab(int x, int w, int col) {
+	XPoint pts[6] = {
+		{x,barheight},
+		{0,2-barheight},
+		{2,-2},
+		{w-4,0},
+		{2,2},
+		{0,barheight-2}
+	};
+	XDrawLines(dpy,buf,setcolor(col),pts,6,CoordModePrevious);
+}
+
 int draw() {
 	tagsUrg &= ~tagsSel;
 	int tagsOcc = 0, nstack = -1;
@@ -433,13 +445,24 @@ int draw() {
 	}
 	if ( (x=x+20) < sw/10 ) x = sw/10; /* add padding */
 	/* titles / tabs */
+	int titlew = 0, tabw;
 	if (master) {
 		setcolor(master == focused ? Title : Default);
 		if (master->flags & TTWM_URG_HINT) setcolor(Urgent);
 		XDrawString(dpy,buf,gc,x,fontheight,master->title,strlen(master->title));
-		if (master->next) XFillRectangle(dpy,buf,setcolor(Background),sw/2+tilebias,0,sw/2-tilebias,barheight);
-		x = sw/2 + tilebias + 8;
-		int titlew = 0, tabw = (nstack ? (sw - x - statuswidth)/nstack : 0) - 8;
+if (tile_modes[ntilemode][0] == 'm') {
+		tabw = (sw - x - statuswidth - 10)/(nstack + 1) - 8;
+		if (classictabs) draw_tab(x-8,tabw+2,Occupied);
+		x += tabw;
+}
+else {
+		if (classictabs)
+			draw_tab(x-8,(nstack ? sw/2 + tilebias - x: sw - x - statuswidth - 10),Occupied);
+		x = sw/2 + tilebias;
+		tabw = (nstack ? (sw - x - statuswidth - 10)/nstack : 0) - 8;
+}
+		x+=8;
+		if (nstack) XFillRectangle(dpy,buf,setcolor(Background),x,0,sw-x,barheight);
 		if (tabw < 20) tabw = 20;
 		for (stack = master->next; stack; stack = stack->next) {
 			if (!(stack->tags & tagsSel) || (stack->flags & TTWM_FLOATING) ) continue;
@@ -449,6 +472,9 @@ int draw() {
 			XFillRectangle(dpy,buf,setcolor(Background),x+tabw,0,sw-x-tabw,barheight);
 			setcolor(stack == focused ? Title : Default);
 			titlew = XTextWidth(fontstruct,stack->title,strlen(stack->title));
+if (classictabs)
+	draw_tab(x-8,tabw+2,(stack==slave ? Occupied : Title));
+else
 			if (stack == slave) XFillRectangle(dpy,buf,gc,x-2,fontheight+1,
 					(tabw > titlew ? titlew+4 : tabw+4),barheight-fontheight);
 			x += tabw+8;
