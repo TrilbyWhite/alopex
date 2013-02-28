@@ -437,6 +437,7 @@ int draw() {
 		setcolor(master == focused ? Title : Default);
 		if (master->flags & TTWM_URG_HINT) setcolor(Urgent);
 		XDrawString(dpy,buf,gc,x,fontheight,master->title,strlen(master->title));
+		if (master->next) XFillRectangle(dpy,buf,setcolor(Background),sw/2+tilebias,0,sw/2-tilebias,barheight);
 		x = sw/2 + tilebias + 8;
 		int titlew = 0, tabw = (nstack ? (sw - x - statuswidth)/nstack : 0) - 8;
 		if (tabw < 20) tabw = 20;
