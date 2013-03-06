@@ -448,10 +448,13 @@ int draw() {
 		XDrawString(dpy,buf,gc,x,fontheight,master->title,strlen(master->title));
 		if (tile_modes[ntilemode][0] == 'm') {
 			tabw = (sw - x - statuswidth - 10)/(nstack + 1) - 8;
+			XFillRectangle(dpy,buf,setcolor(Background),x+tabw-4,0,sw-tabw-x,barheight);
 			if (classictabs) draw_tab(x-8,tabw+5,Occupied);
 			x += tabw;
 		}
 		else {
+			tabw = (nstack ? sw/2 + tilebias - x: sw - x - statuswidth - 10);
+			XFillRectangle(dpy,buf,setcolor(Background),x+tabw-4,0,sw-tabw-x,barheight);
 			if (classictabs)
 				draw_tab(x-8,5+(nstack ? sw/2 + tilebias - x: sw - x - statuswidth - 10),Occupied);
 			x = sw/2 + tilebias;
