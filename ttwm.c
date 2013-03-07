@@ -17,6 +17,7 @@
 #define TTWM_FULLSCREEN	0x0004
 #define TTWM_TOPSTACK	0x0008
 #define TTWM_URG_HINT	0x0010
+#define TTWM_FOC_HINT	0x0020
 #define TTWM_ANY		0xFFFF
 
 enum { Background, Default, Occupied, Selected, Urgent, Title, LASTColor };
@@ -72,6 +73,7 @@ static void window(const char *);
 
 /* 1.2 TTWM INTERNAL PROTOTYPES */
 static int draw();
+static int get_hints(Client *);
 static int neighbors(Client *);
 static GC setcolor(int);
 static int swap(Client *, Client *);
@@ -202,6 +204,7 @@ if (c->y < 0) c->y = 0;
 			if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
 			else c->title = strdup(noname_window);
 		}
+get_hints(c);
 		// TODO get _NET_WM_WINDOW_TYPE to set floating
 		XSelectInput(dpy,c->win,PropertyChangeMask | EnterWindowMask);
 		c->next = clients; clients = c;
@@ -243,12 +246,9 @@ void propertynotify(XEvent *ev) {
 		draw();
 	}
 	else if (e->atom == XA_WM_HINTS) {
-		XWMHints *hint;
-		if ( (hint=XGetWMHints(dpy,c->win)) && (hint->flags & XUrgencyHint) ) {
-			tagsUrg |= c->tags;
-			c->flags |= TTWM_URG_HINT;
-			XFree(hint);
-		}
+		get_hints(c);
+
+
 		draw();
 	}
 	// TODO Size hints for fullscreen?
@@ -422,7 +422,8 @@ int draw() {
 	if (focused) {
 		if ( (focused != master) && !(focused->flags & TTWM_FLOATING) )
 			slave = focused;
-		XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
+		if ( !(focused->flags & TTWM_FOC_HINT) )
+			XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 		focused->flags &= ~TTWM_URG_HINT;
 	}
 	if (slave) slave->flags |= TTWM_TOPSTACK;
@@ -483,6 +484,21 @@ int draw() {
 		XCopyArea(dpy,sbar,buf,gc,0,0,statuswidth,barheight,sw-statuswidth,0);
 	XCopyArea(dpy,buf,bar,gc,0,0,sw,barheight,0,0);
 	XFlush(dpy);
+	return 0;
+}
+
+int get_hints(Client *c) {
+	XWMHints *hint;
+	if ( (hint=XGetWMHints(dpy,c->win)) ) {
+		if (hint->flags & XUrgencyHint) {
+			tagsUrg |= c->tags;
+			c->flags |= TTWM_URG_HINT;
+		}
+		else if (hint->flags & InputHint && !hint->input) {
+			c->flags |= TTWM_FOC_HINT;
+		}
+		XFree(hint);
+	}
 	return 0;
 }
 
