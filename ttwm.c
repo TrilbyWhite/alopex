@@ -310,8 +310,8 @@ void tag(const char *arg) {
 	int i = arg[2] - 49;
 	if (arg[0] == 's') tagsSel = (1<<i);
 	else if (arg[0] == 't') tagsSel ^= (1<<i);
-	else if (arg[0] == 'a') focused->tags ^= (1<<i);
-	else if (arg[0] == 'm') focused->tags = (1<<i);
+	else if (arg[0] == 'a' && focused ) focused->tags ^= (1<<i);
+	else if (arg[0] == 'm' && focused ) focused->tags = (1<<i);
 	tile(tile_modes[ntilemode]);
 	draw();
 }
