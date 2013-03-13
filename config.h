@@ -40,6 +40,10 @@ static Bool			topbar				= True;
    share the screen equally. */
 static int			tilebias			= 0;
 
+static const char	*video1				= "LVDS1";
+static const char	*video2				= "VGA1";
+static const char	*video_location		= "below";
+
 #define DMENU		"dmenu_run -fn \"-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
 #define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc */
 #define CMD(app)	app "&"
@@ -67,6 +71,11 @@ static Key keys[] = {
 	{ MOD1|MOD2,		XK_m,		tile,		"monocle"		},
 	{ MOD1,				XK_i,		tile,		"increase"		},
 	{ MOD1,				XK_d,		tile,		"decrease"		},
+	/* external monitor command */
+	{ MOD1|ShiftMask,	XK_a,		vga,		"activate"		},
+	{ MOD1|ShiftMask,	XK_d,		vga,		"deactivate"	},
+	{ MOD1|ShiftMask,	XK_s,		vga,		"send"			},
+	{ MOD1|ShiftMask,	XK_r,		vga,		"return"		},
 	/* tagging:
 		s=set current active tag
 		t=toggle toggle tag visibility

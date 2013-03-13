@@ -9,6 +9,7 @@
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
+#include <X11/extensions/Xrandr.h>
 
 #define MAX(a,b)	((a)>(b) ? (a) : (b))
 
@@ -19,6 +20,7 @@
 #define TTWM_URG_HINT	0x0010
 #define TTWM_FOC_HINT	0x0020
 #define TTWM_ANY		0xFFFF
+#define TTWM_EXSCREEN	0x1000	
 
 enum { Background, Default, Occupied, Selected, Urgent, Title, LASTColor };
 enum { MOff, MMove, MResize };
@@ -69,6 +71,7 @@ static void spawn(const char *);
 static void tag(const char *);
 static void tile(const char *);
 static void toggle(const char *);
+static void vga(const char *);
 static void window(const char *);
 
 /* 1.2 TTWM INTERNAL PROTOTYPES */
@@ -77,11 +80,12 @@ static int get_hints(Client *);
 static int neighbors(Client *);
 static GC setcolor(int);
 static int swap(Client *, Client *);
-static int tile_B_ttwm(int);
-static int tile_bstack(int);
-static int tile_monocle(int);
-static int tile_R_ttwm(int);
-static int tile_rstack(int);
+static int tile_mode(int (*)(int,int,int,int,int,int),int, int);
+static int tile_B_ttwm(int,int,int,int,int,int);
+static int tile_bstack(int,int,int,int,int,int);
+static int tile_monocle(int,int,int,int,int,int);
+static int tile_R_ttwm(int,int,int,int,int,int);
+static int tile_rstack(int,int,int,int,int,int);
 static Client *wintoclient(Window);
 static int xerror(Display *,XErrorEvent *);
 
@@ -90,7 +94,7 @@ static int xerror(Display *,XErrorEvent *);
 #include "config.h"
 static Display *dpy;
 static Window root, bar;
-static int scr, sw, sh;
+static int scr, sw, sh, ex_sw, ex_sh;
 static Colormap cmap;
 static XColor color;
 static GC gc,bgc;
@@ -317,21 +321,23 @@ void tag(const char *arg) {
 }
 
 void tile(const char *arg) {
-	int i;
+	int i,j;
 	Client *c;
 	if (tilebias > sh/2 - 2*win_min) tilebias = sh/2 - 2*win_min;
 	if (tilebias < 2*win_min - sh/2) tilebias = 2*win_min - sh/2;
 	for (i = 0; tile_modes[i]; i++) 
 		if (arg[0] == tile_modes[i][0]) ntilemode = i;
-	for (i = 0, c = clients; c; c = c->next)
-		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING)) i++;
-	if (i == 0) return;
-	else if (i == 1) tile_monocle(i);
-	else if (arg[0] == 'B') tile_B_ttwm(i);
-	else if (arg[0] == 'b') tile_bstack(i);
-	else if (arg[0] == 'm') tile_monocle(i);
-	else if (arg[0] == 'R') tile_R_ttwm(i);
-	else if (arg[0] == 'r') tile_rstack(i);
+	for (i = 0, j = 0, c = clients; c; c = c->next) {
+		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) && !(c->flags & TTWM_EXSCREEN)) i++;
+		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) && (c->flags & TTWM_EXSCREEN)) j++;
+	}
+	if (i == 0 && j == 0) return;
+	//else if (i == 1) tile_mode(&tile_monocle,i,j);
+	else if (arg[0] == 'B') tile_mode(&tile_B_ttwm,i,j);
+	else if (arg[0] == 'b') tile_mode(&tile_bstack,i,j);
+	else if (arg[0] == 'm') tile_mode(&tile_monocle,i,j);
+	else if (arg[0] == 'R') tile_mode(&tile_R_ttwm,i,j);
+	else if (arg[0] == 'r') tile_mode(&tile_rstack,i,j);
 	else if (arg[0] == 'i') { tilebias += 4; tile(tile_modes[ntilemode]); }
 	else if (arg[0] == 'd') { tilebias -= 4; tile(tile_modes[ntilemode]); }
 	else if (arg[0] == 'c') {
@@ -349,9 +355,33 @@ void tile(const char *arg) {
 
 void toggle(const char *arg) {
 	if (arg[0] == 'p') topbar = !topbar;
-	if (arg[0] == 'v') showbar = !showbar;
-	if (arg[0] == 'f' && focused) focused->flags ^= TTWM_FLOATING;
+	else if (arg[0] == 'v') showbar = !showbar;
+	else if (arg[0] == 'f' && focused) focused->flags ^= TTWM_FLOATING;
 	XMoveWindow(dpy,bar,(showbar ? 0 : -2*sw),(topbar ? 0 : sh-barheight));
+	tile(tile_modes[ntilemode]);
+}
+
+void vga(const char *arg) {
+	char cmd[128];
+	if (arg[0] == 'a') {
+		sprintf(cmd,"xrandr --output %s --auto --output %s --auto --%s %s",
+			video1, video2, video_location, video1);
+		system(cmd);
+		int num_sizes;
+		XRRScreenSize *xrrs = XRRSizes(dpy,scr,&num_sizes);
+		XRRScreenConfiguration *config = XRRGetScreenInfo(dpy,root);
+		Rotation rotation;
+		int sizeID = XRRConfigCurrentConfiguration(config,&rotation);
+		XRRFreeScreenConfigInfo(config);
+		ex_sw = xrrs[sizeID].width; ex_sh = xrrs[sizeID].height;
+	}
+	else if (arg[0] == 'd') {
+		sprintf(cmd,"xrandr --output %s --auto --output %s --off", video1, video2);
+		system(cmd);
+		ex_sw = 0; ex_sh = 0;
+	}
+	else if (arg[0] == 's' && focused) focused->flags |= TTWM_EXSCREEN;
+	else if (arg[0] == 'r' && focused) focused->flags &= ~TTWM_EXSCREEN;
 	tile(tile_modes[ntilemode]);
 }
 
@@ -393,7 +423,7 @@ int draw() {
 			stack = stack->next;
 			continue;
 		}
-		else if (!(stack->flags & TTWM_FLOATING) ) { /* tiled */
+		else if (!(stack->flags & TTWM_FLOATING)) { /* tiled */
 			if (!master) master = stack;
 			else if (!slave) slave = stack;
 			else if (stack->flags & TTWM_TOPSTACK) slave = stack;
@@ -579,109 +609,103 @@ int swap(Client *a, Client *b) {
 	return 0;
 }
 
-static inline Bool tile_check(Client *c) {
-	return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) );
-}
-
-int tile_B_ttwm(int count) {
-	Client *c;
-	for (c = clients; !tile_check(c); c = c->next);
-	int h = (sh - (showbar ? barheight : 0) - tilegap)/2 - tilegap - 2*borderwidth;
-	c->x = tilegap;
-	c->y = (showbar && topbar ? barheight : 0) + tilegap;
-	c->w = sw - 2*(tilegap + borderwidth);
-	c->h = h + tilebias;
-	int i = 0;
-	while ( (c=c->next) ) {
-		if (!tile_check(c)) continue;
-		c->x = tilegap;
-		c->y = (showbar && topbar ? barheight : 0) + h + 2*(tilegap+borderwidth) +
-				tilebias;
-		c->w = sw - 2*(tilegap + borderwidth);
-		c->h = h - tilebias;
-		i++;
-	}
+int tile_mode(int (*func)(int,int,int,int,int,int),int count, int excount) {
+	int (*in)(int,int,int,int,int,int) = func;
+	int (*ex)(int,int,int,int,int,int) = func;
+	if (count == 1) in = &tile_monocle;
+	if (excount == 1) ex = &tile_monocle;
+	if (count)
+		in(count, 0,
+			tilegap,
+			(showbar ? barheight : 0) + tilegap,
+			sw-2*(tilegap+borderwidth),
+			sh - (showbar ? barheight : 0) - 2*(tilegap+borderwidth));
+	if (excount && ex_sw && ex_sh)
+		ex(excount, TTWM_EXSCREEN,
+			tilegap,
+			sh + tilegap,
+			ex_sw-2*(tilegap+borderwidth),
+			ex_sh - 2*(tilegap+borderwidth));
+	else if (excount)
+		tile_monocle(excount, TTWM_EXSCREEN, -2*sw, 0, sw, sh);
 	return 0;
 }	
 
-int tile_bstack(int count) {
-	Client *c, *t = NULL;
-	for (c = clients; !tile_check(c); c = c->next);
-	int w = (sw - tilegap)/(count - 1);
-	int h = (sh - (showbar ? barheight : 0) - tilegap)/2 - tilegap - 2*borderwidth;
-	c->x = tilegap;
-	c->y = (showbar && topbar ? barheight : 0) + tilegap;
-	c->w = sw - 2*(tilegap + borderwidth);
-	c->h = h + tilebias;
-	int i = 0;
+static inline Bool tile_check(Client *c, int flag) {
+	return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && ((c->flags & TTWM_EXSCREEN) == flag) );
+}
+
+int tile_B_ttwm(int count,int flag,int x, int y, int w, int h) {
+	Client *c;
+	for (c = clients; !tile_check(c,flag); c = c->next);
+	int wh = (h - tilegap)/2 - borderwidth;
+	c->x = x; c->y = y; c->w = w; c->h = wh + tilebias;
 	while ( (c=c->next) ) {
-		if (!tile_check(c)) continue;
-		c->x = tilegap + i*w;
-		c->y = (showbar && topbar ? barheight : 0) + h + 2*(tilegap+borderwidth) +
-				tilebias;
-		c->w = MAX(w - tilegap - 2 * borderwidth, win_min);
-		c->h = h - tilebias;
-		i++;
-		t = c;
+		if (!tile_check(c,flag)) continue;
+		c->x = x; c->y = y + wh + tilegap + 2*borderwidth + tilebias;
+		c->w = w; c->h = wh - tilebias;
 	}
-	if (t) t->w = MAX(sw - t->x - tilegap - 2*borderwidth,win_min);
 	return 0;
 }
 
-int tile_monocle(int count) {
+int tile_bstack(int count,int flag,int x, int y, int w, int h) {
+	Client *c, *t = NULL;
+	for (c = clients; !tile_check(c,flag); c = c->next);
+	int wh = (h - tilegap)/2 - borderwidth;
+	int ww = w/(count - 1) - tilegap/2;
+	c->x = x; c->y = y;	c->w = w; c->h = wh + tilebias;
+	int i = 0;
+	while ( (c=c->next) ) {
+		if (!tile_check(c,flag)) continue;
+		c->x = x + i*(ww + tilegap + borderwidth);
+		c->y = y + wh + tilegap + 2*borderwidth + tilebias;
+		c->w = MAX(ww - borderwidth, win_min);
+		c->h = wh - tilebias;
+		i++; t = c;
+	}
+	if (t) t->w = MAX(x + w - t->x,win_min);
+	return 0;
+}
+
+int tile_monocle(int count,int flag,int x, int y, int w, int h) {
 	Client *c = clients;
-	for (c = clients; !tile_check(c); c = c->next);
+	for (c = clients; !tile_check(c,flag); c = c->next);
 	if (c) do {
-		if (!tile_check(c)) continue;
-		c->x = tilegap;
-		c->y = (showbar && topbar ? barheight : 0) + tilegap;
-		c->w = sw - 2*(tilegap + borderwidth);
-		c->h = sh - (showbar ? barheight : 0) - 2*(tilegap + borderwidth);
+		if (!tile_check(c,flag)) continue;
+		c->x = x; c->y = y;	c->w = w; c->h = h;
 	} while ( (c=c->next) );
 	return 0;
 }
 
-int tile_R_ttwm(int count) {
+int tile_R_ttwm(int count,int flag,int x, int y, int w, int h) {
 	Client *c;
-	for (c = clients; !tile_check(c); c = c->next);
-	int w = (sw - tilegap)/2 - tilegap - 2*borderwidth;
-	c->x = tilegap;
-	c->y = (showbar && topbar ? barheight : 0) + tilegap;
-	c->w = w + tilebias;
-	c->h = sh - (showbar ? barheight : 0) - 2*(tilegap + borderwidth);
-	int i = 0;
+	for (c = clients; !tile_check(c,flag); c = c->next);
+	int ww = (w - tilegap)/2 - borderwidth;
+	c->x = x; c->y = y; c->w = ww + tilebias; c->h = h;
 	while ( (c=c->next) ) {
-		if (!tile_check(c)) continue;
-		c->x = w + 2*(tilegap+borderwidth) + tilebias;
-		c->y = (showbar && topbar ? barheight : 0) + tilegap;
-		c->w = w - tilebias;
-		c->h = sh - (showbar ? barheight : 0) - 2*(tilegap + borderwidth);
-		i++;
+		if (!tile_check(c,flag)) continue;
+		c->x = x + ww + tilegap + 2*borderwidth + tilebias; c->y = y;
+		c->w = ww - tilebias; c->h = h;
 	}
 	return 0;
 }	
 
-int tile_rstack(int count) {
+int tile_rstack(int count,int flag,int x, int y, int w, int h) {
 	Client *c, *t = NULL;
-	for (c = clients; !tile_check(c); c = c->next);
-	int w = (sw - tilegap)/2 - tilegap - 2*borderwidth;
-	int h = (sh - (showbar ? barheight : 0) - tilegap)/(count - 1);
-	c->x = tilegap;
-	c->y = (showbar && topbar ? barheight : 0) + tilegap;
-	c->w = w + tilebias;
-	c->h = sh - (showbar ? barheight : 0) - 2*(tilegap + borderwidth);
+	for (c = clients; !tile_check(c,flag); c = c->next);
+	int ww = (w - tilegap)/2 - borderwidth;
+	int wh = h/(count - 1) - tilegap/2;
+	c->x = x; c->y = y; c->w = ww + tilebias; c->h = h;
 	int i = 0;
 	while ( (c=c->next) ) {
-		if (!tile_check(c)) continue;
-		c->x = w + 2*(tilegap + borderwidth) + tilebias;
-		c->y = (showbar && topbar ? barheight : 0) + tilegap + i*h;
-		c->w = w - tilebias;
-		c->h = MAX(h - tilegap - 2*borderwidth,win_min);
-		i++;
-		t = c;
+		if (!tile_check(c,flag)) continue;
+		c->x = x + ww + tilegap + 2*borderwidth + tilebias;
+		c->y = y + i*(wh + tilegap + borderwidth);
+		c->w = ww - tilebias;
+		c->h = MAX(wh - borderwidth,win_min);
+		i++; t = c;
 	}
-	if (t) t->h = MAX(sh - (showbar ? (topbar ? 0 : barheight) : 0) -
-			t->y - tilegap - 2*borderwidth, win_min);
+	if (t) t->h = MAX(y + h - t->y, win_min);
 	return 0;
 }
 
