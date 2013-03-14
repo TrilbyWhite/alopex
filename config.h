@@ -51,13 +51,15 @@ static const char	*video_location		= "below";
 /* key definitions */
 #define MOD1 Mod4Mask
 #define MOD2 Mod1Mask
+#define MOD3 ControlMask
+#define MOD4 ShiftMask
 static Key keys[] = {
 	/* modifier			key			function	argument */
 	/* launchers + misc: */
 	{ MOD1,				XK_Return,	spawn,		CMD(TERM)		},
 	{ MOD1,				XK_p,		spawn,		CMD(DMENU)		},
 	{ MOD1,				XK_w,		spawn,		CMD("luakit")	},
-	{ MOD1|ShiftMask,	XK_q,		quit,		NULL			},
+	{ MOD1|MOD4,		XK_q,		quit,		NULL			},
 	{ MOD2,				XK_F4,		killclient,	NULL			},
 	{ MOD1,				XK_f,		fullscreen,	NULL			},
 	{ MOD1,				XK_x,		toggle,		"place bar"		},
@@ -72,10 +74,10 @@ static Key keys[] = {
 	{ MOD1,				XK_i,		tile,		"increase"		},
 	{ MOD1,				XK_d,		tile,		"decrease"		},
 	/* external monitor command */
-	{ MOD1|ShiftMask,	XK_a,		monitor,	"activate"		},
-	{ MOD1|ShiftMask,	XK_d,		monitor,	"deactivate"	},
-	{ MOD1|ShiftMask,	XK_s,		monitor,	"send"			},
-	{ MOD1|ShiftMask,	XK_r,		monitor,	"return"		},
+	{ MOD1|MOD4,		XK_a,		monitor,	"activate"		},
+	{ MOD1|MOD4,		XK_d,		monitor,	"deactivate"	},
+	{ MOD1|MOD4,		XK_s,		monitor,	"send"			},
+	{ MOD1|MOD4,		XK_r,		monitor,	"return"		},
 	/* tagging:
 		s=set current active tag
 		t=toggle toggle tag visibility
@@ -91,16 +93,16 @@ static Key keys[] = {
 	{ MOD1|MOD2,		XK_3,		tag,		"t 3"			},
 	{ MOD1|MOD2,		XK_4,		tag,		"t 4"			},
 	{ MOD1|MOD2,		XK_5,		tag,		"t 5"			},
-	{ MOD1|ShiftMask,	XK_1,		tag,		"a 1"			},
-	{ MOD1|ShiftMask,	XK_2,		tag,		"a 2"			},
-	{ MOD1|ShiftMask,	XK_3,		tag,		"a 3"			},
-	{ MOD1|ShiftMask,	XK_4,		tag,		"a 4"			},
-	{ MOD1|ShiftMask,	XK_5,		tag,		"a 5"			},
-	{ MOD1|ControlMask,	XK_1,		tag,		"m 1"			},
-	{ MOD1|ControlMask,	XK_2,		tag,		"m 2"			},
-	{ MOD1|ControlMask,	XK_3,		tag,		"m 3"			},
-	{ MOD1|ControlMask,	XK_4,		tag,		"m 4"			},
-	{ MOD1|ControlMask,	XK_5,		tag,		"m 5"			},
+	{ MOD1|MOD4,		XK_1,		tag,		"a 1"			},
+	{ MOD1|MOD4,		XK_2,		tag,		"a 2"			},
+	{ MOD1|MOD4,		XK_3,		tag,		"a 3"			},
+	{ MOD1|MOD4,		XK_4,		tag,		"a 4"			},
+	{ MOD1|MOD4,		XK_5,		tag,		"a 5"			},
+	{ MOD1|MOD3,		XK_1,		tag,		"m 1"			},
+	{ MOD1|MOD3,		XK_2,		tag,		"m 2"			},
+	{ MOD1|MOD3,		XK_3,		tag,		"m 3"			},
+	{ MOD1|MOD3,		XK_4,		tag,		"m 4"			},
+	{ MOD1|MOD3,		XK_5,		tag,		"m 5"			},
 	/* window focus/movement:
 		f=focus previous, next, or alternate  window in tag(s)
 		s=swap window with previous, next, or alternate  window	*/
@@ -113,7 +115,7 @@ static Key keys[] = {
 	{ MOD1,				XK_Up,		window,		"s prev"		},
 	{ MOD1,				XK_Down,	window,		"s next"		},
 	{ MOD1,				XK_Tab,		window,		"f alt"			},
-	{ MOD1|ShiftMask,	XK_Tab,		window,		"s alt"			},
+	{ MOD1|MOD4,		XK_Tab,		window,		"s alt"			},
 };
 
 static Button buttons[] = {
