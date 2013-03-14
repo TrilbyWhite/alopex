@@ -13,14 +13,18 @@
 
 #define MAX(a,b)	((a)>(b) ? (a) : (b))
 
-#define TTWM_FLOATING	0x0001
-#define TTWM_TRANSIENT	0x0003
-#define TTWM_FULLSCREEN	0x0004
-#define TTWM_TOPSTACK	0x0008
-#define TTWM_URG_HINT	0x0010
-#define TTWM_FOC_HINT	0x0020
+#define TTWM_FLOATING	0x0010
+#define TTWM_TRANSIENT	0x0030
+#define TTWM_FULLSCREEN	0x0040
+#define TTWM_TOPSTACK	0x0080
+#define TTWM_URG_HINT	0x0100
+#define TTWM_FOC_HINT	0x0200
 #define TTWM_ANY		0xFFFF
-#define TTWM_EXSCREEN	0x1000	
+
+#define GET_MON(x)		(x->flags & 0x000F)
+#define SET_MON(x,n)	{ x->flags &= ~0x000F; x->flags += n; }
+#define INC_MON(x)		(x->flags += ((x->flags & 0x000F) == nscr ? 0 : 1))
+#define DEC_MON(x)		(x->flags -= ((x->flags & 0x000F) == 0 ? 0 : 1))
 
 enum { Background, Default, Occupied, Selected, Urgent, Title, LASTColor };
 enum { MOff, MMove, MResize };
@@ -65,13 +69,13 @@ static void unmapnotify(XEvent *);
 /* 1.1 BINDABLE FUNCTION PROTOTYPES */
 static void fullscreen(const char *);
 static void killclient(const char *);
+static void monitor(const char *);
 static void mouse(const char *);
 static void quit(const char *);
 static void spawn(const char *);
 static void tag(const char *);
 static void tile(const char *);
 static void toggle(const char *);
-static void vga(const char *);
 static void window(const char *);
 
 /* 1.2 TTWM INTERNAL PROTOTYPES */
@@ -94,7 +98,7 @@ static int xerror(Display *,XErrorEvent *);
 #include "config.h"
 static Display *dpy;
 static Window root, bar;
-static int scr, sw, sh, ex_sw, ex_sh;
+static int scr, sw, sh, ex_sw, ex_sh, nscr = 1;
 static Colormap cmap;
 static XColor color;
 static GC gc,bgc;
@@ -297,6 +301,32 @@ void killclient(const char *arg) {
 	XSendEvent(dpy,focused->win,False,NoEventMask,&ev);
 }
 
+void monitor(const char *arg) {
+	char cmd[128];
+	if (arg[0] == 'a') {
+		nscr = 2;
+		sprintf(cmd,"xrandr --output %s --auto --output %s --auto --%s %s",
+			video1, video2, video_location, video1);
+		system(cmd);
+		int num_sizes;
+		XRRScreenSize *xrrs = XRRSizes(dpy,scr,&num_sizes);
+		XRRScreenConfiguration *config = XRRGetScreenInfo(dpy,root);
+		Rotation rotation;
+		int sizeID = XRRConfigCurrentConfiguration(config,&rotation);
+		XRRFreeScreenConfigInfo(config);
+		ex_sw = xrrs[sizeID].width; ex_sh = xrrs[sizeID].height;
+	}
+	else if (arg[0] == 'd') {
+		nscr = 1;
+		sprintf(cmd,"xrandr --output %s --auto --output %s --off", video1, video2);
+		system(cmd);
+		ex_sw = 0; ex_sh = 0;
+	}
+	else if (arg[0] == 's' && focused) INC_MON(focused);
+	else if (arg[0] == 'r' && focused) DEC_MON(focused);
+	tile(tile_modes[ntilemode]);
+}
+
 void mouse(const char *arg) {
 	if (arg[0] == 'm') mouseMode = MMove;
 	else if (arg[0] == 'r') mouseMode = MResize;
@@ -327,10 +357,12 @@ void tile(const char *arg) {
 	if (tilebias < 2*win_min - sh/2) tilebias = 2*win_min - sh/2;
 	for (i = 0; tile_modes[i]; i++) 
 		if (arg[0] == tile_modes[i][0]) ntilemode = i;
-	for (i = 0, j = 0, c = clients; c; c = c->next) {
-		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) && !(c->flags & TTWM_EXSCREEN)) i++;
-		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) && (c->flags & TTWM_EXSCREEN)) j++;
+	if (ex_sw & ex_sh) for (i = 0, j = 0, c = clients; c; c = c->next) {
+		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) && (GET_MON(c) == 0)) i++;
+		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) && (GET_MON(c) == 1)) j++;
 	}
+else for (i = 0, j = 0, c = clients; c; c = c->next)
+if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING)) i++;
 	if (i == 0 && j == 0) return;
 	//else if (i == 1) tile_mode(&tile_monocle,i,j);
 	else if (arg[0] == 'B') tile_mode(&tile_B_ttwm,i,j);
@@ -358,30 +390,6 @@ void toggle(const char *arg) {
 	else if (arg[0] == 'v') showbar = !showbar;
 	else if (arg[0] == 'f' && focused) focused->flags ^= TTWM_FLOATING;
 	XMoveWindow(dpy,bar,(showbar ? 0 : -2*sw),(topbar ? 0 : sh-barheight));
-	tile(tile_modes[ntilemode]);
-}
-
-void vga(const char *arg) {
-	char cmd[128];
-	if (arg[0] == 'a') {
-		sprintf(cmd,"xrandr --output %s --auto --output %s --auto --%s %s",
-			video1, video2, video_location, video1);
-		system(cmd);
-		int num_sizes;
-		XRRScreenSize *xrrs = XRRSizes(dpy,scr,&num_sizes);
-		XRRScreenConfiguration *config = XRRGetScreenInfo(dpy,root);
-		Rotation rotation;
-		int sizeID = XRRConfigCurrentConfiguration(config,&rotation);
-		XRRFreeScreenConfigInfo(config);
-		ex_sw = xrrs[sizeID].width; ex_sh = xrrs[sizeID].height;
-	}
-	else if (arg[0] == 'd') {
-		sprintf(cmd,"xrandr --output %s --auto --output %s --off", video1, video2);
-		system(cmd);
-		ex_sw = 0; ex_sh = 0;
-	}
-	else if (arg[0] == 's' && focused) focused->flags |= TTWM_EXSCREEN;
-	else if (arg[0] == 'r' && focused) focused->flags &= ~TTWM_EXSCREEN;
 	tile(tile_modes[ntilemode]);
 }
 
@@ -620,19 +628,18 @@ int tile_mode(int (*func)(int,int,int,int,int,int),int count, int excount) {
 			(showbar ? barheight : 0) + tilegap,
 			sw-2*(tilegap+borderwidth),
 			sh - (showbar ? barheight : 0) - 2*(tilegap+borderwidth));
-	if (excount && ex_sw && ex_sh)
-		ex(excount, TTWM_EXSCREEN,
+	if (excount)
+		ex(excount, 1,
 			tilegap,
 			sh + tilegap,
 			ex_sw-2*(tilegap+borderwidth),
 			ex_sh - 2*(tilegap+borderwidth));
-	else if (excount)
-		tile_monocle(excount, TTWM_EXSCREEN, -2*sw, 0, sw, sh);
 	return 0;
 }	
 
 static inline Bool tile_check(Client *c, int flag) {
-	return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && ((c->flags & TTWM_EXSCREEN) == flag) );
+	if (GET_MON(c) < nscr) return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && (GET_MON(c) == flag) );
+	else return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && (nscr == flag + 1) );
 }
 
 int tile_B_ttwm(int count,int flag,int x, int y, int w, int h) {

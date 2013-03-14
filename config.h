@@ -72,10 +72,10 @@ static Key keys[] = {
 	{ MOD1,				XK_i,		tile,		"increase"		},
 	{ MOD1,				XK_d,		tile,		"decrease"		},
 	/* external monitor command */
-	{ MOD1|ShiftMask,	XK_a,		vga,		"activate"		},
-	{ MOD1|ShiftMask,	XK_d,		vga,		"deactivate"	},
-	{ MOD1|ShiftMask,	XK_s,		vga,		"send"			},
-	{ MOD1|ShiftMask,	XK_r,		vga,		"return"		},
+	{ MOD1|ShiftMask,	XK_a,		monitor,	"activate"		},
+	{ MOD1|ShiftMask,	XK_d,		monitor,	"deactivate"	},
+	{ MOD1|ShiftMask,	XK_s,		monitor,	"send"			},
+	{ MOD1|ShiftMask,	XK_r,		monitor,	"return"		},
 	/* tagging:
 		s=set current active tag
 		t=toggle toggle tag visibility
