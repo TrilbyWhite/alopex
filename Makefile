@@ -1,7 +1,7 @@
 
 CFLAGS	+=	-Os -Wall -Wno-unused-parameter -Wno-unused-result
 PROG	=	ttwm
-LIBS	=	-lX11
+LIBS	=	-lX11 -lXrandr
 PREFIX	?=	/usr
 MANDIR	?=	/usr/share/man
 VER		=	2.0a
