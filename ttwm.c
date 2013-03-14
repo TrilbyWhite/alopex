@@ -589,7 +589,8 @@ int status(char *msg) {
 			c+=l;
 		}
 	}
-	draw();
+	XCopyArea(dpy,sbar,bar,gc,0,0,statuswidth,barheight,sw-statuswidth,0);
+	XFlush(dpy);
 	return 0;
 }
 
