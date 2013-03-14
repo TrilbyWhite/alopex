@@ -142,6 +142,7 @@ void buttonpress(XEvent *ev) {
 	if (mouseMode != MOff)
 		XGrabPointer(dpy,root,True,PointerMotionMask | ButtonReleaseMask,
 				GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+	draw();
 }
 
 void buttonrelease(XEvent *ev) {
