@@ -71,7 +71,7 @@ static void spawn(const char *);
 static void tag(const char *);
 static void tile(const char *);
 static void toggle(const char *);
-static void vga(const char *);
+static void monitor(const char *);
 static void window(const char *);
 
 /* 1.2 TTWM INTERNAL PROTOTYPES */
@@ -355,7 +355,7 @@ void toggle(const char *arg) {
 	tile(tile_modes[ntilemode]);
 }
 
-void vga(const char *arg) {
+void monitor(const char *arg) {
 	char cmd[128];
 	if (arg[0] == 'a') {
 		sprintf(cmd,"xrandr --output %s --auto --output %s --auto --%s %s",
