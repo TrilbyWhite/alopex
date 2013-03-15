@@ -627,7 +627,7 @@ int tile_mode(int (*func)(int,int,int,int,int,int),int count, int excount) {
 	if (count)
 		in(count, 0,
 			tilegap,
-			(showbar ? barheight : 0) + tilegap,
+			(showbar ? (topbar ? barheight : 0) : 0) + tilegap,
 			sw-2*(tilegap+borderwidth),
 			sh - (showbar ? barheight : 0) - 2*(tilegap+borderwidth));
 	if (excount)
