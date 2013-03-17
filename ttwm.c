@@ -429,15 +429,13 @@ int draw() {
 		tagsOcc |= stack->tags;
 		if (!(stack->tags & tagsSel)) { /* not on selected tag(s) */
 			XMoveWindow(dpy,stack->win,-2*sw,0);
-			stack = stack->next;
-			continue;
+			stack = stack->next; continue;
 		}
 		else if (!(stack->flags & TTWM_FLOATING)) { /* tiled */
 			if (!master) master = stack;
 			else if (!slave) slave = stack;
 			else if (stack->flags & TTWM_TOPSTACK) slave = stack;
-			stack->flags &= ~TTWM_TOPSTACK;
-			nstack++;
+			stack->flags &= ~TTWM_TOPSTACK; nstack++;
 		}
 		else { /* floating */
 			stack->flags &= ~TTWM_TOPSTACK;
@@ -446,18 +444,18 @@ int draw() {
 			XMoveResizeWindow(dpy,stack->win,-borderwidth,-borderwidth,sw,sh);
 		else
 			XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
-		if (!focused || !(focused->tags & tagsSel)) {
-			focused = master;
-			if (!focused) focused = slave;
-			if (!focused) focused = stack;
-		}
+//		if (!focused || !(focused->tags & tagsSel)) {
+//			focused = master;
+//			if (!focused) focused = slave;
+//			if (!focused) focused = stack;
+//		}
 		if (stack == focused) setcolor(Selected);
 		else setcolor(Occupied);
 		wa.border_pixel = color.pixel;
 		XChangeWindowAttributes(dpy,stack->win,CWBorderPixel,&wa);
 		stack = stack->next;
 	}
-	if (!slave && master) slave = master->next;
+//	if (!slave && master) slave = master->next;
 	if (focused) {
 		if ( (focused != master) && !(focused->flags & TTWM_FLOATING) )
 			slave = focused;
@@ -465,15 +463,18 @@ int draw() {
 			XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 		focused->flags &= ~TTWM_URG_HINT;
 	}
+	else if (master) focused = master;
 	if (slave) slave->flags |= TTWM_TOPSTACK;
 	/* tags */
 	XFillRectangle(dpy,buf,setcolor(Background),0,0,sw,barheight);
 	int i,x=10,w=0,col;
 	for (i = 0; tag_name[i]; i++) {
 		if (!((tagsOcc|tagsSel) & (1<<i))) continue;
-		col = (tagsUrg & (1<<i) ? Urgent : (tagsOcc & (1<<i) ? Occupied : Default));
+		col = (tagsUrg & (1<<i) ? Urgent :
+			(tagsOcc & (1<<i) ? Occupied : Default));
 		if (focused && focused->tags & (1<<i)) col = Selected;
-		XDrawString(dpy,buf,setcolor(col),x,fontheight,tag_name[i],strlen(tag_name[i]));
+		XDrawString(dpy,buf,setcolor(col),x,fontheight,
+			tag_name[i],strlen(tag_name[i]));
 		w = XTextWidth(fontstruct,tag_name[i],strlen(tag_name[i]));
 		if (tagsSel & (1<<i))
 			XFillRectangle(dpy,buf,gc,x-2,fontheight+1,w+4,barheight-fontheight);
@@ -481,40 +482,41 @@ int draw() {
 	}
 	if ( (x=x+20) < sw/10 ) x = sw/10; /* add padding */
 	/* titles / tabs */
-	int titlew = 0, tabw;
+	int tabw;
 	if (master) {
 		setcolor(master == focused ? Title : Default);
 		if (master->flags & TTWM_URG_HINT) setcolor(Urgent);
 		XDrawString(dpy,buf,gc,x,fontheight,master->title,strlen(master->title));
 		if (tile_modes[ntilemode][0] == 'm') {
 			tabw = (sw - x - statuswidth - 10)/(nstack + 1) - 8;
-			XFillRectangle(dpy,buf,setcolor(Background),x+tabw-4,0,sw-tabw-x,barheight);
-			if (classictabs) draw_tab(x-8,tabw+5,Occupied);
+			XFillRectangle(dpy,buf,setcolor(Background),
+				x+tabw-4,0,sw-tabw-x,barheight);
+			draw_tab(x-8,tabw+5,Occupied);
 			x += tabw;
 		}
 		else {
 			tabw = (nstack ? sw/2 + tilebias - x: sw - x - statuswidth - 10);
-			XFillRectangle(dpy,buf,setcolor(Background),x+tabw-4,0,sw-tabw-x,barheight);
-			if (classictabs)
-				draw_tab(x-8,5+(nstack ? sw/2 + tilebias - x: sw - x - statuswidth - 10),Occupied);
+			XFillRectangle(dpy,buf,setcolor(Background),
+				x+tabw-4,0,sw-tabw-x,barheight);
+			draw_tab(x - 8, 5 - x + (nstack ? sw/2 + tilebias:
+				sw - statuswidth - 10),Occupied);
 			x = sw/2 + tilebias;
 			tabw = (nstack ? (sw - x - statuswidth - 10)/nstack : 0) - 8;
 		}
 		x+=8;
-		if (nstack) XFillRectangle(dpy,buf,setcolor(Background),x,0,sw-x,barheight);
+		if (nstack)
+			XFillRectangle(dpy,buf,setcolor(Background),x,0,sw-x,barheight);
 		if (tabw < 20) tabw = 20;
 		for (stack = master->next; stack; stack = stack->next) {
-			if (!(stack->tags & tagsSel) || (stack->flags & TTWM_FLOATING) ) continue;
+			if (!(stack->tags & tagsSel) || (stack->flags & TTWM_FLOATING) )
+				continue;
 			setcolor(stack == focused ? Title : Default);
 			if (stack->flags & TTWM_URG_HINT) setcolor(Urgent);
 			XDrawString(dpy,buf,gc,x,fontheight,stack->title,strlen(stack->title));
-			XFillRectangle(dpy,buf,setcolor(Background),x+tabw-4,0,sw-x-tabw,barheight);
+			XFillRectangle(dpy,buf,setcolor(Background),
+				x+tabw-4,0,sw-x-tabw,barheight);
 			setcolor(stack == focused ? Title : Default);
-			titlew = XTextWidth(fontstruct,stack->title,strlen(stack->title));
-			if (classictabs)
-				draw_tab(x-8,tabw+5,(stack==slave ? Occupied : Title));
-			else if (stack == slave) XFillRectangle(dpy,buf,gc,x-2,fontheight+1,
-					(tabw > titlew ? titlew+4 : tabw+4),barheight-fontheight);
+			draw_tab(x-8,tabw+5,(stack==slave ? Occupied : Title));
 			x += tabw+8;
 		}
 	}
@@ -546,14 +548,21 @@ int neighbors(Client *c) {
 	if (!(c->tags & tagsSel)) return -1;
 	Client *stack, *t;
 	for (stack = clients; stack && stack != c; stack = stack->next)
-		if (stack->tags & tagsSel && !(stack->flags & TTWM_FLOATING)) prevwin = stack;
+		if (stack->tags & tagsSel && !(stack->flags & TTWM_FLOATING) &&
+			(GET_MON(stack) == GET_MON(c)) ) prevwin = stack;
 	for (nextwin = stack->next; nextwin; nextwin = nextwin->next)
-		if ( (nextwin->tags & tagsSel) && !(nextwin->flags & TTWM_FLOATING) ) break;
-	for (t = clients; t && (!(t->tags & tagsSel) || (t->flags & TTWM_FLOATING));
-			t = t->next);
+		if ( (nextwin->tags & tagsSel) && !(nextwin->flags & TTWM_FLOATING) &&
+			(GET_MON(stack) == GET_MON(c)) ) break;
+	for (t = clients; t &&
+		( !((t->tags & tagsSel) && (GET_MON(t) == GET_MON(c))) ||
+			(t->flags & TTWM_FLOATING) );
+		t = t->next);
 	if (!t) return -1;
-	for (stack = t->next; stack && !(stack->flags & TTWM_TOPSTACK);
-			stack = stack->next);
+	for (stack = t->next; stack && 
+			!( (GET_MON(stack) == GET_MON(c)) &&
+			!(stack->flags & TTWM_FLOATING) &&
+			(stack->flags & TTWM_TOPSTACK) );
+		stack = stack->next);
 	if (!stack) return -1;
 	if (stack == focused) altwin = t;
 	else altwin = stack;
@@ -570,6 +579,7 @@ int status(char *msg) {
 	char col[8] = "#000000";
 	char *t,*c = msg;
 	int l, arg;
+	int lastwidth = statuswidth;
 	statuswidth = 0;
 	XFillRectangle(dpy,sbar,setcolor(Background),0,0,sw/2,barheight);
 	setcolor(Default);
@@ -582,7 +592,8 @@ int status(char *msg) {
 			}
 			else if (*c == 'i' && sscanf(c,"i %d",&arg) == 1) {
 				XFillRectangle(dpy,iconbuf,bgc,0,0,iconwidth,iconheight);
-				XDrawPoints(dpy,iconbuf,gc,icons[arg].pts,icons[arg].n,CoordModeOrigin);
+				XDrawPoints(dpy,iconbuf,gc,icons[arg].pts,icons[arg].n,
+					CoordModeOrigin);
 				XCopyArea(dpy,iconbuf,sbar,gc,0,0,iconwidth,iconheight,statuswidth,
 						(barheight-iconheight)/2);
 				statuswidth+=iconwidth+1;
@@ -598,8 +609,11 @@ int status(char *msg) {
 			c+=l;
 		}
 	}
-	XCopyArea(dpy,sbar,bar,gc,0,0,statuswidth,barheight,sw-statuswidth,0);
-	XFlush(dpy);
+	if (statuswidth == lastwidth) {
+		XCopyArea(dpy,sbar,bar,gc,0,0,statuswidth,barheight,sw-statuswidth,0);
+		XFlush(dpy);
+	}
+	else draw();
 	return 0;
 }
 
