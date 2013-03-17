@@ -359,11 +359,17 @@ void tile(const char *arg) {
 	for (i = 0; tile_modes[i]; i++) 
 		if (arg[0] == tile_modes[i][0]) ntilemode = i;
 	if (ex_sw & ex_sh) for (i = 0, j = 0, c = clients; c; c = c->next) {
-		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) && (GET_MON(c) == 0)) i++;
-		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) && (GET_MON(c) == 1)) j++;
+		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) &&
+			(GET_MON(c) == 0)) i++;
+		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) &&
+			(GET_MON(c) == 1)) j++;
 	}
-else for (i = 0, j = 0, c = clients; c; c = c->next)
-if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING)) i++;
+	else for (i = 0, j = 0, c = clients; c; c = c->next) {
+		if (c->tags & tagsSel) {
+			if (!focused || !(focused->tags & tagsSel)) focused = c;
+			if (!(c->flags & TTWM_FLOATING)) i++;
+		}
+	}
 	if (i == 0 && j == 0) return;
 	//else if (i == 1) tile_mode(&tile_monocle,i,j);
 	else if (arg[0] == 'B') tile_mode(&tile_B_ttwm,i,j);
