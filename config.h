@@ -50,6 +50,12 @@ static const char	*video_location		= "below";
 #define MOD2 Mod1Mask
 #define MOD3 ControlMask
 #define MOD4 ShiftMask
+#define TagKey(KEY,TAG) \
+	{ MOD1,				KEY,		tag,	"s " TAG }, \
+	{ MOD1|MOD2,		KEY,		tag,	"t " TAG }, \
+	{ MOD1|MOD3,		KEY,		tag,	"m " TAG }, \
+	{ MOD1|MOD4,		KEY,		tag,	"a " TAG },
+
 static Key keys[] = {
 	/* modifier			key			function	argument */
 	/* launchers + misc: */
@@ -70,37 +76,13 @@ static Key keys[] = {
 	{ MOD1|MOD2,		XK_m,		tile,		"monocle"		},
 	{ MOD1,				XK_i,		tile,		"increase"		},
 	{ MOD1,				XK_d,		tile,		"decrease"		},
-	/* external monitor command */
-	{ MOD1|MOD4,		XK_a,		monitor,	"activate"		},
-	{ MOD1|MOD4,		XK_d,		monitor,	"deactivate"	},
-	{ MOD1|MOD4,		XK_s,		monitor,	"send"			},
-	{ MOD1|MOD4,		XK_r,		monitor,	"return"		},
-	/* tagging:
-		s=set current active tag
-		t=toggle toggle tag visibility
-		a=assign window - toggle focused window's tag membership
-		m=move win - assign focused window to a single tag		*/
+	/* tagging: */
 	{ MOD2,				XK_Tab,		tag,		"flip"			},
-	{ MOD1,				XK_1,		tag,		"s 1"			},
-	{ MOD1,				XK_2,		tag,		"s 2"			},
-	{ MOD1,				XK_3,		tag,		"s 3"			},
-	{ MOD1,				XK_4,		tag,		"s 4"			},
-	{ MOD1,				XK_5,		tag,		"s 5"			},
-	{ MOD1|MOD2,		XK_1,		tag,		"t 1"			},
-	{ MOD1|MOD2,		XK_2,		tag,		"t 2"			},
-	{ MOD1|MOD2,		XK_3,		tag,		"t 3"			},
-	{ MOD1|MOD2,		XK_4,		tag,		"t 4"			},
-	{ MOD1|MOD2,		XK_5,		tag,		"t 5"			},
-	{ MOD1|MOD4,		XK_1,		tag,		"a 1"			},
-	{ MOD1|MOD4,		XK_2,		tag,		"a 2"			},
-	{ MOD1|MOD4,		XK_3,		tag,		"a 3"			},
-	{ MOD1|MOD4,		XK_4,		tag,		"a 4"			},
-	{ MOD1|MOD4,		XK_5,		tag,		"a 5"			},
-	{ MOD1|MOD3,		XK_1,		tag,		"m 1"			},
-	{ MOD1|MOD3,		XK_2,		tag,		"m 2"			},
-	{ MOD1|MOD3,		XK_3,		tag,		"m 3"			},
-	{ MOD1|MOD3,		XK_4,		tag,		"m 4"			},
-	{ MOD1|MOD3,		XK_5,		tag,		"m 5"			},
+		TagKey(			XK_1,					"1"		)
+		TagKey(			XK_2,					"2"		)
+		TagKey(			XK_3,					"3"		)
+		TagKey(			XK_4,					"4"		)
+		TagKey(			XK_5,					"5"		)
 	/* window focus/movement:
 		f=focus previous, next, or alternate  window in tag(s)
 		s=swap window with previous, next, or alternate  window	*/
@@ -114,6 +96,11 @@ static Key keys[] = {
 	{ MOD1,				XK_Down,	window,		"s next"		},
 	{ MOD1,				XK_Tab,		window,		"f alt"			},
 	{ MOD1|MOD4,		XK_Tab,		window,		"s alt"			},
+	/* external monitor commands */
+	{ MOD1|MOD4,		XK_a,		monitor,	"activate"		},
+	{ MOD1|MOD4,		XK_d,		monitor,	"deactivate"	},
+	{ MOD1|MOD4,		XK_s,		monitor,	"send"			},
+	{ MOD1|MOD4,		XK_r,		monitor,	"return"		},
 };
 
 static Button buttons[] = {
