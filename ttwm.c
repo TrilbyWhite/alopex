@@ -111,7 +111,7 @@ static int mouseMode = MOff, ntilemode = 0;
 static Client *clients = NULL, *focused = NULL, *nextwin, *prevwin, *altwin;
 static FILE *inpipe;
 static const char *noname_window = "(UNNAMED)";
-static int tagsUrg = 0, tagsSel = 1;
+static int tagsUrg = 0, tagsSel = 1, tagsAlt = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]		= buttonpress,
 	[ButtonRelease]		= buttonrelease,
@@ -344,6 +344,7 @@ void spawn(const char *arg) {
 void tag(const char *arg) {
 	int i = arg[2] - 49;
 	if (arg[0] == 's') tagsSel = (1<<i);
+	else if (arg[0] == 'f') {i=tagsSel; tagsSel=tagsAlt; tagsAlt=i;}
 	else if (arg[0] == 't') tagsSel ^= (1<<i);
 	else if (arg[0] == 'a' && focused ) focused->tags ^= (1<<i);
 	else if (arg[0] == 'm' && focused ) focused->tags = (1<<i);
@@ -484,6 +485,8 @@ int draw() {
 		w = XTextWidth(fontstruct,tag_name[i],strlen(tag_name[i]));
 		if (tagsSel & (1<<i))
 			XFillRectangle(dpy,buf,gc,x-2,fontheight+1,w+4,barheight-fontheight);
+		if (tagsAlt & (1<<i))
+			XFillRectangle(dpy,buf,gc,x-2,0,w+4,2);
 		x+=w+10;
 	}
 	if ( (x=x+20) < sw/10 ) x = sw/10; /* add padding */

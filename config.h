@@ -80,6 +80,7 @@ static Key keys[] = {
 		t=toggle toggle tag visibility
 		a=assign window - toggle focused window's tag membership
 		m=move win - assign focused window to a single tag		*/
+	{ MOD2,				XK_Tab,		tag,		"flip"			},
 	{ MOD1,				XK_1,		tag,		"s 1"			},
 	{ MOD1,				XK_2,		tag,		"s 2"			},
 	{ MOD1,				XK_3,		tag,		"s 3"			},
