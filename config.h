@@ -16,12 +16,12 @@ static const char colors[LASTColor][9] = {
 };
 
 static const char	ttwm_cursor			= XC_left_ptr;
-static const int	borderwidth			= 1;
+static const int	borderwidth			= 0;
 /* if tilegap is set to zero, this will activate the seemless tab mode
    like in ttwm-1.0 (when this is implemented)
    tilegap > 0 will make the status bar have tabs that should look better
    with a gap between the bar and the windows */
-static const int	tilegap				= 10;
+static const int	tilegap				= 0;
 /* set to the maximum input you might feed to the stdin reader */
 static const int	max_status_line		= 256;
 /* smallest allowable width or height for a window
