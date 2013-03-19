@@ -87,6 +87,7 @@ static void toggle(const char *);
 static void window(const char *);
 
 /* 1.2 TTWM INTERNAL PROTOTYPES */
+static inline Bool tile_check(Client *, int);
 static int draw();
 static int get_hints(Client *);
 static int neighbors(Client *);
@@ -199,6 +200,7 @@ void keypress(XEvent *ev) {
 }
 
 void maprequest(XEvent *ev) {
+int mon=0; //TODO <--
 	Client *c, *p;
 	XWindowAttributes wa;
 	XMapRequestEvent *e = &ev->xmaprequest;
@@ -222,7 +224,8 @@ void maprequest(XEvent *ev) {
 	get_hints(c);
 	XSelectInput(dpy,c->win,PropertyChangeMask | EnterWindowMask);
 	if (clients && attachmode == 1) {
-		c->next = clients->next; clients->next = c;
+		for (p = clients; p && p->next && !tile_check(p,mon); p = p->next);
+		c->next = p->next; p->next = c;
 	}
 	else if (clients && attachmode == 2) {
 		for (p = clients; p->next; p = p->next); p->next = c;
@@ -372,6 +375,7 @@ void tag(const char *arg) {
 	else if (arg[0] == 't') tagsSel ^= (1<<i);
 	else if (arg[0] == 'a' && focused ) focused->tags ^= (1<<i);
 	else if (arg[0] == 'm' && focused ) focused->tags = (1<<i);
+	tile(tile_modes[ntilemode]);
 	draw();
 }
 
@@ -460,7 +464,7 @@ static inline void draw_tab(Pixmap buf, int x, int w, int col) {
 	XDrawLines(dpy,buf,setcolor(col),(topbar ? top_pts : bot_pts),6,CoordModePrevious);
 }
 
-static inline Bool tile_check(Client *c, int mon) {
+inline Bool tile_check(Client *c, int mon) {
 	if (GET_MON(c) < nscr) return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && (GET_MON(c) == mon) );
 	else return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && (nscr == mon + 1) );
 }
