@@ -4,7 +4,7 @@ static const char font[] =
 static const char *tag_name[] =
 	{"one", "two", "three", "four", "five", NULL};
 static const char *tile_modes[] =
-	{"R_ttwm", "B_ttwm", "rstack", "bstack","monocle", NULL};
+	{"rstack", "bstack","monocle", NULL};
 
 static const char colors[LASTColor][9] = {
 	[Background]	= "#101010",
@@ -39,6 +39,9 @@ static int			tilebias			= 0;
 /* attachmode determines where new windows will be placed.
    0 = master, 1 = aside (top of stack), 2 = bottom */
 static const int	attachmode			= 0;
+/* stackcount sets how many clients can me visible in the stack region.
+   For "ttwm" tiling mode, set stackcount to 1.  The value can be changed
+   via a key binding (default Mod+ or Mod-). */
 static int			stackcount			= 3;
 
 static const char	*video1				= "LVDS1";
@@ -69,21 +72,26 @@ static Key keys[] = {
 	{ MOD1|MOD4,		XK_q,		quit,		NULL			},
 	{ MOD2,				XK_F4,		killclient,	NULL			},
 	{ MOD1,				XK_f,		fullscreen,	NULL			},
+	{ MOD1|MOD2,		XK_f,		toggle,		"floating"		},
 	{ MOD1,				XK_x,		toggle,		"place bar"		},
 	{ MOD1,				XK_a,		toggle,		"visible bar"	},
-	{ MOD1|MOD2,		XK_f,		toggle,		"floating"		},
-	/* tiling: */
+	/* tiling:
+		tile modes, increase/decrease master region size,
+		increment or decrement (+/-) the number of stack clients,
+		select for all or one ("ttwm tiling") stack clients */
 	{ MOD1,				XK_space,	tile,		"cycle"			},
-	{ MOD1|MOD2,		XK_t,		tile,		"R_ttwm"		},
-	{ MOD1|MOD2,		XK_b,		tile,		"bstack"		},
-	{ MOD1|MOD2,		XK_r,		tile,		"rstack"		},
-	{ MOD1|MOD2,		XK_m,		tile,		"monocle"		},
-	{ MOD1,				XK_i,		tile,		"increase"		},
-	{ MOD1,				XK_d,		tile,		"decrease"		},
-	/* tagging: */
+	{ MOD1,				XK_b,		tile,		"bstack"		},
+	{ MOD1,				XK_r,		tile,		"rstack"		},
+	{ MOD1,				XK_m,		tile,		"monocle"		},
+	{ MOD1,				XK_i,		tile_conf,	"increase"		},
+	{ MOD1,				XK_d,		tile_conf,	"decrease"		},
+	{ MOD1,				XK_equal,	tile_conf,	"+"				},
+	{ MOD1,				XK_minus,	tile_conf,	"-"				},
+	{ MOD1,				XK_period,	tile_conf,	"all"			},
+	{ MOD1,				XK_comma,	tile_conf,	"one"			},
+	/* tagging:
+		flip between alternate views, set tags */
 	{ MOD2,				XK_Tab,		tag,		"flip"			},
-	{ MOD1,				XK_equal,	tag,		"+"				},
-	{ MOD1,				XK_minus,	tag,		"-"				},
 		TagKey(			XK_1,					"1"		)
 		TagKey(			XK_2,					"2"		)
 		TagKey(			XK_3,					"3"		)
@@ -102,7 +110,7 @@ static Key keys[] = {
 	{ MOD1,				XK_Down,	window,		"s next"		},
 	{ MOD1,				XK_Tab,		window,		"f alt"			},
 	{ MOD1|MOD4,		XK_Tab,		window,		"s alt"			},
-	/* external monitor commands */
+	/* external monitor commands (W.I.P.) */
 	{ MOD1|MOD4,		XK_a,		monitor,	"activate"		},
 	{ MOD1|MOD4,		XK_d,		monitor,	"deactivate"	},
 	{ MOD1|MOD4,		XK_s,		monitor,	"send"			},
@@ -112,7 +120,7 @@ static Key keys[] = {
 static Button buttons[] = {
 	/* modifier			button		function 	arg */
 	{MOD1,				1,			mouse,		"move"		},
-	{MOD1,				2,			tile,		"cycle"		},
+	{MOD1,				2,			toggle,		"floating"	},
 	{MOD1,				3,			mouse,		"resize"	},
 	{MOD1,				4,			window,		"s prev"	},
 	{MOD1,				5,			window,		"s next"	},
