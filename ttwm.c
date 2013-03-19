@@ -213,10 +213,17 @@ if (c->y < 0) c->y = 0;
 			if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
 			else c->title = strdup(noname_window);
 		}
-get_hints(c);
-		// TODO get _NET_WM_WINDOW_TYPE to set floating
+		get_hints(c);
 		XSelectInput(dpy,c->win,PropertyChangeMask | EnterWindowMask);
-		c->next = clients; clients = c;
+		if (clients && attachmode == 1) {
+			c->next = clients->next; clients->next = c;
+		}
+		else if (clients && attachmode == 2) {
+			for (p = clients; p->next; p = p->next); p->next = c;
+		}
+		else {
+			c->next = clients; clients = c;
+		}
 		XSetWindowBorderWidth(dpy,c->win,borderwidth);
 		XMapWindow(dpy,c->win);
 		XRaiseWindow(dpy,c->win);

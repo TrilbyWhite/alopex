@@ -36,6 +36,9 @@ static Bool			topbar				= True;
    decrease the stack) from half the screen width.  Zero means the two will
    share the screen equally. */
 static int			tilebias			= 0;
+/* attachmode determines where new windows will be placed.
+   0 = master, 1 = aside (top of stack), 2 = bottom */
+static const int	attachmode			= 0;
 
 static const char	*video1				= "LVDS1";
 static const char	*video2				= "VGA1";
