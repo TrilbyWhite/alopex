@@ -528,6 +528,7 @@ int draw() {
 		XChangeWindowAttributes(dpy,stack->win,CWBorderPixel,&wa);
 		stack = stack->next;
 	}
+	if (!(focused && (focused->tags & tagsSel))) focused = master;
 	if (focused) {
 		if ( (focused != master) && !(focused->flags & TTWM_FLOATING) )
 			slave = focused;
@@ -535,7 +536,6 @@ int draw() {
 			XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 		focused->flags &= ~TTWM_URG_HINT;
 	}
-	else if (master) focused = master;
 	if (slave) slave->flags |= TTWM_TOPSTACK;
 	/* tags */
 	XFillRectangle(dpy,buf[0],setcolor(Background),0,0,sw,barheight);
