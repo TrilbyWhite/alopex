@@ -16,12 +16,12 @@ static const char colors[LASTColor][9] = {
 };
 
 static const char	ttwm_cursor			= XC_left_ptr;
-static const int	borderwidth			= 0;
+static const int	borderwidth			= 1;
 /* if tilegap is set to zero, this will activate the seemless tab mode
    like in ttwm-1.0 (when this is implemented)
    tilegap > 0 will make the status bar have tabs that should look better
    with a gap between the bar and the windows */
-static const int	tilegap				= 0;
+static const int	tilegap				= 10;
 /* set to the maximum input you might feed to the stdin reader */
 static const int	max_status_line		= 256;
 /* smallest allowable width or height for a window
@@ -39,6 +39,7 @@ static int			tilebias			= 0;
 /* attachmode determines where new windows will be placed.
    0 = master, 1 = aside (top of stack), 2 = bottom */
 static const int	attachmode			= 0;
+static int			stackcount			= 3;
 
 static const char	*video1				= "LVDS1";
 static const char	*video2				= "VGA1";
@@ -81,6 +82,8 @@ static Key keys[] = {
 	{ MOD1,				XK_d,		tile,		"decrease"		},
 	/* tagging: */
 	{ MOD2,				XK_Tab,		tag,		"flip"			},
+	{ MOD1,				XK_equal,	tag,		"+"				},
+	{ MOD1,				XK_minus,	tag,		"-"				},
 		TagKey(			XK_1,					"1"		)
 		TagKey(			XK_2,					"2"		)
 		TagKey(			XK_3,					"3"		)

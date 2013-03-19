@@ -363,10 +363,13 @@ void spawn(const char *arg) {
 void tag(const char *arg) {
 	int i = arg[2] - 49;
 	if (arg[0] == 's') tagsSel = ((tagsSel & 0xFFFF0000) | (1<<i));
+	else if (arg[0] == '+') stackcount++;
+	else if (arg[0] == '-') stackcount--;
 	else if (arg[0] == 'f') tagsSel = (tagsSel<<16 | tagsSel>>16);
 	else if (arg[0] == 't') tagsSel ^= (1<<i);
 	else if (arg[0] == 'a' && focused ) focused->tags ^= (1<<i);
 	else if (arg[0] == 'm' && focused ) focused->tags = (1<<i);
+	if (stackcount < 1) stackcount = 1;
 	tile(tile_modes[ntilemode]);
 	draw();
 }
@@ -390,6 +393,8 @@ void tile(const char *arg) {
 			if (!(c->flags & TTWM_FLOATING)) i++;
 		}
 	}
+if (i > stackcount + 1) i = stackcount + 1;
+if (j > stackcount + 1) j = stackcount + 1;
 	if (i == 0 && j == 0) return;
 	//else if (i == 1) tile_mode(&tile_monocle,i,j);
 	else if (arg[0] == 'B') tile_mode(&tile_B_ttwm,i,j);
@@ -752,9 +757,13 @@ int tile_rstack(int count,int flag,int x, int y, int w, int h) {
 		c->y = y + i*(wh + tilegap + borderwidth);
 		c->w = ww - tilebias;
 		c->h = MAX(wh - borderwidth,win_min);
-		i++; t = c;
+		if (!t && i == count - 2) t = c;
+		i = ( i == count - 2 ? count - 2 : i + 1);
 	}
-	if (t) t->h = MAX(y + h - t->y, win_min);
+	while (t) {
+		if (tile_check(t,flag)) t->h = MAX(y + h - t->y, win_min);
+		t = t->next;
+	}
 	return 0;
 }
 
