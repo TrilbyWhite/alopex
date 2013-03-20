@@ -433,7 +433,7 @@ void tile(const char *arg) {
 	}
 	else for (i = 0, j = 0, c = clients; c; c = c->next) {
 		if (c->tags & tagsSel) {
-			if (!(focused && (focused->tags & tagsSel))) t = c;
+			if (!t && !(focused && (focused->tags & tagsSel))) t = c;
 			if (t && (c->tags & TTWM_FULLSCREEN)) t = c;
 			if (!(c->flags & TTWM_FLOATING)) i++;
 		}
