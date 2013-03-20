@@ -1,3 +1,4 @@
+/* copyright J.McClure 2012-2013, see ttwm.c or COPYING for details */
 
 static const char font[] =
 	"-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*";
