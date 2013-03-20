@@ -395,7 +395,7 @@ void tile_conf(const char *arg) {
 
 void tile(const char *arg) {
 	int i,j;
-	Client *c;
+	Client *c,*t = NULL;
 	for (i = 0; tile_modes[i]; i++) 
 		if (arg[0] == tile_modes[i][0]) ntilemode = i;
 	if (ex_sw & ex_sh) for (i = 0, j = 0, c = clients; c; c = c->next) {
@@ -406,10 +406,12 @@ void tile(const char *arg) {
 	}
 	else for (i = 0, j = 0, c = clients; c; c = c->next) {
 		if (c->tags & tagsSel) {
-			if (!focused || !(focused->tags & tagsSel)) focused = c;
+			if (!(focused && (focused->tags & tagsSel))) t = c;
+			if (t && (c->tags & TTWM_FULLSCREEN)) t = c;
 			if (!(c->flags & TTWM_FLOATING)) i++;
 		}
 	}
+	if (t) focused = t;
 	maxTiled = MAX(i,j) - 1;
 	if (i > stackcount + 1) i = stackcount + 1;
 	if (j > stackcount + 1) j = stackcount + 1;
@@ -424,8 +426,7 @@ void tile(const char *arg) {
 	if (focused) {
 		XRaiseWindow(dpy,focused->win);
 		for (c = clients; c; c = c->next)
-			if ( (c->tags & tagsSel) && (c->flags & TTWM_FLOATING ||
-					c->flags & TTWM_FULLSCREEN) )
+			if ( (c->tags & tagsSel) && (c->flags & TTWM_FLOATING))
 				XRaiseWindow(dpy,c->win);
 	}
 	draw();
@@ -533,7 +534,6 @@ int draw() {
 		XChangeWindowAttributes(dpy,stack->win,CWBorderPixel,&wa);
 		stack = stack->next;
 	}
-	if (!(focused && (focused->tags & tagsSel))) focused = master;
 	if (focused) {
 		if ( (focused != master) && !(focused->flags & TTWM_FLOATING) )
 			slave = focused;
