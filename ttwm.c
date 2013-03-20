@@ -424,7 +424,8 @@ void tile(const char *arg) {
 	if (focused) {
 		XRaiseWindow(dpy,focused->win);
 		for (c = clients; c; c = c->next)
-			if ( (c->tags & tagsSel) && (c->flags & TTWM_FLOATING) )
+			if ( (c->tags & tagsSel) && (c->flags & TTWM_FLOATING ||
+					c->flags & TTWM_FULLSCREEN) )
 				XRaiseWindow(dpy,c->win);
 	}
 	draw();
