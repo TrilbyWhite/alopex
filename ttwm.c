@@ -210,7 +210,8 @@ int mon=0; //TODO <--
 	c->win = e->window;
 	c->w = wa.width; c->h = wa.height;
 	c->x = (sw-c->w)/2; c->y = (sh-c->h)/2;
-	c->tags = tagsSel;
+	c->tags = (	(tagsSel & 0xFFFF) ? tagsSel : (tagsSel |= 1) ) & 0xFFFF;
+	if (c->tags == 0) c->tags = 1;
 	if (c->x < 0) c->x = 0; if (c->y < 0) c->y = 0;
 	if ( (c->w==sw) && (c->h==sh) ) c->flags |= TTWM_FULLSCREEN;
 	if (XGetTransientForHint(dpy,c->win,&c->parent))
@@ -371,7 +372,7 @@ void spawn(const char *arg) {
 void tag(const char *arg) {
 	int i = arg[2] - 49;
 	if (arg[0] == 's') tagsSel = ((tagsSel & 0xFFFF0000) | (1<<i));
-	else if (arg[0] == 'f') tagsSel = (tagsSel<<16 | tagsSel>>16);
+	else if (arg[0] == 'f') tagsSel = ( tagsSel<<16 | tagsSel >>16);
 	else if (arg[0] == 't') tagsSel ^= (1<<i);
 	else if (arg[0] == 'a' && focused ) focused->tags ^= (1<<i);
 	else if (arg[0] == 'm' && focused ) focused->tags = (1<<i);
