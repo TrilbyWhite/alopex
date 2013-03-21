@@ -44,10 +44,17 @@ static const int	attachmode			= 0;
    For "ttwm" tiling mode, set stackcount to 1.  The value can be changed
    via a key binding (default Mod+ or Mod-). */
 static int			stackcount			= 3;
-
-static const char	*video1				= "LVDS1";
-static const char	*video2				= "VGA1";
-static const char	*video_location		= "below";
+/* xrandr is the "default" command used to initialize screens upon startup.
+   Change to suit your needs.  The default will work for single monitor
+   set ups, but may wreak havok on a multi-monitor setup.  So be sure to
+   adjust this command accordingly.  Commented examples follow. */
+static const char	*xrandr				= "xrandr --auto";
+/* EXAMPLE xrandr commands for multiple monitors:
+static const char	*xrandr				= 
+	"xrandr --output LVDS1 --auto --output VGA1 --auto --right-of LVDS1";
+static const char	*xrandr				= 
+	"xrandr --output LVDS1 --auto --output VGA1 --auto --right-of LVDS1 --output DVI-1 --auto --left-of LVDS1";
+*/
 
 #define DMENU		"dmenu_run -fn \"-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
 #define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc */
@@ -112,8 +119,7 @@ static Key keys[] = {
 	{ MOD1,				XK_Tab,		window,		"f alt"			},
 	{ MOD1|MOD4,		XK_Tab,		window,		"s alt"			},
 	/* external monitor commands (W.I.P.) */
-	{ MOD1|MOD4,		XK_a,		monitor,	"activate"		},
-	{ MOD1|MOD4,		XK_d,		monitor,	"deactivate"	},
+	{ MOD1|MOD4,		XK_x,		monitor,	"auto"			},
 	{ MOD1|MOD4,		XK_s,		monitor,	"send"			},
 	{ MOD1|MOD4,		XK_r,		monitor,	"return"		},
 };

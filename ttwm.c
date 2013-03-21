@@ -68,7 +68,6 @@ typedef struct {
 	const char *arg;
 } Button;
 
-
 typedef struct Client Client;
 struct Client {
 	Window win, parent;
@@ -78,16 +77,14 @@ struct Client {
 	char *title;
 };
 
-/* not used yet:
 typedef struct Monitor Monitor;
-stuct Monitor {
+struct Monitor {
 	Monitor *next;
 	int x, y, w, h;
 	int count;
 	Pixmap buf;
 	Window bar;
 };
-*/
 
 /*********************** [1] PROTOTYPES & VARIABLES ***********************/
 /* 1.0 EVENT HANDLER PROTOTYPES */
@@ -122,7 +119,7 @@ static int get_hints(Client *);
 static int neighbors(Client *);
 static GC setcolor(int);
 static int swap(Client *, Client *);
-static int tile_mode(int (*)(int,int,int,int,int,int),int, int);
+static int tile_mode(int (*)(int,int,int,int,int,int));
 static int tile_bstack(int,int,int,int,int,int);
 static int tile_monocle(int,int,int,int,int,int);
 static int tile_rstack(int,int,int,int,int,int);
@@ -133,15 +130,15 @@ static int xerror(Display *,XErrorEvent *);
 #include "icons.h"
 #include "config.h"
 static Display *dpy;
-static Window root, bar[2];
-//static Monitor *mon;
-static int scr, sw, sh, ex_sw, ex_sh, nscr = 1;
+static Window root;
+static Monitor *mons = NULL;
+static int scr, nscr = 1;
 static Colormap cmap;
 static XColor color;
 static GC gc,bgc;
 static XFontStruct *fontstruct;
-static int fontheight, barheight, statuswidth = 0;
-static Pixmap buf[2], sbar, iconbuf;
+static int fontheight, barheight, statuswidth = 0, min_len;
+static Pixmap sbar, iconbuf;
 static Bool running = True;
 static XButtonEvent mouseEvent;
 static int mouseMode = MOff, ntilemode = 0;
@@ -190,7 +187,9 @@ void buttonrelease(XEvent *ev) {
 void configurerequest(XEvent *ev) {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	Client *c;
-	if ( (c=wintoclient(e->window)) && (e->width==sw) && (e->height==sh) ) {
+	if ( !(c=wintoclient(e->window)) ) return;
+	Monitor *m = &mons[GET_MON(c)];
+	if ( (e->width==m->w) && (e->height==m->h) ) {
 		c->flags |= TTWM_FULLSCREEN;
 		draw();
 		return;
@@ -229,7 +228,8 @@ void keypress(XEvent *ev) {
 }
 
 void maprequest(XEvent *ev) {
-int mon=0; //TODO <--
+	int mon = (focused ? GET_MON(focused) : 0);
+	Monitor *m = &mons[mon];
 	Client *c, *p;
 	XWindowAttributes wa;
 	XMapRequestEvent *e = &ev->xmaprequest;
@@ -238,11 +238,11 @@ int mon=0; //TODO <--
 	if (!(c=calloc(1,sizeof(Client)))) exit(1);
 	c->win = e->window;
 	c->w = wa.width; c->h = wa.height;
-	c->x = (sw-c->w)/2; c->y = (sh-c->h)/2;
+	if (c->x < 0) c->x = 0; if (c->y < 0) c->y = 0;
+c->x = (m->w - c->w)/2; c->y = (m->h - c->h)/2;
 	c->tags = (	(tagsSel & 0xFFFF) ? tagsSel : (tagsSel |= 1) ) & 0xFFFF;
 	if (c->tags == 0) c->tags = 1;
-	if (c->x < 0) c->x = 0; if (c->y < 0) c->y = 0;
-	if ( (c->w==sw) && (c->h==sh) ) c->flags |= TTWM_FULLSCREEN;
+if ( (c->w==m->w) && (c->h==m->h) ) c->flags |= TTWM_FULLSCREEN;
 	if (XGetTransientForHint(dpy,c->win,&c->parent))
 		c->flags |= TTWM_TRANSIENT;
 	else
@@ -348,38 +348,52 @@ void killclient(const char *arg) {
 }
 
 void monitor(const char *arg) {
-/* CURRENTLY only good for two monitors
-   eventually will work with any arbitrary number */
-	char cmd[128];
-	if (arg[0] == 'a') {
-		nscr = 2;
-		sprintf(cmd,"xrandr --output %s --auto --output %s --auto --%s %s",
-			video1, video2, video_location, video1);
-		system(cmd);
-		int num_sizes;
-		XRRScreenSize *xrrs = XRRSizes(dpy,scr,&num_sizes);
-		XRRScreenConfiguration *config = XRRGetScreenInfo(dpy,root);
-		Rotation rotation;
-		int sizeID = XRRConfigCurrentConfiguration(config,&rotation);
-		XRRFreeScreenConfigInfo(config);
-		ex_sw = xrrs[sizeID].width; ex_sh = xrrs[sizeID].height;
-		buf[1] = XCreatePixmap(dpy,root,ex_sw,barheight,DefaultDepth(dpy,scr));
-		bar[1] = XCreateSimpleWindow(dpy,root,0,(topbar ? 0:ex_sh - barheight)+sh,
-			ex_sw,barheight,0,0,0);
+	if (arg[0] == 'x' || arg[0] == 'a') {	/* XRANDR COMMAND */
+		if (arg[0] == 'x') system(arg);
+		else system(xrandr);
+		/* free current monitors */
+		Monitor *m;
+		for (m = mons; m; m = m->next) {
+			XFreePixmap(dpy,m->buf);
+			XDestroyWindow(dpy,m->bar);
+		}
+		if (mons) free(mons);
+		if (sbar) XDestroyWindow(dpy,sbar);
 		XSetWindowAttributes wa;
 		wa.override_redirect = True;
 		wa.event_mask = ExposureMask;
-		XChangeWindowAttributes(dpy,bar[0],CWOverrideRedirect|CWEventMask,&wa);
-		XMapWindow(dpy,bar[1]);
-	}
-	else if (arg[0] == 'd') {
-		nscr = 1;
-		sprintf(cmd,"xrandr --output %s --auto --output %s --off", video1, video2);
-		system(cmd);
-		ex_sw = 0; ex_sh = 0;
-		XFreePixmap(dpy,buf[1]);
-		XDestroyWindow(dpy,bar[1]);
-	}
+		XRRScreenResources *xrr_sr = XRRGetScreenResources(dpy,root);
+		XRROutputInfo *xrr_out_info;
+		XRRCrtcInfo *xrr_crtc_info;
+		nscr = xrr_sr->noutput;
+		mons = (Monitor *) calloc(nscr,sizeof(Monitor));
+		int i;
+		for (i = 0; i < nscr; i++) {
+			xrr_out_info = XRRGetOutputInfo(dpy, xrr_sr, xrr_sr->outputs[i]);
+			if (!xrr_out_info->nmode) {
+				nscr = i;
+				mons = (Monitor *) realloc(mons,nscr * sizeof(Monitor));
+				XRRFreeOutputInfo(xrr_out_info);
+				break;
+			}
+			xrr_crtc_info = XRRGetCrtcInfo(dpy, xrr_sr, xrr_out_info->crtc);
+			m = &mons[i];
+			m->x = xrr_crtc_info->x;
+			m->y = xrr_crtc_info->y;
+			m->w = xrr_crtc_info->width;
+			m->h = xrr_crtc_info->height;
+			XRRFreeCrtcInfo (xrr_crtc_info);
+			XRRFreeOutputInfo(xrr_out_info);
+			m->bar = XCreateSimpleWindow(dpy,root,m->x,
+				(topbar ? m->y : m->h - barheight), m->w,barheight,0,0,0);
+			m->buf = XCreatePixmap(dpy,root,m->w,barheight,DefaultDepth(dpy,scr));
+			XChangeWindowAttributes(dpy,m->bar,CWOverrideRedirect|CWEventMask,&wa);
+			XMapWindow(dpy,m->bar);
+		}
+		XRRFreeScreenResources(xrr_sr);
+		for (i = 0; i < nscr - 1; i++) mons[i].next = &mons[i+1];
+		sbar = XCreatePixmap(dpy,root,m->w/2,barheight,DefaultDepth(dpy,scr));
+	}		/* END XRANDR COMMAND */
 	else if (arg[0] == 's' && focused) INC_MON(focused);
 	else if (arg[0] == 'r' && focused) DEC_MON(focused);
 	tile(tile_modes[ntilemode]);
@@ -426,50 +440,33 @@ void tile_conf(const char *arg) {
 	else if (arg[0] == 'o') stackcount = 1;
 	if (stackcount < 1) stackcount = 1;
 	else if (stackcount > maxTiled) stackcount = maxTiled;
-	if (tilebias > sh/2 - 2*win_min) tilebias = sh/2 - 2*win_min;
-	else if (tilebias < 2*win_min - sh/2) tilebias = 2*win_min - sh/2;
+	if (tilebias > min_len/2 - 2*win_min) tilebias = min_len/2 - 2*win_min;
+	else if (tilebias < 2*win_min - min_len/2) tilebias = 2*win_min - min_len/2;
 	tile(tile_modes[ntilemode]);
 }
 
 void tile(const char *arg) {
-	int i,j;
+	int i;
 	Client *c;
 	for (i = 0; tile_modes[i]; i++) 
 		if (arg[0] == tile_modes[i][0]) ntilemode = i;
-/* TO REPLACE THE CODE BELOW:
 Monitor *mon;
-int n, max;
+int n, max = 0;
 for (i = 0, mon = mons; mon; i++, mon = mon->next)
 	mon->count = 0;
 for (c = clients; c; c = c->next)
 	if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING)) {
-		n = (GET_MON(c) < n_mon ? GET_MON(c) : n_mon - 1);
+		n = (GET_MON(c) < nscr ? GET_MON(c) : nscr - 1);
 		mons[n].count ++;
 		max = MAX(max,mons[n].count);
 	}
 if (max == 0) return;
 for (i = 0, mon = mons; mon; i++, mon = mon->next)
 	if (mon->count > stackcount + 1) mon->count = stackcount + 1;
-*/
-	if (ex_sw & ex_sh) for (i = 0, j = 0, c = clients; c; c = c->next) {
-		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) &&
-			(GET_MON(c) == 0)) i++;
-		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) &&
-			(GET_MON(c) == 1)) j++;
-	}
-	else for (i = 0, j = 0, c = clients; c; c = c->next) {
-		if (c->tags & tagsSel) {
-			if (!(c->flags & TTWM_FLOATING)) i++;
-		}
-	}
-	maxTiled = MAX(i,j) - 1;
-	if (i > stackcount + 1) i = stackcount + 1;
-	if (j > stackcount + 1) j = stackcount + 1;
-	if (i == 0 && j == 0) return;
-/* REPLACE TO HERE */
-	else if (arg[0] == 'b') tile_mode(&tile_bstack,i,j);
-	else if (arg[0] == 'm') tile_mode(&tile_monocle,i,j);
-	else if (arg[0] == 'r') tile_mode(&tile_rstack,i,j);
+
+	else if (arg[0] == 'b') tile_mode(&tile_bstack);
+	else if (arg[0] == 'm') tile_mode(&tile_monocle);
+	else if (arg[0] == 'r') tile_mode(&tile_rstack);
 	else if (arg[0] == 'c') {
 		if (!tile_modes[++ntilemode]) ntilemode = 0;
 		tile(tile_modes[ntilemode]);
@@ -487,8 +484,9 @@ void toggle(const char *arg) {
 	if (arg[0] == 'p') topbar = !topbar;
 	else if (arg[0] == 'v') showbar = !showbar;
 	else if (arg[0] == 'f' && focused) focused->flags ^= TTWM_FLOATING;
-	XMoveWindow(dpy,bar[0],(showbar ? 0 : -2*sw),(topbar ? 0 : sh-barheight));
-	// TODO bar[1]
+Monitor *mon;
+for (mon = mons; mon; mon = mon->next)
+XMoveWindow(dpy,mon->bar,(showbar ? 0 : -4*mons[0].w),(topbar ? 0 : mon->h-barheight));
 	tile(tile_modes[ntilemode]);
 }
 
@@ -548,7 +546,7 @@ static void draw_tabs(Pixmap buf, int x, int w, int mid, int mon) {
 		setcolor( (c->flags & TTWM_URG_HINT ? Urgent :
 			(c == focused ? Title : Default)) );
 		XDrawString(dpy,buf,gc,x,fontheight,c->title,strlen(c->title));
-		XFillRectangle(dpy,buf,setcolor(Background),x+tabw-4,0,sw-x-tabw,barheight);
+		XFillRectangle(dpy,buf,setcolor(Background),x+tabw-4,0,w-x-tabw,barheight);
 		draw_tab(buf,x-8,tabw+5,(c->flags & TTWM_TOPSTACK ? Occupied : Title));
 		x += tabw+8;
 	}
@@ -557,13 +555,14 @@ static void draw_tabs(Pixmap buf, int x, int w, int mid, int mon) {
 int draw() {
 	tagsUrg &= ~tagsSel;
 	int tagsOcc = 0, nstack = -1;
+Monitor *m;
 	/* windows */
 	Client *stack = clients, *master = NULL, *slave = NULL;
 	XSetWindowAttributes wa;
 	while (stack) {
 		tagsOcc |= stack->tags;
 		if (!(stack->tags & tagsSel)) { /* not on selected tag(s) */
-			XMoveWindow(dpy,stack->win,-2*sw,0);
+			XMoveWindow(dpy,stack->win,-2*mons[0].w,0);
 			stack = stack->next; continue;
 		}
 		else if (!(stack->flags & TTWM_FLOATING)) { /* tiled */
@@ -576,7 +575,10 @@ int draw() {
 			stack->flags &= ~TTWM_TOPSTACK;
 		}
 		if (stack->flags & TTWM_FULLSCREEN )
-			XMoveResizeWindow(dpy,stack->win,-borderwidth,-borderwidth,sw,sh);
+{
+	m = &mons[GET_MON(stack)];
+	XMoveResizeWindow(dpy,stack->win,m->x-borderwidth,m->y-borderwidth,m->w,m->h);
+}
 		else
 			XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
 		if (stack == focused) setcolor(Selected);
@@ -593,38 +595,35 @@ int draw() {
 		focused->flags &= ~TTWM_URG_HINT;
 	}
 	if (slave) slave->flags |= TTWM_TOPSTACK;
+	/* clear buffers */
+	for (m = mons; m; m = m->next)
+	XFillRectangle(dpy,m->buf,setcolor(Background),0,0,m->w,barheight);
 	/* tags */
-	XFillRectangle(dpy,buf[0],setcolor(Background),0,0,sw,barheight);
-	if (nscr > 1)
-		XFillRectangle(dpy,buf[1],setcolor(Background),0,0,ex_sw,barheight);
+	m = &mons[0]; /* tags are drawn on main screen only */
 	int i,x=10,w=0,col, tagsAlt = (tagsSel>>16);
 	for (i = 0; tag_name[i]; i++) {
 		if (!((tagsOcc|tagsSel) & (1<<i))) continue;
 		col = (tagsUrg & (1<<i) ? Urgent :
 			(tagsOcc & (1<<i) ? Occupied : Default));
 		if (focused && focused->tags & (1<<i)) col = Selected;
-		XDrawString(dpy,buf[0],setcolor(col),x,fontheight,
+		XDrawString(dpy,m->buf,setcolor(col),x,fontheight,
 			tag_name[i],strlen(tag_name[i]));
 		w = XTextWidth(fontstruct,tag_name[i],strlen(tag_name[i]));
 		if (tagsSel & (1<<i))
-			XFillRectangle(dpy,buf[0],gc,x-2,fontheight+1,w+4,barheight-fontheight);
+			XFillRectangle(dpy,m->buf,gc,x-2,fontheight+1,w+4,barheight-fontheight);
 		if (tagsAlt & (1<<i))
-			XFillRectangle(dpy,buf[0],gc,x-2,0,w+4,2);
+			XFillRectangle(dpy,m->buf,gc,x-2,0,w+4,2);
 		x+=w+10;
 	}
-	if ( (x=x+20) < sw/10 ) x = sw/10; /* add padding */
+	if ( (x=x+20) < m->w/10 ) x = m->w/10; /* add padding */
 	/* titles / tabs */
-	//for (i = 0; i < nscr; i++)
-	//	draw_tabs(buf[i],x,sw - x - statuswidth - 10,sw/2+tilebias,i);
-draw_tabs(buf[0],x,sw - x - statuswidth - 10,sw/2+tilebias,0);
-if (nscr > 1)
-draw_tabs(buf[1],10,ex_sw - 10,ex_sw/2+tilebias,1);
+for (i = 0, m = mons; m; i++, m = m->next)
+draw_tabs(m->buf,x,m->w - x - statuswidth - 10,m->w/2+tilebias,i);
 	/* status */
 	if (statuswidth)
-		XCopyArea(dpy,sbar,buf[0],gc,0,0,statuswidth,barheight,sw-statuswidth,0);
-	XCopyArea(dpy,buf[0],bar[0],gc,0,0,sw,barheight,0,0);
-	if (nscr > 1)
-		XCopyArea(dpy,buf[1],bar[1],gc,0,0,ex_sw,barheight,0,0);
+XCopyArea(dpy,sbar,mons[0].buf,gc,0,0,statuswidth,barheight,mons[0].w-statuswidth,0);
+for (m = mons; m; m = m->next)
+XCopyArea(dpy,m->buf,m->bar,gc,0,0,m->w,barheight,0,0);
 	XFlush(dpy);
 	return 0;
 }
@@ -648,22 +647,16 @@ int neighbors(Client *c) {
 	prevwin = NULL; nextwin = NULL; altwin = NULL;
 	if (!(c->tags & tagsSel)) return -1;
 	Client *stack, *t;
+	int nmon = GET_MON(c);
 	for (stack = clients; stack && stack != c; stack = stack->next)
-		if (stack->tags & tagsSel && !(stack->flags & TTWM_FLOATING) &&
-			(GET_MON(stack) == GET_MON(c)) ) prevwin = stack;
+		if (tile_check(stack,nmon)) prevwin = stack;
 	for (nextwin = stack->next; nextwin; nextwin = nextwin->next)
-		if ( (nextwin->tags & tagsSel) && !(nextwin->flags & TTWM_FLOATING) &&
-			(GET_MON(stack) == GET_MON(c)) ) break;
-	for (t = clients; t &&
-		( !((t->tags & tagsSel) && (GET_MON(t) == GET_MON(c))) ||
-			(t->flags & TTWM_FLOATING) );
-		t = t->next);
+		if (tile_check(stack,nmon)) break;
+	for (t = clients; t && !tile_check(t,nmon);	t = t->next);
 	if (!t) return -1;
-	for (stack = t->next; stack && 
-			!( (GET_MON(stack) == GET_MON(c)) &&
-			!(stack->flags & TTWM_FLOATING) &&
-			(stack->flags & TTWM_TOPSTACK) );
-		stack = stack->next);
+	for (stack = t->next; stack; stack = stack->next)
+		if (tile_check(stack,nmon) && (stack->flags & TTWM_TOPSTACK))
+			break;
 	if (!stack) return -1;
 	if (stack == focused) altwin = t;
 	else altwin = stack;
@@ -682,7 +675,7 @@ int status(char *msg) {
 	int l, arg;
 	int lastwidth = statuswidth;
 	statuswidth = 0;
-	XFillRectangle(dpy,sbar,setcolor(Background),0,0,sw/2,barheight);
+	XFillRectangle(dpy,sbar,setcolor(Background),0,0,mons[0].w/2,barheight);
 	setcolor(Default);
 	while (*c != '\n') {
 		if (*c == '{') {
@@ -711,7 +704,7 @@ int status(char *msg) {
 		}
 	}
 	if (statuswidth == lastwidth) {
-		XCopyArea(dpy,sbar,bar[0],gc,0,0,statuswidth,barheight,sw-statuswidth,0);
+		XCopyArea(dpy,sbar,mons[0].bar,gc,0,0,statuswidth,barheight,mons[0].w-statuswidth,0);
 		XFlush(dpy);
 	}
 	else draw();
@@ -734,23 +727,19 @@ int swap(Client *a, Client *b) {
 	return 0;
 }
 
-int tile_mode(int (*func)(int,int,int,int,int,int),int count, int excount) {
-	int (*in)(int,int,int,int,int,int) = func;
-	int (*ex)(int,int,int,int,int,int) = func;
-	if (count == 1) in = &tile_monocle;
-	if (excount == 1) ex = &tile_monocle;
-	if (count)
-		in(count, 0,
-			tilegap,
-			(showbar ? (topbar ? barheight : 0) : 0) + tilegap,
-			sw-2*(tilegap+borderwidth),
-			sh - (showbar ? barheight : 0) - 2*(tilegap+borderwidth));
-	if (excount)
-		ex(excount, 1,
-			tilegap,
-			(showbar ? (topbar ? barheight : 0) : 0) + tilegap + sh,
-			ex_sw-2*(tilegap+borderwidth),
-			ex_sh - (showbar ? barheight : 0) - 2*(tilegap+borderwidth));
+int tile_mode(int (*func)(int,int,int,int,int,int)) {
+	int (*f)(int,int,int,int,int,int) = func;
+	int i;
+	Monitor *m;
+	for (i = 0, m = mons; m; i++, m = m->next) {
+		if (m->count == 0) continue;
+		else if (m->count == 1) f = &tile_monocle;
+		else f = func;
+		f(m->count, i, m->x + tilegap,
+			m->y + (showbar ? (topbar ? barheight : 0) : 0) + tilegap,
+			m->w-2*(tilegap+borderwidth),
+			m->h - (showbar ? barheight : 0) - 2*(tilegap+borderwidth));
+	}
 	return 0;
 }	
 
@@ -829,8 +818,6 @@ int main(int argc, const char **argv) {
 	/* init X */
 	if (!(dpy=XOpenDisplay(0x0))) return 1;
 	scr = DefaultScreen(dpy);
-	sw = DisplayWidth(dpy,scr);
-	sh = DisplayHeight(dpy,scr);
 	root = DefaultRootWindow(dpy);
 	XSetErrorHandler(xerror);
 	XDefineCursor(dpy,root,XCreateFontCursor(dpy,ttwm_cursor));
@@ -846,17 +833,11 @@ int main(int argc, const char **argv) {
 	bgc = DefaultGC(dpy,scr);
 	XAllocNamedColor(dpy,cmap,colors[Background],&color,&color);
 	XSetForeground(dpy,bgc,color.pixel);
-	/* buffers and windows */
-	bar[0] = XCreateSimpleWindow(dpy,root,0,(topbar ? 0 : sh - barheight),
-			sw,barheight,0,0,0);
-	buf[0] = XCreatePixmap(dpy,root,sw,barheight,DefaultDepth(dpy,scr));
-	sbar = XCreatePixmap(dpy,root,sw/2,barheight,DefaultDepth(dpy,scr));
+	/* monitors, bar windows, and buffers */
+	monitor("auto");
 	iconbuf = XCreatePixmap(dpy,root,iconwidth,iconheight,DefaultDepth(dpy,scr));
+	/* configure root window */
 	XSetWindowAttributes wa;
-	wa.override_redirect = True;
-	wa.event_mask = ExposureMask;
-	XChangeWindowAttributes(dpy,bar[0],CWOverrideRedirect|CWEventMask,&wa);
-	XMapWindow(dpy,bar[0]);
 	wa.event_mask = ExposureMask |FocusChangeMask | SubstructureNotifyMask |
 			ButtonReleaseMask | PropertyChangeMask | SubstructureRedirectMask |
 			StructureNotifyMask;
@@ -898,8 +879,13 @@ int main(int argc, const char **argv) {
 		}
 	}
 	/* clean up */
-	XFreePixmap(dpy,buf[0]);
-	XDestroyWindow(dpy,bar[0]);
+	Monitor *m;
+	for (m = mons; m; m = m->next) {
+		XFreePixmap(dpy,m->buf);
+		XDestroyWindow(dpy,m->bar);
+	}
+	free(mons);
+	XDestroyWindow(dpy,sbar);
 	free(line);
 	XFreeFontInfo(NULL,fontstruct,1);
 	XUnloadFont(dpy,val.font);
