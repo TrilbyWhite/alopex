@@ -407,11 +407,13 @@ void tag(const char *arg) {
 	else if (arg[0] == 'm' && focused ) focused->tags = (1<<i);
 	tile(tile_modes[ntilemode]);
 	Client *c,*t=NULL;
-	for (c = clients; c; c = c->next) if (c->tags & tagsSel) {
-		if (!t) t = c;
-		if (c->flags & TTWM_FULLSCREEN) t = c;
+	if (!focused || !(focused->tags & tagsSel)) {
+		for (c = clients; c; c = c->next) if (c->tags & tagsSel) {
+			if (!t) t = c;
+			if (c->flags & TTWM_FULLSCREEN) t = c;
+		}
+		if (t) focused = t;
 	}
-	if (t) focused = t;
 	draw();
 }
 
