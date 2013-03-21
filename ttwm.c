@@ -102,7 +102,6 @@ static void unmapnotify(XEvent *);
 /* 1.1 BINDABLE FUNCTION PROTOTYPES */
 static void fullscreen(const char *);
 static void killclient(const char *);
-static void monitor(const char *);
 static void mouse(const char *);
 static void quit(const char *);
 static void spawn(const char *);
@@ -116,6 +115,7 @@ static void window(const char *);
 static inline Bool tile_check(Client *, int);
 static int draw();
 static int get_hints(Client *);
+static int get_monitors();
 static int neighbors(Client *);
 static GC setcolor(int);
 static int swap(Client *, Client *);
@@ -146,6 +146,7 @@ static Client *clients = NULL, *focused = NULL, *nextwin, *prevwin, *altwin;
 static FILE *inpipe;
 static const char *noname_window = "(UNNAMED)";
 static int tagsUrg = 0, tagsSel = 1, maxTiled = 1;
+static int RREvent, RRError;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]		= buttonpress,
 	[ButtonRelease]		= buttonrelease,
@@ -347,58 +348,6 @@ void killclient(const char *arg) {
 	XSendEvent(dpy,focused->win,False,NoEventMask,&ev);
 }
 
-void monitor(const char *arg) {
-	if (arg[0] == 'x' || arg[0] == 'a') {	/* XRANDR COMMAND */
-		if (arg[0] == 'x') system(arg);
-		else system(xrandr);
-		/* free current monitors */
-		Monitor *m;
-		for (m = mons; m; m = m->next) {
-			XFreePixmap(dpy,m->buf);
-			XDestroyWindow(dpy,m->bar);
-		}
-		if (mons) free(mons);
-		if (sbar) XDestroyWindow(dpy,sbar);
-		XSetWindowAttributes wa;
-		wa.override_redirect = True;
-		wa.event_mask = ExposureMask;
-		XRRScreenResources *xrr_sr = XRRGetScreenResources(dpy,root);
-		XRROutputInfo *xrr_out_info;
-		XRRCrtcInfo *xrr_crtc_info;
-		nscr = xrr_sr->noutput;
-		mons = (Monitor *) calloc(nscr,sizeof(Monitor));
-		int i;
-		for (i = 0; i < nscr; i++) {
-			xrr_out_info = XRRGetOutputInfo(dpy, xrr_sr, xrr_sr->outputs[i]);
-			if (!xrr_out_info->nmode) {
-				nscr = i;
-				mons = (Monitor *) realloc(mons,nscr * sizeof(Monitor));
-				XRRFreeOutputInfo(xrr_out_info);
-				break;
-			}
-			xrr_crtc_info = XRRGetCrtcInfo(dpy, xrr_sr, xrr_out_info->crtc);
-			m = &mons[i];
-			m->x = xrr_crtc_info->x;
-			m->y = xrr_crtc_info->y;
-			m->w = xrr_crtc_info->width;
-			m->h = xrr_crtc_info->height;
-			XRRFreeCrtcInfo (xrr_crtc_info);
-			XRRFreeOutputInfo(xrr_out_info);
-			m->bar = XCreateSimpleWindow(dpy,root,m->x,
-				(topbar ? m->y : m->h - barheight), m->w,barheight,0,0,0);
-			m->buf = XCreatePixmap(dpy,root,m->w,barheight,DefaultDepth(dpy,scr));
-			XChangeWindowAttributes(dpy,m->bar,CWOverrideRedirect|CWEventMask,&wa);
-			XMapWindow(dpy,m->bar);
-		}
-		XRRFreeScreenResources(xrr_sr);
-		for (i = 0; i < nscr - 1; i++) mons[i].next = &mons[i+1];
-		sbar = XCreatePixmap(dpy,root,m->w/2,barheight,DefaultDepth(dpy,scr));
-	}		/* END XRANDR COMMAND */
-	else if (arg[0] == 's' && focused) INC_MON(focused);
-	else if (arg[0] == 'r' && focused) DEC_MON(focused);
-	tile(tile_modes[ntilemode]);
-}
-
 void mouse(const char *arg) {
 	if (arg[0] == 'm') mouseMode = MMove;
 	else if (arg[0] == 'r') mouseMode = MResize;
@@ -492,6 +441,8 @@ XMoveWindow(dpy,mon->bar,(showbar ? 0 : -4*mons[0].w),(topbar ? 0 : mon->h-barhe
 
 void window(const char *arg) {
 	if (!focused) return;
+	if (arg[0] == '+') { INC_MON(focused); return; }
+	else if (arg[0] == '-') { DEC_MON(focused); return; }
 	if (focused->flags & TTWM_FLOATING) return;
 	neighbors(focused);
 	Client *t = NULL;
@@ -640,6 +591,52 @@ int get_hints(Client *c) {
 		}
 		XFree(hint);
 	}
+	return 0;
+}
+
+int get_monitors() {
+	/* free current monitors */
+	Monitor *m;
+	for (m = mons; m; m = m->next) {
+		XFreePixmap(dpy,m->buf);
+		XDestroyWindow(dpy,m->bar);
+	}
+	if (mons) free(mons);
+	/* get xrandr info */
+	XSetWindowAttributes wa;
+	wa.override_redirect = True;
+	wa.event_mask = ExposureMask;
+	XRRScreenResources *xrr_sr = XRRGetScreenResources(dpy,root);
+	XRROutputInfo *xrr_out_info;
+	XRRCrtcInfo *xrr_crtc_info;
+	nscr = xrr_sr->noutput;
+	mons = (Monitor *) calloc(nscr,sizeof(Monitor));
+	int i;
+	/* loop through monitors */
+	for (i = 0; i < nscr; i++) {
+		xrr_out_info = XRRGetOutputInfo(dpy, xrr_sr, xrr_sr->outputs[i]);
+		if (!xrr_out_info->nmode) {
+			nscr = i;
+			mons = (Monitor *) realloc(mons,nscr * sizeof(Monitor));
+			XRRFreeOutputInfo(xrr_out_info);
+			break;
+		}
+		xrr_crtc_info = XRRGetCrtcInfo(dpy, xrr_sr, xrr_out_info->crtc);
+		m = &mons[i];
+		m->x = xrr_crtc_info->x;
+		m->y = xrr_crtc_info->y;
+		m->w = xrr_crtc_info->width;
+		m->h = xrr_crtc_info->height;
+		XRRFreeCrtcInfo (xrr_crtc_info);
+		XRRFreeOutputInfo(xrr_out_info);
+		m->bar = XCreateSimpleWindow(dpy,root,m->x,
+			(topbar ? m->y : m->h - barheight), m->w,barheight,0,0,0);
+		m->buf = XCreatePixmap(dpy,root,m->w,barheight,DefaultDepth(dpy,scr));
+		XChangeWindowAttributes(dpy,m->bar,CWOverrideRedirect|CWEventMask,&wa);
+		XMapWindow(dpy,m->bar);
+	}
+	XRRFreeScreenResources(xrr_sr);
+	for (i = 0; i < nscr - 1; i++) mons[i].next = &mons[i+1];
 	return 0;
 }
 
@@ -817,6 +814,7 @@ int main(int argc, const char **argv) {
 	else inpipe = popen("while :; do date \"+%I:%M %p\"; sleep 10; done","r");
 	/* init X */
 	if (!(dpy=XOpenDisplay(0x0))) return 1;
+	if (!(XRRQueryExtension(dpy,&RREvent,&RRError))) return 2;
 	scr = DefaultScreen(dpy);
 	root = DefaultRootWindow(dpy);
 	XSetErrorHandler(xerror);
@@ -834,13 +832,14 @@ int main(int argc, const char **argv) {
 	XAllocNamedColor(dpy,cmap,colors[Background],&color,&color);
 	XSetForeground(dpy,bgc,color.pixel);
 	/* monitors, bar windows, and buffers */
-	monitor("auto");
+	get_monitors();
+	sbar = XCreatePixmap(dpy,root,mons[0].w/2,barheight,DefaultDepth(dpy,scr));
 	iconbuf = XCreatePixmap(dpy,root,iconwidth,iconheight,DefaultDepth(dpy,scr));
 	/* configure root window */
 	XSetWindowAttributes wa;
 	wa.event_mask = ExposureMask |FocusChangeMask | SubstructureNotifyMask |
 			ButtonReleaseMask | PropertyChangeMask | SubstructureRedirectMask |
-			StructureNotifyMask;
+			StructureNotifyMask | RRScreenChangeNotifyMask;
 	XChangeWindowAttributes(dpy,root,CWEventMask,&wa);
 	XSelectInput(dpy,root,wa.event_mask);
 	/* key and mouse bindings */
@@ -871,7 +870,8 @@ int main(int argc, const char **argv) {
 		select(xfd+1,&fds,0,0,NULL);
 		if (FD_ISSET(xfd,&fds)) while (XPending(dpy)) {
 			XNextEvent(dpy,&ev);
-			if (handler[ev.type]) handler[ev.type](&ev);
+			if (ev.type == (RREvent & RRScreenChangeNotify)) get_monitors();
+			else if (handler[ev.type]) handler[ev.type](&ev);
 		}
 		if (FD_ISSET(sfd,&fds)) {
 			if (fgets(line,max_status_line,inpipe))
