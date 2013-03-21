@@ -79,11 +79,14 @@ struct Client {
 };
 
 /* not used yet:
-typedef stuct {
+typedef struct Monitor Monitor;
+stuct Monitor {
+	Monitor *next;
 	int x, y, w, h;
+	int count;
 	Pixmap buf;
 	Window bar;
-} Monitor;
+};
 */
 
 /*********************** [1] PROTOTYPES & VARIABLES ***********************/
@@ -403,6 +406,12 @@ void tag(const char *arg) {
 	else if (arg[0] == 'a' && focused ) focused->tags ^= (1<<i);
 	else if (arg[0] == 'm' && focused ) focused->tags = (1<<i);
 	tile(tile_modes[ntilemode]);
+	Client *c,*t=NULL;
+	for (c = clients; c; c = c->next) if (c->tags & tagsSel) {
+		if (!t) t = c;
+		if (c->flags & TTWM_FULLSCREEN) t = c;
+	}
+	if (t) focused = t;
 	draw();
 }
 
@@ -422,9 +431,24 @@ void tile_conf(const char *arg) {
 
 void tile(const char *arg) {
 	int i,j;
-	Client *c,*t = NULL;
+	Client *c;
 	for (i = 0; tile_modes[i]; i++) 
 		if (arg[0] == tile_modes[i][0]) ntilemode = i;
+/* TO REPLACE THE CODE BELOW:
+Monitor *mon;
+int n, max;
+for (i = 0, mon = mons; mon; i++, mon = mon->next)
+	mon->count = 0;
+for (c = clients; c; c = c->next)
+	if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING)) {
+		n = (GET_MON(c) < n_mon ? GET_MON(c) : n_mon - 1);
+		mons[n].count ++;
+		max = MAX(max,mons[n].count);
+	}
+if (max == 0) return;
+for (i = 0, mon = mons; mon; i++, mon = mon->next)
+	if (mon->count > stackcount + 1) mon->count = stackcount + 1;
+*/
 	if (ex_sw & ex_sh) for (i = 0, j = 0, c = clients; c; c = c->next) {
 		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING) &&
 			(GET_MON(c) == 0)) i++;
@@ -433,16 +457,14 @@ void tile(const char *arg) {
 	}
 	else for (i = 0, j = 0, c = clients; c; c = c->next) {
 		if (c->tags & tagsSel) {
-			if (!t && !(focused && (focused->tags & tagsSel))) t = c;
-			if (t && (c->tags & TTWM_FULLSCREEN)) t = c;
 			if (!(c->flags & TTWM_FLOATING)) i++;
 		}
 	}
-	if (t) focused = t;
 	maxTiled = MAX(i,j) - 1;
 	if (i > stackcount + 1) i = stackcount + 1;
 	if (j > stackcount + 1) j = stackcount + 1;
 	if (i == 0 && j == 0) return;
+/* REPLACE TO HERE */
 	else if (arg[0] == 'b') tile_mode(&tile_bstack,i,j);
 	else if (arg[0] == 'm') tile_mode(&tile_monocle,i,j);
 	else if (arg[0] == 'r') tile_mode(&tile_rstack,i,j);
