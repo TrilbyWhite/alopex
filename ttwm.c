@@ -52,7 +52,8 @@
 #define INC_MON(x)		(x->flags += ((x->flags & 0x000F) == nscr ? 0 : 1))
 #define DEC_MON(x)		(x->flags -= ((x->flags & 0x000F) == 0 ? 0 : 1))
 
-enum { Background, Default, Occupied, Selected, Urgent, Title, LASTColor };
+enum { Background, Default, Occupied, Selected, Urgent, Title,
+	TabFocused, TabFocusedBG, TabTop, TabTopBG, TabDefault, TabDefaultBG, LASTColor };
 enum { MOff, MMove, MResize };
 
 typedef struct {
@@ -458,12 +459,16 @@ void window(const char *arg) {
 
 /* 2.2 WM INTERNAL FUNCTIONS */
 
-static inline void draw_tab(Pixmap buf, int x, int w, int col) {
+static inline void draw_tab(Pixmap buf, int x, int w, int fg, int fc, char *s) {
 	XPoint top_pts[6] = { {x,barheight}, {0,2-barheight}, {2,-2},
 		{w-4,0}, {2,2}, {0,barheight-2} };
 	XPoint bot_pts[6] = { {x,0}, {0,barheight-3}, {2,2}, {w-4,0},
 			{2,-2}, {0,3-barheight} };
-	XDrawLines(dpy,buf,setcolor(col),(topbar ? top_pts : bot_pts),6,CoordModePrevious);
+	XFillPolygon(dpy,buf,setcolor(fg+1),(topbar ? top_pts : bot_pts),6,
+		Convex,CoordModePrevious);
+	XDrawString(dpy,buf,setcolor(fc),x+8,fontheight,s,strlen(s));
+	XFillRectangle(dpy,buf,bgc,x+w,0,w,barheight);
+	XDrawLines(dpy,buf,setcolor(fg),(topbar ? top_pts : bot_pts),6,CoordModePrevious);
 }
 
 inline Bool tile_check(Client *c, int mon) {
@@ -473,7 +478,7 @@ inline Bool tile_check(Client *c, int mon) {
 
 static void draw_tabs(Pixmap buf, int x, int w, int mid, int mon) {
 	Client *c;
-	int count, tab1w, tabw;
+	int count, tab1w, tabw, col;
 	/* get count - skip if zero */
 	for (count = 0, c = clients; c; c = c->next)
 		if (tile_check(c,mon)) count++;
@@ -484,21 +489,25 @@ static void draw_tabs(Pixmap buf, int x, int w, int mid, int mon) {
 	if (tabw < 20) tabw = 20;
 	/* draw master title and tab */
 	for (c = clients; !(tile_check(c,mon)); c = c->next);
-	setcolor(c == focused ? Title : Default);
-	if (c->flags & TTWM_URG_HINT) setcolor(Urgent);
-	XDrawString(dpy,buf,gc,x,fontheight,c->title,strlen(c->title));
-	XFillRectangle(dpy,buf,setcolor(Background),x + tab1w - 4,0,w-x-tab1w,barheight);
-	draw_tab(buf,x-8,tab1w+5,Occupied);
+	col = (c->flags & TTWM_URG_HINT ? Urgent :(c == focused ? Title : Default));
+	if (c == focused)
+		draw_tab(buf,x-8,tab1w+5,TabFocused,col,c->title);
+	else if (tile_modes[ntilemode][0] == 'm')
+		draw_tab(buf,x-8,tab1w+5,TabDefault,col,c->title);
+	else 
+		draw_tab(buf,x-8,tab1w+5,TabTop,col,c->title);
 	if (count == 1) return;
 	x += tab1w+8;
 	/* draw stack titles and tabs */
 	for (c = c->next; c; c = c->next) {
 		if (!tile_check(c,mon)) continue;
-		setcolor( (c->flags & TTWM_URG_HINT ? Urgent :
-			(c == focused ? Title : Default)) );
-		XDrawString(dpy,buf,gc,x,fontheight,c->title,strlen(c->title));
-		XFillRectangle(dpy,buf,setcolor(Background),x+tabw-4,0,w-x-tabw,barheight);
-		draw_tab(buf,x-8,tabw+5,(c->flags & TTWM_TOPSTACK ? Occupied : Title));
+		col = (c->flags & TTWM_URG_HINT ? Urgent :(c == focused ? Title : Default));
+		if (c == focused)
+			draw_tab(buf,x-8,tabw+5,TabFocused,col,c->title);
+		else if (tile_modes[ntilemode][0] == 'm' || !(c->flags & TTWM_TOPSTACK))
+			draw_tab(buf,x-8,tabw+5,TabDefault,col,c->title);
+		else 
+			draw_tab(buf,x-8,tabw+5,TabTop,col,c->title);
 		x += tabw+8;
 	}
 }
