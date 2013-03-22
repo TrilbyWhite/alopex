@@ -658,7 +658,7 @@ int neighbors(Client *c) {
 	for (stack = clients; stack && stack != c; stack = stack->next)
 		if (tile_check(stack,nmon)) prevwin = stack;
 	for (nextwin = stack->next; nextwin; nextwin = nextwin->next)
-		if (tile_check(stack,nmon)) break;
+		if (tile_check(nextwin,nmon)) break;
 	for (t = clients; t && !tile_check(t,nmon);	t = t->next);
 	if (!t) return -1;
 	for (stack = t->next; stack; stack = stack->next)
