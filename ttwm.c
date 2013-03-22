@@ -401,16 +401,17 @@ void tile(const char *arg) {
 	for (i = 0; tile_modes[i]; i++) 
 		if (arg[0] == tile_modes[i][0]) ntilemode = i;
 Monitor *mon;
-int n, max = 0;
+int n;
+maxTiled = 0;
 for (i = 0, mon = mons; mon; i++, mon = mon->next)
 	mon->count = 0;
 for (c = clients; c; c = c->next)
 	if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING)) {
 		n = (GET_MON(c) < nscr ? GET_MON(c) : nscr - 1);
 		mons[n].count ++;
-		max = MAX(max,mons[n].count);
+		maxTiled = MAX(maxTiled,mons[n].count);
 	}
-if (max == 0) return;
+if (maxTiled == 0) return;
 for (i = 0, mon = mons; mon; i++, mon = mon->next)
 	if (mon->count > stackcount + 1) mon->count = stackcount + 1;
 	if (arg[0] == 'b') tile_mode(&tile_bstack);
