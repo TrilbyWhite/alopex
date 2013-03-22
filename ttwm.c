@@ -138,7 +138,7 @@ static Colormap cmap;
 static XColor color;
 static GC gc,bgc;
 static XFontStruct *fontstruct;
-static int fontheight, barheight, statuswidth = 0, min_len;
+static int fontheight, barheight, statuswidth = 0, min_len = 2048;
 static Pixmap sbar, iconbuf;
 static Bool running = True;
 static XButtonEvent mouseEvent;
@@ -390,8 +390,8 @@ void tile_conf(const char *arg) {
 	else if (arg[0] == 'o') stackcount = 1;
 	if (stackcount < 1) stackcount = 1;
 	else if (stackcount > maxTiled) stackcount = maxTiled;
-	if (tilebias > min_len/2 - 2*win_min) tilebias = min_len/2 - 2*win_min;
-	else if (tilebias < 2*win_min - min_len/2) tilebias = 2*win_min - min_len/2;
+	if (tilebias > min_len/2 - win_min) tilebias = min_len/2 - win_min;
+	else if (tilebias < win_min - min_len/2) tilebias = win_min - min_len/2;
 	tile(tile_modes[ntilemode]);
 }
 
@@ -413,8 +413,7 @@ for (c = clients; c; c = c->next)
 if (max == 0) return;
 for (i = 0, mon = mons; mon; i++, mon = mon->next)
 	if (mon->count > stackcount + 1) mon->count = stackcount + 1;
-
-	else if (arg[0] == 'b') tile_mode(&tile_bstack);
+	if (arg[0] == 'b') tile_mode(&tile_bstack);
 	else if (arg[0] == 'm') tile_mode(&tile_monocle);
 	else if (arg[0] == 'r') tile_mode(&tile_rstack);
 	else if (arg[0] == 'c') {
@@ -534,11 +533,10 @@ Monitor *m;
 		else { /* floating */
 			stack->flags &= ~TTWM_TOPSTACK;
 		}
-		if (stack->flags & TTWM_FULLSCREEN )
-{
-	m = &mons[GET_MON(stack)];
-	XMoveResizeWindow(dpy,stack->win,m->x-borderwidth,m->y-borderwidth,m->w,m->h);
-}
+		if (stack->flags & TTWM_FULLSCREEN ) {
+			m = &mons[GET_MON(stack)];
+			XMoveResizeWindow(dpy,stack->win,m->x-borderwidth,m->y-borderwidth,m->w,m->h);
+		}
 		else
 			XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
 		if (stack == focused) setcolor(Selected);
@@ -636,6 +634,8 @@ int get_monitors() {
 		m->y = xrr_crtc_info->y;
 		m->w = xrr_crtc_info->width;
 		m->h = xrr_crtc_info->height;
+		min_len = (min_len > m->w ? m->w : min_len);
+		min_len = (min_len > m->h ? m->h : min_len);
 		XRRFreeCrtcInfo (xrr_crtc_info);
 		XRRFreeOutputInfo(xrr_out_info);
 		m->bar = XCreateSimpleWindow(dpy,root,m->x,
