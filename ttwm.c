@@ -87,6 +87,7 @@ struct Monitor {
 	Window bar;
 };
 
+
 /*********************** [1] PROTOTYPES & VARIABLES ***********************/
 /* 1.0 EVENT HANDLER PROTOTYPES */
 static void buttonpress(XEvent *);
@@ -188,10 +189,9 @@ void buttonrelease(XEvent *ev) {
 
 void configurerequest(XEvent *ev) {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
-	Client *c;
-	if ( !(c=wintoclient(e->window)) ) return;
-	Monitor *m = &mons[GET_MON(c)];
-	if ( (e->width==m->w) && (e->height==m->h) ) {
+	Client *c; Monitor *m;
+	if ( (c=wintoclient(e->window)) && (m=&mons[GET_MON(c)]) &&
+			(e->width==m->w) && (e->height==m->h) ) {
 		c->flags |= TTWM_FULLSCREEN;
 		draw();
 		return;
@@ -303,8 +303,6 @@ void propertynotify(XEvent *ev) {
 	}
 	else if (e->atom == XA_WM_HINTS) {
 		get_hints(c);
-
-
 		draw();
 	}
 	// TODO Size hints for fullscreen?
