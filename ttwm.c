@@ -92,6 +92,7 @@ struct Monitor {
 /* 1.0 EVENT HANDLER PROTOTYPES */
 static void buttonpress(XEvent *);
 static void buttonrelease(XEvent *);
+static void configurenotify(XEvent *);
 static void configurerequest(XEvent *);
 static void enternotify(XEvent *);
 static void expose(XEvent *);
@@ -152,6 +153,7 @@ static int RREvent, RRError;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]		= buttonpress,
 	[ButtonRelease]		= buttonrelease,
+	[ConfigureNotify]	= configurenotify,
 	[ConfigureRequest]	= configurerequest,
 	[EnterNotify]		= enternotify,
 	[Expose]			= expose,
@@ -185,6 +187,13 @@ void buttonpress(XEvent *ev) {
 void buttonrelease(XEvent *ev) {
 	XUngrabPointer(dpy, CurrentTime);
 	mouseMode = MOff;
+}
+
+void configurenotify(XEvent *ev) {
+	XConfigureEvent *e = &ev->xconfigure;
+	if (e->window != root) return;
+	get_monitors();
+	tile(tile_modes[ntilemode]);
 }
 
 void configurerequest(XEvent *ev) {
@@ -440,8 +449,12 @@ XMoveWindow(dpy,mon->bar,(showbar ? 0 : -4*mons[0].w),(topbar ? 0 : mon->h-barhe
 
 void window(const char *arg) {
 	if (!focused) return;
-	if (arg[0] == '+') { INC_MON(focused); return; }
-	else if (arg[0] == '-') { DEC_MON(focused); return; }
+	if (arg[0] == '+' || arg[0] == '-') {
+		if (arg[0] == '+') INC_MON(focused);
+		else DEC_MON(focused);
+		tile(tile_modes[ntilemode]);
+		return;
+	}
 	if (focused->flags & TTWM_FLOATING) return;
 	neighbors(focused);
 	Client *t = NULL;
@@ -621,7 +634,7 @@ int get_monitors() {
 	/* loop through monitors */
 	for (i = 0; i < nscr; i++) {
 		xrr_out_info = XRRGetOutputInfo(dpy, xrr_sr, xrr_sr->outputs[i]);
-		if (!xrr_out_info->nmode) {
+		if (!xrr_out_info->crtc) {
 			nscr = i;
 			mons = (Monitor *) realloc(mons,nscr * sizeof(Monitor));
 			XRRFreeOutputInfo(xrr_out_info);
@@ -645,6 +658,9 @@ int get_monitors() {
 	}
 	XRRFreeScreenResources(xrr_sr);
 	for (i = 0; i < nscr - 1; i++) mons[i].next = &mons[i+1];
+#ifdef WALLPAPER
+	system(CMD(WALLPAPER));
+#endif
 	return 0;
 }
 
@@ -847,9 +863,10 @@ int main(int argc, const char **argv) {
 	XSetWindowAttributes wa;
 	wa.event_mask = ExposureMask |FocusChangeMask | SubstructureNotifyMask |
 			ButtonReleaseMask | PropertyChangeMask | SubstructureRedirectMask |
-			StructureNotifyMask | RRScreenChangeNotifyMask;
+			StructureNotifyMask;
 	XChangeWindowAttributes(dpy,root,CWEventMask,&wa);
 	XSelectInput(dpy,root,wa.event_mask);
+	//XRRSelectInput(dpy,root,RREvent & RRScreenChangeNotify);
 	/* key and mouse bindings */
 	unsigned int mods[] = {0, LockMask, Mod2Mask, LockMask|Mod2Mask};
 	KeyCode code;

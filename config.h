@@ -55,6 +55,12 @@ static int			stackcount			= 3;
 #define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc */
 #define CMD(app)	app "&"
 
+/* this is just an examples - be sure to edit for your setup.
+   Uncomment and define WALLPAPER suitably to have the wallpaper
+   updated upon changes to screens */
+#define XRANDR_CMD		"xrandr --output LVDS1 --auto --output VGA1 --auto --left-of LVDS1"
+//#define WALLPAPER		"feh --bg-scale ~/images/bg.jpg"
+
 /* key definitions */
 #define MOD1 Mod4Mask
 #define MOD2 Mod1Mask
@@ -78,6 +84,7 @@ static Key keys[] = {
 	{ MOD1|MOD2,		XK_f,		toggle,		"floating"		},
 	{ MOD1,				XK_x,		toggle,		"place bar"		},
 	{ MOD1,				XK_a,		toggle,		"visible bar"	},
+	{ 0,				0x1008ff59,	spawn,		XRANDR_CMD		},
 	/* tiling:
 		tile modes, increase/decrease master region size,
 		increment or decrement (+/-) the number of stack clients,
