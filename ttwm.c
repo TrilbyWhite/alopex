@@ -443,13 +443,13 @@ void toggle(const char *arg) {
 	else if (arg[0] == 'f' && focused) focused->flags ^= TTWM_FLOATING;
 Monitor *mon;
 for (mon = mons; mon; mon = mon->next)
-XMoveWindow(dpy,mon->bar,(showbar ? 0 : -4*mons[0].w),(topbar ? 0 : mon->h-barheight));
+XMoveWindow(dpy,mon->bar,(showbar ? mon->x : -4*mons[0].w),(topbar ? 0 : mon->h-barheight));
 	tile(tile_modes[ntilemode]);
 }
 
 void window(const char *arg) {
 	if (!focused) return;
-	if (arg[0] == '+' || arg[0] == '-') {
+	if (arg[0] == '+' || arg[0] == '-') { /* move to monitor */
 		if (arg[0] == '+') INC_MON(focused);
 		else DEC_MON(focused);
 		tile(tile_modes[ntilemode]);
@@ -588,7 +588,7 @@ Monitor *m;
 	if ( (x=x+20) < m->w/10 ) x = m->w/10; /* add padding */
 	/* titles / tabs */
 for (i = 0, m = mons; m; i++, m = m->next)
-draw_tabs(m->buf,x,m->w - x - statuswidth - 10,m->w/2+tilebias,i);
+draw_tabs(m->buf,(i ? 10 :x),m->w - (i ? 10 : x + statuswidth + 10),m->w/2+tilebias,i);
 	/* status */
 	if (statuswidth)
 XCopyArea(dpy,sbar,mons[0].buf,gc,0,0,statuswidth,barheight,mons[0].w-statuswidth,0);
