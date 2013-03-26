@@ -47,11 +47,6 @@
 #define TTWM_FOC_HINT	0x0200
 #define TTWM_ANY		0xFFFF
 
-#define GET_MON(x)		(x->flags & 0x000F)
-#define SET_MON(x,n)	{ x->flags &= ~0x000F; x->flags += n; }
-#define INC_MON(x)		(x->flags += ((x->flags & 0x000F) == nscr ? 0 : 1))
-#define DEC_MON(x)		(x->flags -= ((x->flags & 0x000F) == 0 ? 0 : 1))
-
 enum { Background, Default, Occupied, Selected, Urgent, Title,
 	TabFocused, TabFocusedBG, TabTop, TabTopBG, TabDefault, TabDefaultBG, LASTColor };
 enum { MOff, MMove, MResize };
@@ -69,15 +64,6 @@ typedef struct {
 	const char *arg;
 } Button;
 
-typedef struct Client Client;
-struct Client {
-	Window win, parent;
-	Client *next;
-	int x,y,w,h;
-	int tags, flags;
-	char *title;
-};
-
 typedef struct Monitor Monitor;
 struct Monitor {
 	Monitor *next;
@@ -85,6 +71,16 @@ struct Monitor {
 	int count;
 	Pixmap buf;
 	Window bar;
+};
+
+typedef struct Client Client;
+struct Client {
+	Window win, parent;
+	Client *next;
+	int x,y,w,h;
+	int tags, flags;
+	char *title;
+	Monitor *m;
 };
 
 
@@ -115,17 +111,16 @@ static void toggle(const char *);
 static void window(const char *);
 
 /* 1.2 TTWM INTERNAL PROTOTYPES */
-static inline Bool tile_check(Client *, int);
+static inline Bool tile_check(Client *, Monitor *);
 static int draw();
 static int get_hints(Client *);
 static int get_monitors();
 static int neighbors(Client *);
 static GC setcolor(int);
 static int swap(Client *, Client *);
-static int tile_mode(int (*)(int,int,int,int,int,int));
-static int tile_bstack(int,int,int,int,int,int);
-static int tile_monocle(int,int,int,int,int,int);
-static int tile_rstack(int,int,int,int,int,int);
+static int tile_bstack(Monitor *);
+static int tile_monocle(Monitor *);
+static int tile_rstack(Monitor *);
 static Client *wintoclient(Window);
 static int xerror(Display *,XErrorEvent *);
 
@@ -198,9 +193,9 @@ void configurenotify(XEvent *ev) {
 
 void configurerequest(XEvent *ev) {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
-	Client *c; Monitor *m;
-	if ( (c=wintoclient(e->window)) && (m=&mons[GET_MON(c)]) &&
-			(e->width==m->w) && (e->height==m->h) ) {
+	Client *c;
+	if ( (c=wintoclient(e->window)) && (e->width==c->m->w) &&
+			(e->height==c->m->h) ) {
 		c->flags |= TTWM_FULLSCREEN;
 		draw();
 		return;
@@ -238,22 +233,32 @@ void keypress(XEvent *ev) {
 	}
 }
 
+static inline Monitor *mouse_mon() {
+	Window w; int x,y,n; unsigned int u;
+	XQueryPointer(dpy,root,&w,&w,&x,&y,&n,&n,&u);
+	Monitor *m;
+	for (m = mons; m; m = m->next)
+		if (m->x < x && m->x + m->w > x &&
+			m->y < y && m->y + m->h > y)
+		return m;
+	return NULL;
+}
+
 void maprequest(XEvent *ev) {
-	int mon = (focused ? GET_MON(focused) : 0);
-	Monitor *m = &mons[mon];
 	Client *c, *p;
 	XWindowAttributes wa;
 	XMapRequestEvent *e = &ev->xmaprequest;
 	if (!XGetWindowAttributes(dpy,e->window,&wa) || wa.override_redirect) return;
 	if (wintoclient(e->window)) return;
 	if (!(c=calloc(1,sizeof(Client)))) exit(1);
+	c->m = mouse_mon();
 	c->win = e->window;
 	c->w = wa.width; c->h = wa.height;
 	if (c->x < 0) c->x = 0; if (c->y < 0) c->y = 0;
-c->x = (m->w - c->w)/2; c->y = (m->h - c->h)/2;
+c->x = (c->m->w - c->w)/2; c->y = (c->m->h - c->h)/2;
 	c->tags = (	(tagsSel & 0xFFFF) ? tagsSel : (tagsSel |= 1) ) & 0xFFFF;
 	if (c->tags == 0) c->tags = 1;
-if ( (c->w==m->w) && (c->h==m->h) ) c->flags |= TTWM_FULLSCREEN;
+if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= TTWM_FULLSCREEN;
 	if (XGetTransientForHint(dpy,c->win,&c->parent))
 		c->flags |= TTWM_TRANSIENT;
 	else
@@ -265,7 +270,7 @@ if ( (c->w==m->w) && (c->h==m->h) ) c->flags |= TTWM_FULLSCREEN;
 	get_hints(c);
 	XSelectInput(dpy,c->win,PropertyChangeMask | EnterWindowMask);
 	if (clients && attachmode == 1) {
-		for (p = clients; p && p->next && !tile_check(p,mon); p = p->next);
+		for (p = clients; p && p->next && !tile_check(p,c->m); p = p->next);
 		c->next = p->next; p->next = c;
 	}
 	else if (clients && attachmode == 2) {
@@ -403,30 +408,29 @@ void tile_conf(const char *arg) {
 }
 
 void tile(const char *arg) {
+	char mode = arg[0];
 	int i;
 	Client *c;
 	for (i = 0; tile_modes[i]; i++) 
-		if (arg[0] == tile_modes[i][0]) ntilemode = i;
-Monitor *mon;
-int n;
-maxTiled = 0;
-for (i = 0, mon = mons; mon; i++, mon = mon->next)
-	mon->count = 0;
-for (c = clients; c; c = c->next)
-	if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING)) {
-		n = (GET_MON(c) < nscr ? GET_MON(c) : nscr - 1);
-		mons[n].count ++;
-		maxTiled = MAX(maxTiled,mons[n].count);
-	}
-if (maxTiled == 0) return;
-for (i = 0, mon = mons; mon; i++, mon = mon->next)
-	if (mon->count > stackcount + 1) mon->count = stackcount + 1;
-	if (arg[0] == 'b') tile_mode(&tile_bstack);
-	else if (arg[0] == 'm') tile_mode(&tile_monocle);
-	else if (arg[0] == 'r') tile_mode(&tile_rstack);
-	else if (arg[0] == 'c') {
-		if (!tile_modes[++ntilemode]) ntilemode = 0;
-		tile(tile_modes[ntilemode]);
+		if (mode == tile_modes[i][0]) ntilemode = i;
+	if (mode == 'c')
+		mode = tile_modes[(tile_modes[++ntilemode] ? ntilemode : 0)][0];
+	Monitor *m;
+	maxTiled = 0;
+	for (i = 0, m = mons; m; i++, m = m->next) m->count = 0;
+	for (c = clients; c; c = c->next)
+		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING)) {
+			c->m->count++;
+			maxTiled = MAX(maxTiled,c->m->count);
+		}
+	if (maxTiled == 0) return;
+	for (i = 0, m = mons; m; i++, m = m->next) {
+		if (m->count == 0) continue;
+		if (m->count > stackcount + 1) m->count = stackcount + 1;
+		if (m->count == 1) tile_monocle(m);
+		else if (mode == 'b') tile_bstack(m);
+		else if (mode == 'm') tile_monocle(m);
+		else if (mode == 'r') tile_rstack(m);
 	}
 	if (focused) {
 		XRaiseWindow(dpy,focused->win);
@@ -441,17 +445,23 @@ void toggle(const char *arg) {
 	if (arg[0] == 'p') topbar = !topbar;
 	else if (arg[0] == 'v') showbar = !showbar;
 	else if (arg[0] == 'f' && focused) focused->flags ^= TTWM_FLOATING;
-Monitor *mon;
-for (mon = mons; mon; mon = mon->next)
-XMoveWindow(dpy,mon->bar,(showbar ? mon->x : -4*mons[0].w),(topbar ? 0 : mon->h-barheight));
+Monitor *m;
+for (m = mons; m; m = m->next)
+XMoveWindow(dpy,m->bar,(showbar ? m->x : -4*mons[0].w),(topbar ? 0 : m->h-barheight));
 	tile(tile_modes[ntilemode]);
 }
 
 void window(const char *arg) {
 	if (!focused) return;
+	Monitor *m,*mm = mons;
 	if (arg[0] == '+' || arg[0] == '-') { /* move to monitor */
-		if (arg[0] == '+') INC_MON(focused);
-		else DEC_MON(focused);
+		if (arg[0] == '+' && focused->m->next) {
+			focused->m = focused->m->next;
+		}
+		else {
+			for (m = mons; m != focused->m; m = m->next) mm = m;
+			focused->m = mm;
+		}
 		tile(tile_modes[ntilemode]);
 		return;
 	}
@@ -482,24 +492,23 @@ static inline void draw_tab(Pixmap buf, int x, int w, int fg, int fc, char *s) {
 	XDrawLines(dpy,buf,setcolor(fg),(topbar ? top_pts : bot_pts),6,CoordModePrevious);
 }
 
-inline Bool tile_check(Client *c, int mon) {
-	if (GET_MON(c) < nscr) return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && (GET_MON(c) == mon) );
-	else return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && (nscr == mon + 1) );
+inline Bool tile_check(Client *c, Monitor *m) {
+	return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && (c->m == m) );
 }
 
-static void draw_tabs(Pixmap buf, int x, int w, int mid, int mon) {
+static void draw_tabs(Pixmap buf, int x, int w, int mid, Monitor *m) {
 	Client *c;
 	int count, tab1w, tabw, col;
 	/* get count - skip if zero */
 	for (count = 0, c = clients; c; c = c->next)
-		if (tile_check(c,mon)) count++;
+		if (tile_check(c,m)) count++;
 	if (!count) return;
 	/* set tab widths */
 	if (tile_modes[ntilemode][0] == 'm' || count == 1) tab1w = tabw = w/count - 8;
 	else { tab1w = mid - x; tabw = (x + w - mid)/(count - 1) - 8; }
 	if (tabw < 20) tabw = 20;
 	/* draw master title and tab */
-	for (c = clients; !(tile_check(c,mon)); c = c->next);
+	for (c = clients; !(tile_check(c,m)); c = c->next);
 	col = (c->flags & TTWM_URG_HINT ? Urgent :(c == focused ? Title : Default));
 	if (c == focused)
 		draw_tab(buf,x-8,tab1w+5,TabFocused,col,c->title);
@@ -511,7 +520,7 @@ static void draw_tabs(Pixmap buf, int x, int w, int mid, int mon) {
 	x += tab1w+8;
 	/* draw stack titles and tabs */
 	for (c = c->next; c; c = c->next) {
-		if (!tile_check(c,mon)) continue;
+		if (!tile_check(c,m)) continue;
 		col = (c->flags & TTWM_URG_HINT ? Urgent :(c == focused ? Title : Default));
 		if (c == focused)
 			draw_tab(buf,x-8,tabw+5,TabFocused,col,c->title);
@@ -545,10 +554,9 @@ Monitor *m;
 		else { /* floating */
 			stack->flags &= ~TTWM_TOPSTACK;
 		}
-		if (stack->flags & TTWM_FULLSCREEN ) {
-			m = &mons[GET_MON(stack)];
-			XMoveResizeWindow(dpy,stack->win,m->x-borderwidth,m->y-borderwidth,m->w,m->h);
-		}
+		if (stack->flags & TTWM_FULLSCREEN)
+			XMoveResizeWindow(dpy,stack->win,stack->m->x-borderwidth,
+				stack->m->y-borderwidth,stack->m->w,stack->m->h);
 		else
 			XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
 		if (stack == focused) setcolor(Selected);
@@ -588,7 +596,7 @@ Monitor *m;
 	if ( (x=x+20) < m->w/10 ) x = m->w/10; /* add padding */
 	/* titles / tabs */
 for (i = 0, m = mons; m; i++, m = m->next)
-draw_tabs(m->buf,(i ? 10 :x),m->w - (i ? 10 : x + statuswidth + 10),m->w/2+tilebias,i);
+draw_tabs(m->buf,(i ? 10 :x),m->w - (i ? 10 : x + statuswidth + 10),m->w/2+tilebias,m);
 	/* status */
 	if (statuswidth)
 XCopyArea(dpy,sbar,mons[0].buf,gc,0,0,statuswidth,barheight,mons[0].w-statuswidth,0);
@@ -668,15 +676,14 @@ int neighbors(Client *c) {
 	prevwin = NULL; nextwin = NULL; altwin = NULL;
 	if (!(c->tags & tagsSel)) return -1;
 	Client *stack, *t;
-	int nmon = GET_MON(c);
 	for (stack = clients; stack && stack != c; stack = stack->next)
-		if (tile_check(stack,nmon)) prevwin = stack;
+		if (tile_check(stack,c->m)) prevwin = stack;
 	for (nextwin = stack->next; nextwin; nextwin = nextwin->next)
-		if (tile_check(nextwin,nmon)) break;
-	for (t = clients; t && !tile_check(t,nmon);	t = t->next);
+		if (tile_check(nextwin,c->m)) break;
+	for (t = clients; t && !tile_check(t,c->m); t = t->next);
 	if (!t) return -1;
 	for (stack = t->next; stack; stack = stack->next)
-		if (tile_check(stack,nmon) && (stack->flags & TTWM_TOPSTACK))
+		if (tile_check(stack,c->m) && (stack->flags & TTWM_TOPSTACK))
 			break;
 	if (!stack) return -1;
 	if (stack == focused) altwin = t;
@@ -739,6 +746,7 @@ int swap(Client *a, Client *b) {
 	t.tags = a->tags; a->tags = b->tags; b->tags = t.tags;
 	t.flags = a->flags; a->flags = b->flags; b->flags = t.flags;
 	t.win = a->win; a->win = b->win; b->win = t.win;
+	t.m = a->m; a->m = b->m; b->m = t.m;
 	if (a->flags & TTWM_TOPSTACK) {
 		a->flags &= ~TTWM_TOPSTACK; b->flags |= TTWM_TOPSTACK;
 	}
@@ -748,73 +756,66 @@ int swap(Client *a, Client *b) {
 	return 0;
 }
 
-int tile_mode(int (*func)(int,int,int,int,int,int)) {
-	int (*f)(int,int,int,int,int,int) = func;
-	int i;
-	Monitor *m;
-	for (i = 0, m = mons; m; i++, m = m->next) {
-		if (m->count == 0) continue;
-		else if (m->count == 1) f = &tile_monocle;
-		else f = func;
-		f(m->count, i, m->x + tilegap,
-			m->y + (showbar ? (topbar ? barheight : 0) : 0) + tilegap,
-			m->w-2*(tilegap+borderwidth),
-			m->h - (showbar ? barheight : 0) - 2*(tilegap+borderwidth));
-	}
-	return 0;
-}	
-
-int tile_bstack(int count,int flag,int x, int y, int w, int h) {
+int tile_bstack(Monitor *m) {
+	int adj = (showbar ? (topbar ? barheight : 0) : 0) + tilegap,
+		x = m->x + tilegap, y = m->y + adj,
+		w = m->w - 2*(tilegap + borderwidth), h = m->h - adj;
 	Client *c, *t = NULL;
-	for (c = clients; !tile_check(c,flag); c = c->next);
+	for (c = clients; !tile_check(c,m); c = c->next);
 	int wh = (h - tilegap)/2 - borderwidth;
-	int ww = w/(count - 1) - tilegap/2;
+	int ww = w/(m->count - 1) - tilegap/2;
 	c->x = x; c->y = y;	c->w = w; c->h = wh + tilebias;
 	int i = 0;
 	while ( (c=c->next) ) {
-		if (!tile_check(c,flag)) continue;
+		if (!tile_check(c,m)) continue;
 		c->x = x + i*(ww + tilegap + borderwidth);
 		c->y = y + wh + tilegap + 2*borderwidth + tilebias;
 		c->w = MAX(ww - borderwidth, win_min);
 		c->h = wh - tilebias;
-		if (!t && i == count - 2) t = c;
-		i = ( i == count - 2 ? count - 2 : i + 1);
+		if (!t && i == m->count - 2) t = c;
+		i = ( i == m->count - 2 ? m->count - 2 : i + 1);
 	}
 	while (t) {
-		if (tile_check(t,flag)) t->w = MAX(x + w - t->x,win_min);
+		if (tile_check(t,m)) t->w = MAX(x + w - t->x,win_min);
 		t = t->next;
 	}
 	return 0;
 }
 
-int tile_monocle(int count,int flag,int x, int y, int w, int h) {
+int tile_monocle(Monitor *m) {
+	int adj = (showbar ? (topbar ? barheight : 0) : 0) + tilegap,
+		x = m->x + tilegap, y = m->y + adj,
+		w = m->w - 2*(tilegap + borderwidth), h = m->h - adj;
 	Client *c = clients;
-	for (c = clients; !tile_check(c,flag); c = c->next);
+	for (c = clients; !tile_check(c,m); c = c->next);
 	if (c) do {
-		if (!tile_check(c,flag)) continue;
+		if (!tile_check(c,m)) continue;
 		c->x = x; c->y = y;	c->w = w; c->h = h;
 	} while ( (c=c->next) );
 	return 0;
 }
 
-int tile_rstack(int count,int flag,int x, int y, int w, int h) {
+int tile_rstack(Monitor *m) {
+	int adj = (showbar ? (topbar ? barheight : 0) : 0) + tilegap,
+		x = m->x + tilegap, y = m->y + adj,
+		w = m->w - 2*(tilegap + borderwidth), h = m->h - adj;
 	Client *c, *t = NULL;
-	for (c = clients; !tile_check(c,flag); c = c->next);
+	for (c = clients; !tile_check(c,m); c = c->next);
 	int ww = (w - tilegap)/2 - borderwidth;
-	int wh = h/(count - 1) - tilegap/2;
+	int wh = h/(m->count - 1) - tilegap/2;
 	c->x = x; c->y = y; c->w = ww + tilebias; c->h = h;
 	int i = 0;
 	while ( (c=c->next) ) {
-		if (!tile_check(c,flag)) continue;
+		if (!tile_check(c,m)) continue;
 		c->x = x + ww + tilegap + 2*borderwidth + tilebias;
 		c->y = y + i*(wh + tilegap + borderwidth);
 		c->w = ww - tilebias;
 		c->h = MAX(wh - borderwidth,win_min);
-		if (!t && i == count - 2) t = c;
-		i = ( i == count - 2 ? count - 2 : i + 1);
+		if (!t && i == m->count - 2) t = c;
+		i = ( i == m->count - 2 ? m->count - 2 : i + 1);
 	}
 	while (t) {
-		if (tile_check(t,flag)) t->h = MAX(y + h - t->y, win_min);
+		if (tile_check(t,m)) t->h = MAX(y + h - t->y, win_min);
 		t = t->next;
 	}
 	return 0;
