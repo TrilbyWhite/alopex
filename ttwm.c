@@ -514,7 +514,8 @@ static void draw_tabs(Pixmap buf, int x, int w, int mid, Monitor *m) {
 	draw_tab(buf,c,&x,tab1w);
 	if (count == 1) return;
 	/* draw stack titles and tabs */
-	for (c = c->next; c; c = c->next) draw_tab(buf,c,&x,tabw);
+	for (c = c->next; c; c = c->next)
+		if (tile_check(c,m)) draw_tab(buf,c,&x,tabw);
 }
 
 int draw() {
