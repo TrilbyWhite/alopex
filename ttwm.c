@@ -129,8 +129,8 @@ static int xerror(Display *,XErrorEvent *);
 #include "config.h"
 static Display *dpy;
 static Window root;
+static int scr;
 static Monitor *mons = NULL;
-static int scr, nscr = 1;
 static Colormap cmap;
 static XColor color;
 static GC gc,bgc;
@@ -480,28 +480,32 @@ void window(const char *arg) {
 
 /* 2.2 WM INTERNAL FUNCTIONS */
 
-static inline void draw_tab(Pixmap buf, int x, int w, int fg, int fc, char *s) {
-	XPoint top_pts[6] = { {x,barheight}, {0,2-barheight}, {2,-2},
-		{w-4,0}, {2,2}, {0,barheight-2} };
-	XPoint bot_pts[6] = { {x,0}, {0,barheight-3}, {2,2}, {w-4,0},
-			{2,-2}, {0,3-barheight} };
-	XFillPolygon(dpy,buf,setcolor(fg+1),(topbar ? top_pts : bot_pts),6,
-		Convex,CoordModePrevious);
-	XDrawString(dpy,buf,setcolor(fc),x+8,fontheight,s,strlen(s));
-	XFillRectangle(dpy,buf,bgc,x+w,0,w,barheight);
-	XDrawLines(dpy,buf,setcolor(fg),(topbar ? top_pts : bot_pts),6,CoordModePrevious);
+inline Bool tile_check(Client *c, Monitor *m) {
+	return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && (c->m==m));
 }
 
-inline Bool tile_check(Client *c, Monitor *m) {
-	return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && (c->m == m) );
+static inline void draw_tab(Pixmap buf, Client *c,int *x,int tw) {
+	int col1 = (c->flags & TTWM_URG_HINT ? Urgent : (c==focused?Title:Default));
+	int col2 = (c == focused ? TabFocused :  ((tile_modes[ntilemode][0] == 'm') ? 
+		TabDefault : TabTop));
+	XPoint top_pts[6] = { {*x,barheight}, {0,2-barheight}, {2,-2},
+		{tw,0}, {2,2}, {0,barheight-2} };
+	XPoint bot_pts[6] = { {*x,0}, {0,barheight-3}, {2,2}, {tw,0},
+			{2,-2}, {0,3-barheight} };
+	*x+=8;
+	XFillPolygon(dpy,buf,setcolor(col2+1),(topbar ? top_pts : bot_pts),6,
+		Convex,CoordModePrevious);
+	XDrawString(dpy,buf,setcolor(col1),*x,fontheight,c->title,strlen(c->title));
+	XFillRectangle(dpy,buf,bgc,*x+tw+5,0,tw+5,barheight);
+	XDrawLines(dpy,buf,setcolor(col2),(topbar ? top_pts : bot_pts),6,CoordModePrevious);
+	*x+=tw;
 }
 
 static void draw_tabs(Pixmap buf, int x, int w, int mid, Monitor *m) {
 	Client *c;
-	int count, tab1w, tabw, col;
+	int count, tab1w, tabw;
 	/* get count - skip if zero */
-	for (count = 0, c = clients; c; c = c->next)
-		if (tile_check(c,m)) count++;
+	for (count = 0, c = clients; c; c = c->next) if (tile_check(c,m)) count++;
 	if (!count) return;
 	/* set tab widths */
 	if (tile_modes[ntilemode][0] == 'm' || count == 1) tab1w = tabw = w/count - 8;
@@ -509,33 +513,16 @@ static void draw_tabs(Pixmap buf, int x, int w, int mid, Monitor *m) {
 	if (tabw < 20) tabw = 20;
 	/* draw master title and tab */
 	for (c = clients; !(tile_check(c,m)); c = c->next);
-	col = (c->flags & TTWM_URG_HINT ? Urgent :(c == focused ? Title : Default));
-	if (c == focused)
-		draw_tab(buf,x-8,tab1w+5,TabFocused,col,c->title);
-	else if (tile_modes[ntilemode][0] == 'm')
-		draw_tab(buf,x-8,tab1w+5,TabDefault,col,c->title);
-	else 
-		draw_tab(buf,x-8,tab1w+5,TabTop,col,c->title);
+	draw_tab(buf,c,&x,tab1w);
 	if (count == 1) return;
-	x += tab1w+8;
 	/* draw stack titles and tabs */
-	for (c = c->next; c; c = c->next) {
-		if (!tile_check(c,m)) continue;
-		col = (c->flags & TTWM_URG_HINT ? Urgent :(c == focused ? Title : Default));
-		if (c == focused)
-			draw_tab(buf,x-8,tabw+5,TabFocused,col,c->title);
-		else if (tile_modes[ntilemode][0] == 'm' || !(c->flags & TTWM_TOPSTACK))
-			draw_tab(buf,x-8,tabw+5,TabDefault,col,c->title);
-		else 
-			draw_tab(buf,x-8,tabw+5,TabTop,col,c->title);
-		x += tabw+8;
-	}
+	for (c = c->next; c; c = c->next) draw_tab(buf,c,&x,tabw);
 }
 
 int draw() {
 	tagsUrg &= ~tagsSel;
 	int tagsOcc = 0, nstack = -1;
-Monitor *m;
+	Monitor *m;
 	/* windows */
 	Client *stack = clients, *master = NULL, *slave = NULL;
 	XSetWindowAttributes wa;
@@ -595,13 +582,13 @@ Monitor *m;
 	}
 	if ( (x=x+20) < m->w/10 ) x = m->w/10; /* add padding */
 	/* titles / tabs */
-for (i = 0, m = mons; m; i++, m = m->next)
-draw_tabs(m->buf,(i ? 10 :x),m->w - (i ? 10 : x + statuswidth + 10),m->w/2+tilebias,m);
+	for (i = 0, m = mons; m; i++, m = m->next)
+		draw_tabs(m->buf,(i ? 10 :x),m->w - (i ? 10 : x + statuswidth + 10),m->w/2+tilebias,m);
 	/* status */
 	if (statuswidth)
-XCopyArea(dpy,sbar,mons[0].buf,gc,0,0,statuswidth,barheight,mons[0].w-statuswidth,0);
-for (m = mons; m; m = m->next)
-XCopyArea(dpy,m->buf,m->bar,gc,0,0,m->w,barheight,0,0);
+		XCopyArea(dpy,sbar,mons[0].buf,gc,0,0,statuswidth,barheight,mons[0].w-statuswidth,0);
+	for (m = mons; m; m = m->next)
+		XCopyArea(dpy,m->buf,m->bar,gc,0,0,m->w,barheight,0,0);
 	XFlush(dpy);
 	return 0;
 }
@@ -636,9 +623,8 @@ int get_monitors() {
 	XRRScreenResources *xrr_sr = XRRGetScreenResources(dpy,root);
 	XRROutputInfo *xrr_out_info;
 	XRRCrtcInfo *xrr_crtc_info;
-	nscr = xrr_sr->noutput;
+	int i, nscr = xrr_sr->noutput;
 	mons = (Monitor *) calloc(nscr,sizeof(Monitor));
-	int i;
 	/* loop through monitors */
 	for (i = 0; i < nscr; i++) {
 		xrr_out_info = XRRGetOutputInfo(dpy, xrr_sr, xrr_sr->outputs[i]);
@@ -698,10 +684,8 @@ GC setcolor(int col) {
 }
 
 int status(char *msg) {
-	char col[8] = "#000000";
-	char *t,*c = msg;
-	int l, arg;
-	int lastwidth = statuswidth;
+	char col[8] = "#000000", *t,*c = msg;
+	int l, arg, lastwidth = statuswidth;
 	statuswidth = 0;
 	XFillRectangle(dpy,sbar,setcolor(Background),0,0,mons[0].w/2,barheight);
 	setcolor(Default);
