@@ -128,23 +128,22 @@ static int xerror(Display *,XErrorEvent *);
 #include "icons.h"
 #include "config.h"
 static Display *dpy;
-static Window root;
 static int scr;
-static Monitor *mons = NULL;
+static Window root;
+static Pixmap sbar, iconbuf;
+static GC gc,bgc;
 static Colormap cmap;
 static XColor color;
-static GC gc,bgc;
 static XFontStruct *fontstruct;
-static int fontheight, barheight, statuswidth = 0, min_len = 2048;
-static Pixmap sbar, iconbuf;
-static Bool running = True;
 static XButtonEvent mouseEvent;
+static Monitor *mons = NULL;
+static Bool running = True;
+static int fontheight, barheight, statuswidth = 0, min_len = 2048;
 static int mouseMode = MOff, ntilemode = 0;
 static Client *clients = NULL, *focused = NULL, *nextwin, *prevwin, *altwin;
 static FILE *inpipe;
 static const char *noname_window = "(UNNAMED)";
-static int tagsUrg = 0, tagsSel = 1, maxTiled = 1;
-static int RREvent, RRError;
+static int tagsUrg = 0, tagsSel = 1, maxTiled = 1, RREvent, RRError;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]		= buttonpress,
 	[ButtonRelease]		= buttonrelease,
@@ -167,8 +166,7 @@ void buttonpress(XEvent *ev) {
 	XButtonEvent *e = &ev->xbutton;
 	if (!( (c=wintoclient(e->subwindow)) && e->state) ) return;
 	if (c && e->button < 4) { focused = c; XRaiseWindow(dpy,c->win); }
-	int i;
-	mouseEvent = *e;
+	int i; mouseEvent = *e;
 	for (i = 0; i < sizeof(buttons)/sizeof(buttons[0]); i++)
 		if ( (e->button == buttons[i].button) && buttons[i].func &&
 				buttons[i].mod == ((e->state&~Mod2Mask)&~LockMask) )
@@ -201,10 +199,9 @@ void configurerequest(XEvent *ev) {
 		return;
 	}
 	XWindowChanges wc;
-	wc.x = e->x; wc.y = e->y; 
-	wc.width = e->width; wc.height = e->height;
-	wc.border_width = borderwidth;
+	wc.x = e->x; wc.y = e->y; wc.width = e->width; wc.height = e->height;
 	wc.sibling = e->above; wc.stack_mode = e->detail;
+	wc.border_width = borderwidth;
 	XConfigureWindow(dpy,e->window,e->value_mask,&wc);
 	XFlush(dpy);
 }
@@ -212,10 +209,7 @@ void configurerequest(XEvent *ev) {
 void enternotify(XEvent *ev) {
 	if (!focusfollowmouse) return;
 	Client *c = wintoclient(ev->xcrossing.window);
-	if (c) {
-		focused = c;
-		draw();
-	}
+	if (c) { focused = c; draw(); }
 }
 
 void expose(XEvent *ev) {
@@ -233,6 +227,7 @@ void keypress(XEvent *ev) {
 	}
 }
 
+//TODO: where does this code belong?
 static inline Monitor *mouse_mon() {
 	Window w; int x,y,n; unsigned int u;
 	XQueryPointer(dpy,root,&w,&w,&x,&y,&n,&n,&u);
@@ -245,20 +240,21 @@ static inline Monitor *mouse_mon() {
 }
 
 void maprequest(XEvent *ev) {
+//TODO: cleanup needed
 	Client *c, *p;
 	XWindowAttributes wa;
 	XMapRequestEvent *e = &ev->xmaprequest;
-	if (!XGetWindowAttributes(dpy,e->window,&wa) || wa.override_redirect) return;
+	if (!XGetWindowAttributes(dpy,e->window,&wa)||wa.override_redirect) return;
 	if (wintoclient(e->window)) return;
 	if (!(c=calloc(1,sizeof(Client)))) exit(1);
 	c->m = mouse_mon();
 	c->win = e->window;
 	c->w = wa.width; c->h = wa.height;
 	if (c->x < 0) c->x = 0; if (c->y < 0) c->y = 0;
-c->x = (c->m->w - c->w)/2; c->y = (c->m->h - c->h)/2;
+	c->x = (c->m->w - c->w)/2; c->y = (c->m->h - c->h)/2;
 	c->tags = (	(tagsSel & 0xFFFF) ? tagsSel : (tagsSel |= 1) ) & 0xFFFF;
 	if (c->tags == 0) c->tags = 1;
-if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= TTWM_FULLSCREEN;
+	if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= TTWM_FULLSCREEN;
 	if (XGetTransientForHint(dpy,c->win,&c->parent))
 		c->flags |= TTWM_TRANSIENT;
 	else
@@ -445,9 +441,10 @@ void toggle(const char *arg) {
 	if (arg[0] == 'p') topbar = !topbar;
 	else if (arg[0] == 'v') showbar = !showbar;
 	else if (arg[0] == 'f' && focused) focused->flags ^= TTWM_FLOATING;
-Monitor *m;
-for (m = mons; m; m = m->next)
-XMoveWindow(dpy,m->bar,(showbar ? m->x : -4*mons[0].w),(topbar ? 0 : m->h-barheight));
+	Monitor *m;
+	for (m = mons; m; m = m->next)
+		XMoveWindow(dpy,m->bar,(showbar ? m->x : -4*mons[0].w),
+				(topbar ? 0 : m->h-barheight));
 	tile(tile_modes[ntilemode]);
 }
 
@@ -481,12 +478,12 @@ void window(const char *arg) {
 /* 2.2 WM INTERNAL FUNCTIONS */
 
 inline Bool tile_check(Client *c, Monitor *m) {
-	return (c && (c->tags & tagsSel) && !(c->flags & TTWM_FLOATING) && (c->m==m));
+	return (c&&(c->tags&tagsSel) && !(c->flags&TTWM_FLOATING) && (c->m==m));
 }
 
 static inline void draw_tab(Pixmap buf, Client *c,int *x,int tw) {
 	int col1 = (c->flags & TTWM_URG_HINT ? Urgent : (c==focused?Title:Default));
-	int col2 = (c == focused ? TabFocused :  ((tile_modes[ntilemode][0] == 'm') ? 
+	int col2 = (c==focused ? TabFocused :  ((tile_modes[ntilemode][0] == 'm') ? 
 		TabDefault : TabTop));
 	XPoint top_pts[6] = { {*x,barheight}, {0,2-barheight}, {2,-2},
 		{tw,0}, {2,2}, {0,barheight-2} };
@@ -497,7 +494,8 @@ static inline void draw_tab(Pixmap buf, Client *c,int *x,int tw) {
 		Convex,CoordModePrevious);
 	XDrawString(dpy,buf,setcolor(col1),*x,fontheight,c->title,strlen(c->title));
 	XFillRectangle(dpy,buf,bgc,*x+tw+5,0,tw+5,barheight);
-	XDrawLines(dpy,buf,setcolor(col2),(topbar ? top_pts : bot_pts),6,CoordModePrevious);
+	XDrawLines(dpy,buf,setcolor(col2),(topbar?top_pts:bot_pts),
+			6,CoordModePrevious);
 	*x+=tw;
 }
 
@@ -508,8 +506,8 @@ static void draw_tabs(Pixmap buf, int x, int w, int mid, Monitor *m) {
 	for (count = 0, c = clients; c; c = c->next) if (tile_check(c,m)) count++;
 	if (!count) return;
 	/* set tab widths */
-	if (tile_modes[ntilemode][0] == 'm' || count == 1) tab1w = tabw = w/count - 8;
-	else { tab1w = mid - x; tabw = (x + w - mid)/(count - 1) - 8; }
+	if (tile_modes[ntilemode][0]=='m' || count==1) tab1w = tabw = w/count - 8;
+	else { tab1w = mid-x; tabw = (x+w-mid)/(count-1) - 8; }
 	if (tabw < 20) tabw = 20;
 	/* draw master title and tab */
 	for (c = clients; !(tile_check(c,m)); c = c->next);
@@ -543,9 +541,10 @@ int draw() {
 		}
 		if (stack->flags & TTWM_FULLSCREEN)
 			XMoveResizeWindow(dpy,stack->win,stack->m->x-borderwidth,
-				stack->m->y-borderwidth,stack->m->w,stack->m->h);
+					stack->m->y-borderwidth,stack->m->w,stack->m->h);
 		else
-			XMoveResizeWindow(dpy,stack->win,stack->x,stack->y,stack->w,stack->h);
+			XMoveResizeWindow(dpy,stack->win,stack->x,
+					stack->y,stack->w,stack->h);
 		if (stack == focused) setcolor(Selected);
 		else setcolor(Occupied);
 		wa.border_pixel = color.pixel;
@@ -575,7 +574,8 @@ int draw() {
 			tag_name[i],strlen(tag_name[i]));
 		w = XTextWidth(fontstruct,tag_name[i],strlen(tag_name[i]));
 		if (tagsSel & (1<<i))
-			XFillRectangle(dpy,m->buf,gc,x-2,fontheight+1,w+4,barheight-fontheight);
+			XFillRectangle(dpy,m->buf,gc,x-2,fontheight+1,w+4,
+					barheight-fontheight);
 		if (tagsAlt & (1<<i))
 			XFillRectangle(dpy,m->buf,gc,x-2,0,w+4,2);
 		x+=w+10;
@@ -583,10 +583,12 @@ int draw() {
 	if ( (x=x+20) < m->w/10 ) x = m->w/10; /* add padding */
 	/* titles / tabs */
 	for (i = 0, m = mons; m; i++, m = m->next)
-		draw_tabs(m->buf,(i ? 10 :x),m->w - (i ? 10 : x + statuswidth + 10),m->w/2+tilebias,m);
+		draw_tabs(m->buf,(i?10:x),m->w-(i?10:x+statuswidth+10),
+				m->w/2+tilebias,m);
 	/* status */
 	if (statuswidth)
-		XCopyArea(dpy,sbar,mons[0].buf,gc,0,0,statuswidth,barheight,mons[0].w-statuswidth,0);
+		XCopyArea(dpy,sbar,mons[0].buf,gc,0,0,statuswidth,
+				barheight,mons[0].w-statuswidth,0);
 	for (m = mons; m; m = m->next)
 		XCopyArea(dpy,m->buf,m->bar,gc,0,0,m->w,barheight,0,0);
 	XFlush(dpy);
@@ -700,8 +702,8 @@ int status(char *msg) {
 				XFillRectangle(dpy,iconbuf,bgc,0,0,iconwidth,iconheight);
 				XDrawPoints(dpy,iconbuf,gc,icons[arg].pts,icons[arg].n,
 					CoordModeOrigin);
-				XCopyArea(dpy,iconbuf,sbar,gc,0,0,iconwidth,iconheight,statuswidth,
-						(barheight-iconheight)/2);
+				XCopyArea(dpy,iconbuf,sbar,gc,0,0,iconwidth,iconheight,
+						statuswidth,(barheight-iconheight)/2);
 				statuswidth+=iconwidth+1;
 			}
 			c = strchr(c,'}')+1;
@@ -716,7 +718,8 @@ int status(char *msg) {
 		}
 	}
 	if (statuswidth == lastwidth) {
-		XCopyArea(dpy,sbar,mons[0].bar,gc,0,0,statuswidth,barheight,mons[0].w-statuswidth,0);
+		XCopyArea(dpy,sbar,mons[0].bar,gc,0,0,statuswidth,barheight,
+				mons[0].w-statuswidth,0);
 		XFlush(dpy);
 	}
 	else draw();
@@ -843,7 +846,8 @@ int main(int argc, const char **argv) {
 	/* monitors, bar windows, and buffers */
 	get_monitors();
 	sbar = XCreatePixmap(dpy,root,mons[0].w/2,barheight,DefaultDepth(dpy,scr));
-	iconbuf = XCreatePixmap(dpy,root,iconwidth,iconheight,DefaultDepth(dpy,scr));
+	iconbuf = XCreatePixmap(dpy,root,iconwidth,iconheight,
+			DefaultDepth(dpy,scr));
 	/* configure root window */
 	XSetWindowAttributes wa;
 	wa.event_mask = ExposureMask |FocusChangeMask | SubstructureNotifyMask |
@@ -858,9 +862,10 @@ int main(int argc, const char **argv) {
 	XUngrabKey(dpy,AnyKey,AnyModifier,root);
 	int i,j;
 	for (i = 0; i < sizeof(keys)/sizeof(keys[0]); i++)
-		if ( (code=XKeysymToKeycode(dpy,keys[i].keysym)) ) for (j = 0; j < 4; j++)
-			XGrabKey(dpy,code,keys[i].mod|mods[j],root,True,
-					GrabModeAsync,GrabModeAsync);
+		if ( (code=XKeysymToKeycode(dpy,keys[i].keysym)) )
+			for (j = 0; j < 4; j++)
+				XGrabKey(dpy,code,keys[i].mod|mods[j],root,True,
+						GrabModeAsync,GrabModeAsync);
 	for (i = 0; i < sizeof(buttons)/sizeof(buttons[0]); i++)
 		if (buttons[i].mod) for (j = 0; j < 4; j++)
 			XGrabButton(dpy,buttons[i].button,buttons[i].mod|mods[j],root,True,
