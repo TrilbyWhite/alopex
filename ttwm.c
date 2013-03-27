@@ -653,14 +653,14 @@ int get_monitors() {
 		XChangeWindowAttributes(dpy,m->bar,CWOverrideRedirect|CWEventMask,&wa);
 		XMapWindow(dpy,m->bar);
 	}
-	for (c = clients; c; c = c->next) {
-		for (m = mons; m; m = m->next)
-			if (m->x < c->x && m->x + m->w > c->x &&
-					m->y < c->y && m->y + m->h > c->y)
-				c->m = m;
-	}
 	XRRFreeScreenResources(xrr_sr);
 	for (i = 0; i < nscr - 1; i++) mons[i].next = &mons[i+1];
+	for (c = clients; c; c = c->next) {
+		for (m = mons; m; m = m->next)
+			if (m->x <= c->x && m->x + m->w > c->x &&
+					m->y <= c->y && m->y + m->h > c->y)
+				c->m = m;
+	}
 #ifdef WALLPAPER
 	system(CMD(WALLPAPER));
 #endif
