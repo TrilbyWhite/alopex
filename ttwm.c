@@ -613,7 +613,7 @@ int get_hints(Client *c) {
 
 int get_monitors() {
 	/* free current monitors */
-	Monitor *m;
+	Monitor *m; Client *c;
 	for (m = mons; m; m = m->next) {
 		XFreePixmap(dpy,m->buf);
 		XDestroyWindow(dpy,m->bar);
@@ -652,6 +652,12 @@ int get_monitors() {
 		m->buf = XCreatePixmap(dpy,root,m->w,barheight,DefaultDepth(dpy,scr));
 		XChangeWindowAttributes(dpy,m->bar,CWOverrideRedirect|CWEventMask,&wa);
 		XMapWindow(dpy,m->bar);
+	}
+	for (c = clients; c; c = c->next) {
+		for (m = mons; m; m = m->next)
+			if (m->x < c->x && m->x + m->w > c->x &&
+					m->y < c->y && m->y + m->h > c->y)
+				c->m = m;
 	}
 	XRRFreeScreenResources(xrr_sr);
 	for (i = 0; i < nscr - 1; i++) mons[i].next = &mons[i+1];
