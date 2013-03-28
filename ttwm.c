@@ -410,7 +410,7 @@ void tile(const char *arg) {
 	for (i = 0; tile_modes[i]; i++) 
 		if (mode == tile_modes[i][0]) ntilemode = i;
 	if (mode == 'c')
-		mode = tile_modes[(tile_modes[++ntilemode] ? ntilemode : 0)][0];
+		mode = tile_modes[(ntilemode=(tile_modes[++ntilemode]?ntilemode:0))][0];
 	Monitor *m;
 	maxTiled = 0;
 	for (i = 0, m = mons; m; i++, m = m->next) m->count = 0;
