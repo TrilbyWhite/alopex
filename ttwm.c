@@ -681,10 +681,11 @@ int neighbors(Client *c) {
 	Client *stack;
 	for (stack = c->m->master; stack && stack != c; stack = stack->next)
 		if (tile_check(stack,c->m)) prevwin = stack;
+	if (!stack) return -1;
 	for (nextwin = stack->next; nextwin; nextwin = nextwin->next)
 		if (tile_check(nextwin,c->m)) break;
-	if (c->m->master == focused) altwin = c->m->stack;
-	else altwin = c->m->master;
+	if (c->m && c->m->master == focused) altwin = c->m->stack;
+	else if (c->m) altwin = c->m->master;
 	return 0;
 }
 
