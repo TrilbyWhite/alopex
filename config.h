@@ -123,6 +123,7 @@ static Key keys[] = {
 	{ MOD1|MOD4,		XK_Tab,		window,		"s alt"			},
 	{ MOD1|MOD4,		XK_equal,	window,		"+"				},
 	{ MOD1|MOD4,		XK_minus,	window,		"-"				},
+	{ MOD1|MOD4,		XK_space,	toggle,		"monitor focus"	},
 };
 
 static Button buttons[] = {

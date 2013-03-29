@@ -65,14 +65,6 @@ typedef struct {
 } Button;
 
 typedef struct Monitor Monitor;
-struct Monitor {
-	Monitor *next;
-	int x, y, w, h;
-	int count;
-	Pixmap buf;
-	Window bar;
-};
-
 typedef struct Client Client;
 struct Client {
 	Window win, parent;
@@ -81,6 +73,14 @@ struct Client {
 	int tags, flags;
 	char *title;
 	Monitor *m;
+};
+struct Monitor {
+	Monitor *next;
+	Client *master, *stack;
+	int x, y, w, h;
+	int count;
+	Pixmap buf;
+	Window bar;
 };
 
 
@@ -236,7 +236,7 @@ static inline Monitor *mouse_mon() {
 		if (m->x < x && m->x + m->w > x &&
 			m->y < y && m->y + m->h > y)
 		return m;
-	return NULL;
+	return mons;
 }
 
 void maprequest(XEvent *ev) {
@@ -410,7 +410,7 @@ void tile(const char *arg) {
 	for (i = 0; tile_modes[i]; i++) 
 		if (mode == tile_modes[i][0]) ntilemode = i;
 	if (mode == 'c')
-		mode = tile_modes[(tile_modes[++ntilemode] ? ntilemode : 0)][0];
+		mode = tile_modes[(ntilemode=(tile_modes[++ntilemode]?ntilemode:0))][0];
 	Monitor *m;
 	maxTiled = 0;
 	for (i = 0, m = mons; m; i++, m = m->next) m->count = 0;
@@ -438,10 +438,21 @@ void tile(const char *arg) {
 }
 
 void toggle(const char *arg) {
+	Monitor *m;
 	if (arg[0] == 'p') topbar = !topbar;
 	else if (arg[0] == 'v') showbar = !showbar;
 	else if (arg[0] == 'f' && focused) focused->flags ^= TTWM_FLOATING;
-	Monitor *m;
+
+else if (arg[0] == 'm' ) {
+	Client *c;
+	if (focused) m = focused->m;
+	else m = mouse_mon();
+	if (m && m->next) m = m->next;
+	else m = mons;
+	for (c = clients; c && !tile_check(c,m); c = c->next);
+	if (c) focused=c;
+}	
+
 	for (m = mons; m; m = m->next)
 		XMoveWindow(dpy,m->bar,(showbar ? m->x : -4*mons[0].w),
 				(topbar ? 0 : m->h-barheight));
@@ -507,7 +518,7 @@ static void draw_tabs(Pixmap buf, int x, int w, int mid, Monitor *m) {
 	if (!count) return;
 	/* set tab widths */
 	if (tile_modes[ntilemode][0]=='m' || count==1) tab1w = tabw = w/count - 8;
-	else { tab1w = mid-x; tabw = (x+w-mid)/(count-1) - 8; }
+	else { tab1w = mid-x; tabw = (x+w-mid - 2)/(count-1) - 8; }
 	if (tabw < 20) tabw = 20;
 	/* draw master title and tab */
 	for (c = clients; !(tile_check(c,m)); c = c->next);
@@ -519,11 +530,10 @@ static void draw_tabs(Pixmap buf, int x, int w, int mid, Monitor *m) {
 }
 
 int draw() {
-	tagsUrg &= ~tagsSel;
-	int tagsOcc = 0, nstack = -1;
-	Monitor *m;
+	tagsUrg &= ~tagsSel; int tagsOcc = 0; Monitor *m;
 	/* windows */
-	Client *stack = clients, *master = NULL, *slave = NULL;
+	Client *stack = clients;
+	for (m = mons; m; m = m->next) m->master = m->stack = NULL;
 	XSetWindowAttributes wa;
 	while (stack) {
 		tagsOcc |= stack->tags;
@@ -532,14 +542,11 @@ int draw() {
 			stack = stack->next; continue;
 		}
 		else if (!(stack->flags & TTWM_FLOATING)) { /* tiled */
-			if (!master) master = stack;
-			else if (!slave) slave = stack;
-			else if (stack->flags & TTWM_TOPSTACK) slave = stack;
-			stack->flags &= ~TTWM_TOPSTACK; nstack++;
+			if (!stack->m->master) stack->m->master = stack;
+			else if (!stack->m->stack) stack->m->stack = stack;
+			else if (stack->flags & TTWM_TOPSTACK) stack->m->stack = stack;
 		}
-		else { /* floating */
-			stack->flags &= ~TTWM_TOPSTACK;
-		}
+		stack->flags &= ~TTWM_TOPSTACK;
 		if (stack->flags & TTWM_FULLSCREEN)
 			XMoveResizeWindow(dpy,stack->win,stack->m->x-borderwidth,
 					stack->m->y-borderwidth,stack->m->w,stack->m->h);
@@ -553,18 +560,19 @@ int draw() {
 		stack = stack->next;
 	}
 	if (focused) {
-		if ( (focused != master) && !(focused->flags & TTWM_FLOATING) )
-			slave = focused;
+		if ( (focused != focused->m->master) && !(focused->flags & TTWM_FLOATING) )
+			focused->m->stack = focused;
 		if ( !(focused->flags & TTWM_FOC_HINT) )
 			XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 		focused->flags &= ~TTWM_URG_HINT;
 	}
-	if (slave) slave->flags |= TTWM_TOPSTACK;
-	/* clear buffers */
-	for (m = mons; m; m = m->next)
-	XFillRectangle(dpy,m->buf,setcolor(Background),0,0,m->w,barheight);
+	for (m = mons; m ; m = m->next) {
+		if (m->stack) m->stack->flags |= TTWM_TOPSTACK;
+		/* clear buffers */
+		XFillRectangle(dpy,m->buf,setcolor(Background),0,0,m->w,barheight);
+	}
 	/* tags */
-	m = &mons[0]; /* tags are drawn on main screen only */
+	m = mons; /* tags are drawn on main screen only */
 	int i,x=10,w=0,col, tagsAlt = (tagsSel>>16);
 	for (i = 0; tag_name[i]; i++) {
 		if (!((tagsOcc|tagsSel) & (1<<i))) continue;
@@ -584,7 +592,7 @@ int draw() {
 	if ( (x=x+20) < m->w/10 ) x = m->w/10; /* add padding */
 	/* titles / tabs */
 	for (i = 0, m = mons; m; i++, m = m->next)
-		draw_tabs(m->buf,(i?10:x),m->w-(i?10:x+statuswidth+10),
+		draw_tabs(m->buf,(i?2:x),m->w-(i?8:x+statuswidth+10),
 				m->w/2+tilebias,m);
 	/* status */
 	if (statuswidth)
@@ -670,19 +678,13 @@ int get_monitors() {
 int neighbors(Client *c) {
 	prevwin = NULL; nextwin = NULL; altwin = NULL;
 	if (!(c->tags & tagsSel)) return -1;
-	Client *stack, *t;
-	for (stack = clients; stack && stack != c; stack = stack->next)
+	Client *stack;
+	for (stack = c->m->master; stack && stack != c; stack = stack->next)
 		if (tile_check(stack,c->m)) prevwin = stack;
 	for (nextwin = stack->next; nextwin; nextwin = nextwin->next)
 		if (tile_check(nextwin,c->m)) break;
-	for (t = clients; t && !tile_check(t,c->m); t = t->next);
-	if (!t) return -1;
-	for (stack = t->next; stack; stack = stack->next)
-		if (tile_check(stack,c->m) && (stack->flags & TTWM_TOPSTACK))
-			break;
-	if (!stack) return -1;
-	if (stack == focused) altwin = t;
-	else altwin = stack;
+	if (c->m->master == focused) altwin = c->m->stack;
+	else altwin = c->m->master;
 	return 0;
 }
 
