@@ -7,6 +7,9 @@ static const char *tag_name[] =
 static const char *tile_modes[] =
 	{"rstack", "bstack","monocle", NULL};
 
+/* uncomment the following line to use status bar icons */
+//#include "icons.h"
+
 static const char colors[LASTColor][9] = {
 	[Background]	= "#101010",
 	[Default]		= "#686868",
@@ -55,7 +58,7 @@ static int			stackcount			= 3;
 #define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc */
 #define CMD(app)	app "&"
 
-/* this is just an examples - be sure to edit for your setup.
+/* these are just examples - be sure to edit for your setup.
    Uncomment and define WALLPAPER suitably to have the wallpaper
    updated upon changes to screens */
 #define XRANDR_CMD		"xrandr --output LVDS1 --auto --output VGA1 --auto --left-of LVDS1"
