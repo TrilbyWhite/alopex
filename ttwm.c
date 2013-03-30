@@ -753,10 +753,13 @@ int swap(Client *a, Client *b) {
 	return 0;
 }
 
+#define TILE_CALC	\
+	int x = m->x + tilegap, w = m->w - 2*(tilegap + borderwidth),\
+		y = m->y + (showbar ? (topbar ? barheight : 0) : 0) + tilegap,\
+		h = m->h - (showbar ? barheight : 0) - tilegap;
+
 int tile_bstack(Monitor *m) {
-	int adj = (showbar ? (topbar ? barheight : 0) : 0) + tilegap,
-		x = m->x + tilegap, y = m->y + adj,
-		w = m->w - 2*(tilegap + borderwidth), h = m->h - adj;
+	TILE_CALC
 	Client *c, *t = NULL;
 	for (c = clients; !tile_check(c,m); c = c->next);
 	int wh = (h - tilegap)/2 - borderwidth;
@@ -780,9 +783,7 @@ int tile_bstack(Monitor *m) {
 }
 
 int tile_monocle(Monitor *m) {
-	int adj = (showbar ? (topbar ? barheight : 0) : 0) + tilegap,
-		x = m->x + tilegap, y = m->y + adj,
-		w = m->w - 2*(tilegap + borderwidth), h = m->h - adj;
+	TILE_CALC
 	Client *c = clients;
 	for (c = clients; !tile_check(c,m); c = c->next);
 	if (c) do {
@@ -793,9 +794,7 @@ int tile_monocle(Monitor *m) {
 }
 
 int tile_rstack(Monitor *m) {
-	int adj = (showbar ? (topbar ? barheight : 0) : 0) + tilegap,
-		x = m->x + tilegap, y = m->y + adj,
-		w = m->w - 2*(tilegap + borderwidth), h = m->h - adj;
+	TILE_CALC
 	Client *c, *t = NULL;
 	for (c = clients; !tile_check(c,m); c = c->next);
 	int ww = (w - tilegap)/2 - borderwidth;
