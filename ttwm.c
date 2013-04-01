@@ -504,7 +504,7 @@ static inline void draw_tab(Pixmap buf, Client *c,int *x,int tw) {
 	XFillPolygon(dpy,buf,setcolor(col2+1),(topbar ? top_pts : bot_pts),6,
 		Convex,CoordModePrevious);
 	XDrawString(dpy,buf,setcolor(col1),*x,fontheight,c->title,strlen(c->title));
-	XFillRectangle(dpy,buf,bgc,*x+tw+5,0,tw+5,barheight);
+	XFillRectangle(dpy,buf,bgc,*x+tw-5,0,tw,barheight);
 	XDrawLines(dpy,buf,setcolor(col2),(topbar?top_pts:bot_pts),
 			6,CoordModePrevious);
 	*x+=tw;
