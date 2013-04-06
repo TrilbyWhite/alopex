@@ -64,6 +64,11 @@ typedef struct {
 	const char *arg;
 } Button;
 
+typedef struct {
+	const char *name, *class;
+	int tags, flags;
+} Rule;
+
 typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
@@ -112,6 +117,7 @@ static void window(const char *);
 
 /* 1.2 TTWM INTERNAL PROTOTYPES */
 static inline Bool tile_check(Client *, Monitor *);
+static int apply_rules(Client *);
 static int draw();
 static int get_hints(Client *);
 static int get_monitors();
@@ -253,6 +259,9 @@ void maprequest(XEvent *ev) {
 	if (c->x < 0) c->x = 0; if (c->y < 0) c->y = 0;
 	c->x = (c->m->w - c->w)/2; c->y = (c->m->h - c->h)/2;
 	c->tags = (	(tagsSel & 0xFFFF) ? tagsSel : (tagsSel |= 1) ) & 0xFFFF;
+	apply_rules(c);
+	if (c->tags == 0)
+		c->tags = (	(tagsSel & 0xFFFF) ? tagsSel : (tagsSel |= 1) ) & 0xFFFF;
 	if (c->tags == 0) c->tags = 1;
 	if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= TTWM_FULLSCREEN;
 	if (XGetTransientForHint(dpy,c->win,&c->parent))
@@ -309,12 +318,11 @@ void propertynotify(XEvent *ev) {
 			if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
 			else c->title = strdup(noname_window);
 		}
-		draw();
 	}
-	else if (e->atom == XA_WM_HINTS) {
-		get_hints(c);
-		draw();
-	}
+	else if (e->atom == XA_WM_HINTS) get_hints(c);
+	else if (e->atom == XA_WM_CLASS) apply_rules(c);
+	else return;
+	draw();
 	// TODO Size hints for fullscreen?
 }
 
@@ -490,6 +498,20 @@ void window(const char *arg) {
 
 inline Bool tile_check(Client *c, Monitor *m) {
 	return (c&&(c->tags&tagsSel) && !(c->flags&TTWM_FLOATING) && (c->m==m));
+}
+
+static int apply_rules(Client *c) {
+	XClassHint *hint = XAllocClassHint();
+	XGetClassHint(dpy, c->win, hint);
+	int i;
+	for (i = 0; i < sizeof(rules)/sizeof(rules[0]); i++)
+		if (!strncmp(rules[i].name,hint->res_name,strlen(rules[i].name)) ||
+				!strncmp(rules[i].class,hint->res_class,strlen(rules[i].class))) {
+			if (rules[i].tags >= 0) c->tags = rules[i].tags;
+			c->flags |= rules[i].flags;
+		}
+	XFree(hint->res_name); XFree(hint->res_class); XFree(hint);
+	return 0;
 }
 
 static inline void draw_tab(Pixmap buf, Client *c,int *x,int tw) {

@@ -131,14 +131,19 @@ static Key keys[] = {
 
 static Button buttons[] = {
 	/* modifier			button		function 	arg */
-	{MOD1,				1,			mouse,		"move"		},
-	{MOD1,				2,			toggle,		"floating"	},
-	{MOD1,				3,			mouse,		"resize"	},
-	{MOD1,				4,			window,		"s prev"	},
-	{MOD1,				5,			window,		"s next"	},
-	{MOD1,				6,			window,		"f prev"	},
-	{MOD1,				7,			window,		"f next"	},
+	{ MOD1,				1,			mouse,		"move"		},
+	{ MOD1,				2,			toggle,		"floating"	},
+	{ MOD1,				3,			mouse,		"resize"	},
+	{ MOD1,				4,			window,		"s prev"	},
+	{ MOD1,				5,			window,		"s next"	},
+	{ MOD1,				6,			window,		"f prev"	},
+	{ MOD1,				7,			window,		"f next"	},
 };
 
+static Rule rules[] = {
+	/* name				class		tags		flags */
+	/* tags/flags=0 means no change to default */
+	{ "float",			"float",	0,			TTWM_FLOATING },
+};
 
 // vim: ts=4
