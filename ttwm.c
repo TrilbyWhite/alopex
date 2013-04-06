@@ -505,8 +505,11 @@ static int apply_rules(Client *c) {
 	XGetClassHint(dpy, c->win, hint);
 	int i;
 	for (i = 0; i < sizeof(rules)/sizeof(rules[0]); i++)
-		if (!strncmp(rules[i].name,hint->res_name,strlen(rules[i].name)) ||
-				!strncmp(rules[i].class,hint->res_class,strlen(rules[i].class))) {
+		if ( (rules[i].name && !strncmp(rules[i].name,
+				hint->res_name,strlen(rules[i].name)))		||
+				(rules[i].class && !strncmp(rules[i].class,
+				hint->res_class,strlen(rules[i].class)))
+				) {
 			if (rules[i].tags >= 0) c->tags = rules[i].tags;
 			c->flags |= rules[i].flags;
 		}

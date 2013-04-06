@@ -143,7 +143,8 @@ static Button buttons[] = {
 static Rule rules[] = {
 	/* name				class		tags		flags */
 	/* tags/flags=0 means no change to default */
-	{ "float",			"float",	0,			TTWM_FLOATING },
+	{ NULL,				"float",	0,			TTWM_FLOATING },
+	{ "float",			NULL,		0,			TTWM_FLOATING },
 };
 
 // vim: ts=4
