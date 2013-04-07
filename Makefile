@@ -1,10 +1,9 @@
-
 CFLAGS	+=	-Os -Wall -Wno-unused-parameter -Wno-unused-result
 PROG	=	ttwm
 LIBS	=	-lX11 -lXrandr
 PREFIX	?=	/usr
 MANDIR	?=	/usr/share/man
-VER		=	2.0a
+VER		=	2.0b
 HEADERS	=	config.h icons.h
 
 ${PROG}: ${PROG}.c ${HEADERS}
