@@ -19,7 +19,22 @@ pkgver() {
 
 prepare() {
 	cd $_gitname
-	if [[ -f ~/.ttwm_conf.h ]]; then
+	## Check XDG_CONFIG_HOME
+	if [[ -f $XDG_CONFIG_HOME/ttwm/config.h ]]; then
+		msg "Using user config from $XDG_CONFIG_HOME/config.h"
+		msg "  Be sure to check for changes to default config.h"
+		cp $XDG_CONFIG_HOME/ttwm/config.h ./config.h
+	else
+		msg "Using default config"
+	fi
+	if [[ -f $XDG_CONFIG_HOME/ttwm/icons.h ]]; then
+		msg "Using user icons from $XDG_CONFIG_HOME/icons.h"
+		cp $XDG_CONFIG_HOME/ttwm/icons.h ./icons.h
+	else
+		msg "Using default icons"
+	fi
+	## Check ~
+	if [[ -f /.ttwm_conf.h ]]; then
 		msg "Using user config from ~/.ttwm_conf.h"
 		msg "  Be sure to check for changes to default config.h"
 		cp ~/.ttwm_conf.h ./config.h
