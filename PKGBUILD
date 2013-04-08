@@ -2,9 +2,7 @@
 pkgname=ttwm-git
 _gitname="ttwm"
 pkgver=0.181.1a63f31
-pkgver() { cd "${srcdir}/$_gitname"; echo 0."$(git rev-list --count HEAD)"."$(git describe --always)" }
 pkgrel=1
-epoch=1
 pkgdesc="Tiny Tiler/Tabbed Tiler Window Manager"
 url="http://github.com/TrilbyWhite/ttwm.git"
 arch=('any')
@@ -13,6 +11,11 @@ depends=('libx11' 'libxrandr')
 makedepends=('git')
 source=("$_gitname::git://github.com/TrilbyWhite/ttwm.git")
 sha256sums=('SKIP')
+
+pkgver() {
+	cd "${srcdir}/$_gitname";
+	echo 1.$(git rev-list --count HEAD).$(git describe --always )
+}
 
 prepare() {
 	for config in {"$HOME"/.ttwm_,"$XDG_CONFIG_HOME"/ttwm/}{config,icons}.h; do
