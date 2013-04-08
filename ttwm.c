@@ -503,16 +503,17 @@ inline Bool tile_check(Client *c, Monitor *m) {
 static int apply_rules(Client *c) {
 	XClassHint *hint = XAllocClassHint();
 	XGetClassHint(dpy, c->win, hint);
-	int i;
-	for (i = 0; i < sizeof(rules)/sizeof(rules[0]); i++)
-		if ( (rules[i].name && !strncmp(rules[i].name,
-				hint->res_name,strlen(rules[i].name)))		||
-				(rules[i].class && !strncmp(rules[i].class,
-				hint->res_class,strlen(rules[i].class)))
-				) {
+	int i, m;
+	const char *rc, *rn, *hc = hint->res_class, *hn = hint->res_name;
+	for (i = 0; i < sizeof(rules)/sizeof(rules[0]); i++) {
+		rc = rules[i].class; rn = rules[i].name; m = 0;
+		if (rc && hc && !strncmp(rc,hc,strlen(rc))) m++;
+		if (rn && hn && !strncmp(rn,hn,strlen(rn))) m++;
+		if ( (m && !(rc && rn)) || (m == 2) ) {
 			if (rules[i].tags >= 0) c->tags = rules[i].tags;
 			c->flags |= rules[i].flags;
 		}
+	}
 	XFree(hint->res_name); XFree(hint->res_class); XFree(hint);
 	return 0;
 }
@@ -604,6 +605,9 @@ int draw() {
 		col = (tagsUrg & (1<<i) ? Urgent :
 			(tagsOcc & (1<<i) ? Occupied : Default));
 		if (focused && focused->tags & (1<<i)) col = Selected;
+//#ifdef TAG_ICONS
+// ...
+//#endif /* TAG_ICONS */
 		XDrawString(dpy,m->buf,setcolor(col),x,fontheight,
 			tag_name[i],strlen(tag_name[i]));
 		w = XTextWidth(fontstruct,tag_name[i],strlen(tag_name[i]));
