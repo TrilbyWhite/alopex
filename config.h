@@ -32,6 +32,10 @@ static const int	borderwidth			= 0;
    tilegap > 0 will make the status bar have tabs that should look better
    with a gap between the bar and the windows */
 static const int	tilegap				= 0;
+/* set a minimum space on the left of the bar that the master tab will
+   stay to the right of.  Setting to zero will keep the master tab flush
+   against the last displayed tag name */
+static const int	tagspace			= 80;
 /* set to the maximum input you might feed to the stdin reader */
 static const int	max_status_line		= 256;
 /* smallest allowable width or height for a window

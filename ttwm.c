@@ -618,7 +618,7 @@ int draw() {
 			XFillRectangle(dpy,m->buf,gc,x-2,0,w+4,2);
 		x+=w+10;
 	}
-	if ( (x=x+20) < m->w/10 ) x = m->w/10; /* add padding */
+	if ( (x=x+10) < tagspace ) x = tagspace; /* add padding */
 	/* titles / tabs */
 	for (i = 0, m = mons; m; i++, m = m->next)
 		draw_tabs(m->buf,(i?2:x),m->w-(i?8:x+statuswidth+10),
