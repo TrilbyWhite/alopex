@@ -39,13 +39,17 @@
 
 #define MAX(a,b)	((a)>(b) ? (a) : (b))
 
+#define TTWM_ANY		0xFFFF
 #define TTWM_FLOATING	0x0010
 #define TTWM_TRANSIENT	0x0030
 #define TTWM_FULLSCREEN	0x0040
 #define TTWM_TOPSTACK	0x0080
-#define TTWM_URG_HINT	0x0100
-#define TTWM_FOC_HINT	0x0200
-#define TTWM_ANY		0xFFFF
+#define TTWM_URG_HINT	0x0400
+#define TTWM_FOC_HINT	0x0300
+#define FOCUS_NOINPUT	0x0000
+#define FOCUS_PASSIVE	0x0100
+#define FOCUS_LOCAL		0x0200
+#define FOCUS_GLOBAL	0x0300
 
 enum { Background, Default, Occupied, Selected, Urgent, Title,
 	TabFocused, TabFocusedBG, TabTop, TabTopBG, TabDefault, TabDefaultBG, LASTColor };
@@ -588,9 +592,7 @@ int draw() {
 	if (focused) {
 		if ( (focused != focused->m->master) && !(focused->flags & TTWM_FLOATING) )
 			focused->m->stack = focused;
-		if ( !(focused->flags & TTWM_FOC_HINT) )
-			XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
-
+		if ( (focused->flags & TTWM_FOC_HINT) > 1) {
 XEvent ev;
 ev.type = ClientMessage; ev.xclient.window = focused->win;
 ev.xclient.message_type = XInternAtom(dpy,"WM_PROTOCOLS",True);
@@ -598,7 +600,10 @@ ev.xclient.format = 32;
 ev.xclient.data.l[0] = XInternAtom(dpy,"WM_TAKE_FOCUS",True);
 ev.xclient.data.l[1] = CurrentTime;
 XSendEvent(dpy,focused->win,False,NoEventMask,&ev);
-
+		}
+		else {
+			XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
+		}
 		focused->flags &= ~TTWM_URG_HINT;
 	}
 	for (m = mons; m ; m = m->next) {
@@ -650,7 +655,7 @@ int get_hints(Client *c) {
 			c->flags |= TTWM_URG_HINT;
 		}
 		else if (hint->flags & InputHint && !hint->input) {
-			c->flags |= TTWM_FOC_HINT;
+			c->flags |= TTWM_FOC_HINT; /* TODO: termine Local vs Global */
 		}
 		XFree(hint);
 	}
