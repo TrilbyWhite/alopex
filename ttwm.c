@@ -622,7 +622,7 @@ int draw() {
 	/* titles / tabs */
 	for (i = 0, m = mons; m; i++, m = m->next)
 		draw_tabs(m->buf,(i?2:x),m->w-(i?8:x+statuswidth+10),
-				m->w/2+tilebias,m);
+				m->w/2+tilebias-6,m);
 	/* status */
 	if (statuswidth)
 		XCopyArea(dpy,sbar,mons[0].buf,gc,0,0,statuswidth,
@@ -785,7 +785,7 @@ int swap(Client *a, Client *b) {
 #define TILE_CALC	\
 	int x = m->x + tilegap, w = m->w - 2*(tilegap + borderwidth),\
 		y = m->y + (showbar ? (topbar ? barheight : 0) : 0) + tilegap,\
-		h = m->h - (showbar ? barheight : 0) - tilegap;
+		h = m->h - (showbar ? barheight : 0) - 2*(tilegap + borderwidth);
 
 int tile_bstack(Monitor *m) {
 	TILE_CALC
