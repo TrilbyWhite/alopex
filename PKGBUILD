@@ -18,10 +18,10 @@ pkgver() {
 }
 
 prepare() {
-	for config in {"$HOME"/.ttwm_,"$XDG_CONFIG_HOME"/ttwm/}{config,icons}.h; do
+	for config in {"$HOME"/.ttwm_,"$XDG_CONFIG_HOME"/ttwm/}{conf,config,icons}.h; do
 		if [[ -f "$config" ]]; then
 			case "$config" in
-				*config.h)
+				*conf.h | *config.h)
 					cp "$config" "${srcdir}"/ttwm/config.h
 					echo "Using configuration from $config"
 					echo "Check the default config.h for changes"
@@ -33,9 +33,6 @@ prepare() {
 			esac
 		fi
 	done
-	if [[ ! -f "$HOME"/.ttwm_config.h && ! -f "$HOME"/.ttwm_icons.h && ! -f "$XDG_CONFIG_HOME"/ttwm/config.h && ! -f "$XDG_CONFIG_HOME"/ttwm/icons.h ]]; then
-		echo "No customizations found; Using defaults"
-	fi
 }
 
 build() {
