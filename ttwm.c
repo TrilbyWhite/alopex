@@ -590,6 +590,15 @@ int draw() {
 			focused->m->stack = focused;
 		if ( !(focused->flags & TTWM_FOC_HINT) )
 			XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
+
+XEvent ev;
+ev.type = ClientMessage; ev.xclient.window = focused->win;
+ev.xclient.message_type = XInternAtom(dpy,"WM_PROTOCOLS",True);
+ev.xclient.format = 32;
+ev.xclient.data.l[0] = XInternAtom(dpy,"WM_TAKE_FOCUS",True);
+ev.xclient.data.l[1] = CurrentTime;
+XSendEvent(dpy,focused->win,False,NoEventMask,&ev);
+
 		focused->flags &= ~TTWM_URG_HINT;
 	}
 	for (m = mons; m ; m = m->next) {
