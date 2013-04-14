@@ -171,7 +171,10 @@ void buttonpress(XEvent *ev) {
 	Client *c;
 	XButtonEvent *e = &ev->xbutton;
 	if (!( (c=wintoclient(e->subwindow)) && e->state) ) return;
-	if (c && e->button < 4) { focused = c; XRaiseWindow(dpy,c->win); }
+	if (c && e->button < 4) {
+		focused = c;
+		if (c->flags & TTWM_FLOATING) XRaiseWindow(dpy,c->win);
+	}
 	int i; mouseEvent = *e;
 	for (i = 0; i < sizeof(buttons)/sizeof(buttons[0]); i++)
 		if ( (e->button == buttons[i].button) && buttons[i].func &&
