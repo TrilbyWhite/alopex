@@ -117,9 +117,12 @@ static Key keys[] = {
 	/* window focus/movement:
 		f=focus previous, next, or alternate  window in tag(s)
 		s=swap window with previous, next, or alternate  window
+		capital "Next" or "Prev" include floating windows
 		+/- adjust a windows monitor number */
 	{ MOD1,				XK_k,		window,		"f prev"		},
 	{ MOD1,				XK_j,		window,		"f next"		},
+	{ MOD1|MOD4,		XK_k,		window,		"f Prev"		},
+	{ MOD1|MOD4,		XK_j,		window,		"f Next"		},
 	{ MOD1,				XK_Left,	window,		"f prev"		},
 	{ MOD1,				XK_Right,	window,		"f next"		},
 	{ MOD1,				XK_h,		window,		"s prev"		},

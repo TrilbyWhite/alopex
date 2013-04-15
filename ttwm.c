@@ -125,7 +125,7 @@ static int apply_rules(Client *);
 static int draw();
 static int get_hints(Client *);
 static int get_monitors();
-static int neighbors(Client *);
+static int neighbors(Client *,Bool);
 static GC setcolor(int);
 static int swap(Client *, Client *);
 static int tile_bstack(Monitor *);
@@ -337,7 +337,7 @@ void unmapnotify(XEvent *ev) {
 	Client *c,*t;
 	if (!(c=wintoclient(ev->xunmap.window)) || ev->xunmap.send_event) return;
 	if (c == focused) {
-		neighbors(c);
+		neighbors(c,False);
 		if (nextwin) focused = nextwin;
 		else focused = prevwin;
 	}
@@ -488,11 +488,18 @@ void window(const char *arg) {
 		tile(tile_modes[ntilemode]);
 		return;
 	}
-	if (focused->flags & TTWM_FLOATING) return;
-	neighbors(focused);
+	if (arg[2] < 95) {
+		neighbors(focused,True);
+	}
+	else {
+		if (focused->flags & TTWM_FLOATING) return;
+		neighbors(focused,False);
+	}
 	Client *t = NULL;
 	if (arg[2] == 'p') t = prevwin;
+	else if (arg[2] == 'P') t = prevwin;
 	else if (arg[2] == 'n') t = nextwin;
+	else if (arg[2] == 'N') t = nextwin;
 	else if (arg[2] == 'a') t = altwin;
 	if (!t) return;
 	if (arg[0] == 'f') focused = t;
@@ -721,17 +728,26 @@ int get_monitors() {
 	return 0;
 }
 
-int neighbors(Client *c) {
+int neighbors(Client *c, Bool floaters) {
 	prevwin = NULL; nextwin = NULL; altwin = NULL;
 	if (!(c->tags & tagsSel)) return -1;
 	Client *stack;
-	for (stack = c->m->master; stack && stack != c; stack = stack->next)
-		if (tile_check(stack,c->m)) prevwin = stack;
-	if (!stack) return -1;
-	for (nextwin = stack->next; nextwin; nextwin = nextwin->next)
-		if (tile_check(nextwin,c->m)) break;
-	if (c->m && c->m->master == focused) altwin = c->m->stack;
-	else if (c->m) altwin = c->m->master;
+	if (floaters) {
+		for (stack = clients; stack && stack != c; stack = stack->next)
+			if (stack&&(stack->tags&tagsSel) && (stack->m==c->m)) prevwin = stack; 
+		if (!stack) return -1;
+		for (nextwin = stack->next; nextwin; nextwin = nextwin->next)
+			if (stack&&(stack->tags&tagsSel) && (stack->m==c->m)) break;
+	}
+	else {
+		for (stack = c->m->master; stack && stack != c; stack = stack->next)
+			if (tile_check(stack,c->m)) prevwin = stack;
+		if (!stack) return -1;
+		for (nextwin = stack->next; nextwin; nextwin = nextwin->next)
+			if (tile_check(nextwin,c->m)) break;
+		if (c->m && c->m->master == focused) altwin = c->m->stack;
+		else if (c->m) altwin = c->m->master;
+	}
 	return 0;
 }
 
