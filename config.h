@@ -19,6 +19,7 @@ static const Tagcon tagcons[] = {
 	{ NULL,		22,			"three" },
 	{ "4:",		NO_ICON,	"four" },
 	{ "5:",		NO_ICON,	"five" },
+	{ "6:",		NO_ICON,	"six" },
 };
 
 static const char colors[LASTColor][9] = {
@@ -126,6 +127,7 @@ static Key keys[] = {
 		TagKey(			XK_3,					"3"		)
 		TagKey(			XK_4,					"4"		)
 		TagKey(			XK_5,					"5"		)
+		TagKey(			XK_6,					"6"		)
 	/* window focus/movement:
 		f=focus previous, next, or alternate  window in tag(s)
 		s=swap window with previous, next, or alternate  window
