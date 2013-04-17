@@ -540,7 +540,7 @@ static int apply_rules(Client *c) {
 
 static inline void draw_tab(Pixmap buf, Client *c,int *x,int tw) {
 	int col1 = (c->flags & TTWM_URG_HINT ? Urgent : (c==focused?Title:Default));
-	int col2 = (c==focused ? TabFocused :  ( ((c->flags & TTWM_TOPSTACK) && 
+	int col2 = (c==focused ? TabFocused :  ( ((c==c->m->master || c==c->m->stack) && 
 			!(tile_modes[ntilemode][0] == 'm')) ? TabTop : TabDefault ));
 	XPoint top_pts[6] = { {*x,barheight}, {0,2-barheight}, {2,-2},
 		{tw,0}, {2,2}, {0,barheight-2} };
