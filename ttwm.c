@@ -76,8 +76,9 @@ typedef struct {
 
 #define NO_ICON		-1
 typedef struct {
+	const char *pre;
 	int icon;
-	const char *name;
+	const char *post;
 } Tagcon;
 
 typedef struct Monitor Monitor;
@@ -638,18 +639,24 @@ XSendEvent(dpy,focused->win,False,NoEventMask,&ev);
 		if (focused && focused->tags & (1<<i)) col = Selected;
 
 w = 0;
+if (tagcons[i].pre) {
+	XDrawString(dpy,m->buf,setcolor(col),x,fontheight,
+			tagcons[i].pre,strlen(tagcons[i].pre));
+	w += XTextWidth(fontstruct,tagcons[i].pre,strlen(tagcons[i].pre));
+}
 if (tagcons[i].icon > -1) {
 XFillRectangle(dpy,iconbuf,bgc,0,0,iconwidth,iconheight);
 XDrawPoints(dpy,iconbuf,setcolor(col),icons[tagcons[i].icon].pts,icons[tagcons[i].icon].n,
 		CoordModeOrigin);
 XCopyArea(dpy,iconbuf,m->buf,gc,0,0,iconwidth,iconheight,
-		x,(barheight-iconheight)/2);
-w=iconwidth+2;
+		x+w,(barheight-iconheight)/2);
+w += iconwidth;
 }
-if (tagcons[i].name) {
+if (tagcons[i].post) {
+		w += 2;
 		XDrawString(dpy,m->buf,setcolor(col),x+w,fontheight,
-			tagcons[i].name,strlen(tagcons[i].name));
-		w += XTextWidth(fontstruct,tagcons[i].name,strlen(tagcons[i].name));
+			tagcons[i].post,strlen(tagcons[i].post));
+		w += XTextWidth(fontstruct,tagcons[i].post,strlen(tagcons[i].post));
 }
 setcolor(TagLine);
 if (tagsSel & (1<<i)) {
@@ -664,7 +671,7 @@ if (tagsAlt & (1<<i)) {
 }
 x+=w+5;
 	}
-	if ( (x=x+10) < tagspace ) x = tagspace; /* add padding */
+	if ( (x+=5) < tagspace ) x = tagspace; /* add padding */
 	/* titles / tabs */
 	for (i = 0, m = mons; m; i++, m = m->next)
 		draw_tabs(m->buf,(i?2:x),m->w-(i?8:x+statuswidth+10),

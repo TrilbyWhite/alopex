@@ -6,19 +6,19 @@ static const char *tile_modes[] =
 	{"rstack", "bstack","monocle", NULL};
 
 /* each tagcon entry defines and icon and/or a name for each tag.
-   You may use either or both entry for any tags including using
-   names for some, icons for others, and both for yet others.
-   Technically you can have usable tags without either indicator
-   which may not have practical purpose other than "hiding"
-   client windows.  For no icon use NO_ICON or a -1, for no name
-   use NULL. */
+   You may use any combination of entries for any tags including
+   using names (pre/post) for some, icons for others, and both for
+   yet others.  Technically you can have usable tags without any
+   indicator text or icon, which may not have practical purpose
+   other than "hiding" client windows.  For no icon use NO_ICON
+   or a -1, for no text use NULL. */
 static const Tagcon tagcons[] = {
-	/* icon					name */
-	{ 20,				"one" },
-	{ 21,				"two" },
-	{ 22,				"three" },
-	{ NO_ICON,			"four" },
-	{ NO_ICON,			"five" },
+	/* pre		icon		post */
+	{ NULL,		20,			"one"},
+	{ NULL,		21,			"two" },
+	{ NULL,		22,			"three" },
+	{ "4:",		NO_ICON,	"four" },
+	{ "5:",		NO_ICON,	"five" },
 };
 
 static const char colors[LASTColor][9] = {
@@ -47,7 +47,7 @@ static const int	tilegap				= 0;
 /* set a minimum space on the left of the bar that the master tab will
    stay to the right of.  Setting to zero will keep the master tab flush
    against the last displayed tag name */
-static const int	tagspace			= 80;
+static const int	tagspace			= 0;
 /* set to the maximum input you might feed to the stdin reader */
 static const int	max_status_line		= 256;
 /* smallest allowable width or height for a window
