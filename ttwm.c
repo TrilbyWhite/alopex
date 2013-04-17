@@ -52,7 +52,8 @@
 #define FOCUS_GLOBAL	0x0300
 
 enum { Background, Default, Occupied, Selected, Urgent, Title,
-	TabFocused, TabFocusedBG, TabTop, TabTopBG, TabDefault, TabDefaultBG, LASTColor };
+	TabFocused, TabFocusedBG, TabTop, TabTopBG, TabDefault, TabDefaultBG,
+	TagLine, LASTColor };
 enum { MOff, MMove, MResize };
 
 typedef struct {
@@ -649,13 +650,19 @@ if (tagcons[i].name) {
 		XDrawString(dpy,m->buf,setcolor(col),x+w,fontheight,
 			tagcons[i].name,strlen(tagcons[i].name));
 		w += XTextWidth(fontstruct,tagcons[i].name,strlen(tagcons[i].name));
-		if (tagsSel & (1<<i))
-			XFillRectangle(dpy,m->buf,gc,x-2,fontheight+1,w+4,
-					barheight-fontheight);
-		if (tagsAlt & (1<<i))
-			XFillRectangle(dpy,m->buf,gc,x-2,0,w+4,2);
 }
-x+=w+8;
+setcolor(TagLine);
+if (tagsSel & (1<<i)) {
+	XDrawLine(dpy,m->buf,gc,x-2,barheight-1,x+w+2,barheight-1);
+	XDrawPoint(dpy,m->buf,gc,x-2,barheight-2);
+	XDrawPoint(dpy,m->buf,gc,x+w+2,barheight-2);
+}
+if (tagsAlt & (1<<i)) {
+	XDrawLine(dpy,m->buf,gc,x-2,0,x+w+2,0);
+	XDrawPoint(dpy,m->buf,gc,x-2,1);
+	XDrawPoint(dpy,m->buf,gc,x+w+2,1);
+}
+x+=w+5;
 	}
 	if ( (x=x+10) < tagspace ) x = tagspace; /* add padding */
 	/* titles / tabs */

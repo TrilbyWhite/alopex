@@ -14,18 +14,18 @@ static const char *tile_modes[] =
    use NULL. */
 static const Tagcon tagcons[] = {
 	/* icon					name */
-	{ NO_ICON,				"one" },
-	{ NO_ICON,				"two" },
-	{ NO_ICON,				"three" },
-	{ NO_ICON,				"four" },
-	{ NO_ICON,				"five" },
+	{ 20,				"one" },
+	{ 21,				"two" },
+	{ 22,				"three" },
+	{ NO_ICON,			"four" },
+	{ NO_ICON,			"five" },
 };
 
 static const char colors[LASTColor][9] = {
 	[Background]	= "#101010",
 	[Default]		= "#686868",
-	[Occupied]		= "#68B0E0",
-	[Selected]		= "#FFAA48",
+	[Occupied]		= "#68A0DD",
+	[Selected]		= "#BBE0EE",
 	[Urgent]		= "#FF8880",
 	[Title]			= "#DDDDDD",
 	[TabFocused]	= "#68B0E0",
@@ -34,6 +34,7 @@ static const char colors[LASTColor][9] = {
 	[TabTopBG]		= "#242424",
 	[TabDefault]	= "#686868",
 	[TabDefaultBG]	= "#181818",
+	[TagLine]		= "#2436AA",
 };
 
 static const char	ttwm_cursor			= XC_left_ptr;
