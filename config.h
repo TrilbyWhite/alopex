@@ -2,13 +2,22 @@
 
 static const char font[] =
 	"-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*";
-static const char *tag_name[] =
-	{"one", "two", "three", "four", "five", NULL};
 static const char *tile_modes[] =
 	{"rstack", "bstack","monocle", NULL};
 
-/* uncomment the following line to use status bar icons */
-//#include "icons.h"
+/* each tagcon entry defines and icon and/or a name for each tag.
+   You may use either or both entry for any tags including using
+   names for some, icons for others, and both for yet others.
+   Technically you can have usable tags without either indicator
+   which may not have practical purpose other than "hiding"
+   client windows.  For no icon use NO_ICON or a -1, for no name
+   use NULL. */
+static const Tagcon tagcons[] = {
+	/* icon					name */
+	{ NO_ICON,				"one" },
+	{ NO_ICON,				"two" },
+	{ NO_ICON,				"three" },
+};
 
 static const char colors[LASTColor][9] = {
 	[Background]	= "#101010",

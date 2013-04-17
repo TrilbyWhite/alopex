@@ -73,6 +73,12 @@ typedef struct {
 	int tags, flags;
 } Rule;
 
+#define NO_ICON		-1
+typedef struct {
+	int icon;
+	const char *name;
+} Tagcon;
+
 typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
@@ -534,8 +540,8 @@ static int apply_rules(Client *c) {
 
 static inline void draw_tab(Pixmap buf, Client *c,int *x,int tw) {
 	int col1 = (c->flags & TTWM_URG_HINT ? Urgent : (c==focused?Title:Default));
-	int col2 = (c==focused ? TabFocused :  ((tile_modes[ntilemode][0] == 'm') ? 
-		TabDefault : TabTop));
+	int col2 = (c==focused ? TabFocused :  ( ((c->flags & TTWM_TOPSTACK) && 
+			!(tile_modes[ntilemode][0] == 'm')) ? TabTop : TabDefault ));
 	XPoint top_pts[6] = { {*x,barheight}, {0,2-barheight}, {2,-2},
 		{tw,0}, {2,2}, {0,barheight-2} };
 	XPoint bot_pts[6] = { {*x,0}, {0,barheight-3}, {2,2}, {tw,0},
@@ -624,23 +630,32 @@ XSendEvent(dpy,focused->win,False,NoEventMask,&ev);
 	/* tags */
 	m = mons; /* tags are drawn on main screen only */
 	int i,x=10,w=0,col, tagsAlt = (tagsSel>>16);
-	for (i = 0; tag_name[i]; i++) {
+	for (i = 0; i < sizeof(tagcons)/sizeof(tagcons[0]); i++) {
 		if (!((tagsOcc|tagsSel) & (1<<i))) continue;
 		col = (tagsUrg & (1<<i) ? Urgent :
 			(tagsOcc & (1<<i) ? Occupied : Default));
 		if (focused && focused->tags & (1<<i)) col = Selected;
-//#ifdef TAG_ICONS
-// ...
-//#endif /* TAG_ICONS */
-		XDrawString(dpy,m->buf,setcolor(col),x,fontheight,
-			tag_name[i],strlen(tag_name[i]));
-		w = XTextWidth(fontstruct,tag_name[i],strlen(tag_name[i]));
+
+w = 0;
+if (tagcons[i].icon > -1) {
+XFillRectangle(dpy,iconbuf,bgc,0,0,iconwidth,iconheight);
+XDrawPoints(dpy,iconbuf,setcolor(col),icons[tagcons[i].icon].pts,icons[tagcons[i].icon].n,
+		CoordModeOrigin);
+XCopyArea(dpy,iconbuf,m->buf,gc,0,0,iconwidth,iconheight,
+		x,(barheight-iconheight)/2);
+w=iconwidth+2;
+}
+if (tagcons[i].name) {
+		XDrawString(dpy,m->buf,setcolor(col),x+w,fontheight,
+			tagcons[i].name,strlen(tagcons[i].name));
+		w += XTextWidth(fontstruct,tagcons[i].name,strlen(tagcons[i].name));
 		if (tagsSel & (1<<i))
 			XFillRectangle(dpy,m->buf,gc,x-2,fontheight+1,w+4,
 					barheight-fontheight);
 		if (tagsAlt & (1<<i))
 			XFillRectangle(dpy,m->buf,gc,x-2,0,w+4,2);
-		x+=w+10;
+}
+x+=w+8;
 	}
 	if ( (x=x+10) < tagspace ) x = tagspace; /* add padding */
 	/* titles / tabs */
