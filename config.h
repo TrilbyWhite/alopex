@@ -17,6 +17,8 @@ static const Tagcon tagcons[] = {
 	{ NO_ICON,				"one" },
 	{ NO_ICON,				"two" },
 	{ NO_ICON,				"three" },
+	{ NO_ICON,				"four" },
+	{ NO_ICON,				"five" },
 };
 
 static const char colors[LASTColor][9] = {

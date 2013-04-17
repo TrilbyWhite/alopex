@@ -1,3 +1,9 @@
+/* ICONS.H
+   default icon set for ttwm. Icon art contributions by github users:
+     UnderCooled
+	 HalosGhost
+*/
+
 #ifndef __TTWM_ICONS_H__
 #define __TTWM_ICONS_H__		"TTWM Icons 0.9"
 
@@ -275,7 +281,33 @@ static const XPoint arch_icon[] = {
 	{0,9},	{1,9},													{8,9},	{9,9},
 };
 
-static const XPoint app_generic_stats[] = { 
+static const XPoint app_term[] = { 
+   {0,0},   {1,0},   {2,0},   {3,0},   {4,0},   {5,0},   {6,0},   {7,0},   {8,0},   {9,0},
+   {0,1},   {1,1},   {2,1},   {3,1},   {4,1},   {5,1},   {6,1},   {7,1},   {8,1},   {9,1},
+   {0,2},                                                                           {9,2},
+   {0,3},            {2,3},                                                         {9,3},
+   {0,4},            {2,4},   {3,4},                                                {9,4},
+   {0,5},                     {3,5},                                                {9,5},
+   {0,6},            {2,6},   {3,6},                                                {9,6},
+   {0,7},            {2,7},                     {5,7},   {6,7},   {7,7},            {9,7},
+   {0,8},                                                                           {9,8},
+   {0,9},   {1,9},   {2,9},   {3,9},   {4,9},   {5,9},   {6,9},   {7,9},   {8,9},   {9,9},
+};
+
+static const XPoint app_web[] = { 
+                     {2,0},   {3,0},   {4,0},   {5,0},            {7,0},
+            {1,1},                     {4,1},   {5,1},                     {8,1},
+   {0,2},   {1,2},                                                         {8,2},   {9,2},
+   {0,3},                              {4,3},   {5,3},                              {9,3},
+   {0,4},   {1,4},                     {4,4},   {5,4},                     {8,4},   {9,4},
+            {1,5},                     {4,5},   {5,5},                     {8,5},
+                     {2,6},            {4,6},   {5,6},   {6,6},   {7,6},
+                                       {4,7},   {5,7},
+                                       {4,8},   {5,8},
+                                       {4,9},   {5,9},
+};
+
+static const XPoint app_stats[] = { 
    {0,0},
    {0,1},
    {0,2},                     {3,2},
@@ -287,6 +319,7 @@ static const XPoint app_generic_stats[] = {
    {0,8},                                                                  {8,8},   {9,8},
    {0,9},   {1,9},   {2,9},   {3,9},   {4,9},   {5,9},   {6,9},   {7,9},   {8,9},   {9,9},
 };
+
 
 static const Icon icons[] = {
 	[0]		= MAKE_ICON(clock_icon),
@@ -309,6 +342,9 @@ static const Icon icons[] = {
 	[17]	= MAKE_ICON(batt_zero_icon),
 	[18]	= MAKE_ICON(batt_charge_icon),
 	[19]	= MAKE_ICON(arch_icon),
+	[20]	= MAKE_ICON(app_term),
+	[21]	= MAKE_ICON(app_web),
+	[22]	= MAKE_ICON(app_stats),
 };
 
 // vim: ts=4
