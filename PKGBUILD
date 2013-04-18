@@ -38,6 +38,10 @@ prepare() {
 build() {
 	cd "$_gitname"
 	make
+	## try different initial themes:
+	##   WinterCoat is assumed if none are specified.
+	#MOLT=WinterCoat make
+	#MOLT=SummerCoat make
 }
 
 package() {
