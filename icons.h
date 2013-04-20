@@ -383,7 +383,7 @@ static const XPoint app_games[] = {
    {0,7},   {1,7},   {2,7},                                       {7,7},   {8,7},   {9,7},
                      {2,8},                                       {7,8},
                      {2,9},   {3,9},   {4,9},   {5,9},   {6,9},   {7,9},
-}
+};
 
 static const Icon icons[] = {
 	[0]		= MAKE_ICON(clock_icon),
