@@ -1,5 +1,5 @@
 CFLAGS	+=	-Os -Wall -Wno-unused-parameter -Wno-unused-result
-PROG	=	ttwm
+PROG	=	alopex
 LIBS	=	-lX11 -lXrandr
 PREFIX	?=	/usr
 MANDIR	?=	/usr/share/man
@@ -14,10 +14,11 @@ clean:
 	@rm -f ${PROG}
 
 tarball: clean
-	@rm -f ttwm-${VER}.tar.gz
-	@tar -czf ttwm-${VER}.tar.gz *
+	@rm -f ${PROG}-${VER}.tar.gz
+	@tar -czf ${PROG}-${VER}.tar.gz *
 
 install: ${PROG}
 	@install -Dm755 ${PROG} ${DESTDIR}${PREFIX}/bin/${PROG}
+
 
 
