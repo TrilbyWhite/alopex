@@ -5,9 +5,10 @@ PREFIX	?=	/usr
 MANDIR	?=	/usr/share/man
 VER		=	2.0b
 HEADERS	=	config.h icons.h
+MOLT	?=	WinterCoat
 
 ${PROG}: ${PROG}.c ${HEADERS}
-	@${CC} ${CFLAGS} ${LIBS} -o ${PROG} ${PROG}.c
+	@${CC} -D${MOLT} ${CFLAGS} ${LIBS} -o ${PROG} ${PROG}.c
 	@strip ${PROG}
 
 clean:

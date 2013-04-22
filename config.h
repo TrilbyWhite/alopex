@@ -23,6 +23,21 @@ static const Tagcon tagcons[] = {
 };
 
 static const char colors[LASTColor][9] = {
+#ifdef SummerCoat
+	[Background]	= "#201814",
+	[Default]		= "#686858",
+	[Occupied]		= "#DDBB88",
+	[Selected]		= "#EE8844",
+	[Urgent]		= "#FFDD0E",
+	[Title]			= "#EECCAA",
+	[TabFocused]	= "#D0B072",
+	[TabFocusedBG]	= "#242424",
+	[TabTop]		= "#BB8844",
+	[TabTopBG]		= "#242424",
+	[TabDefault]	= "#686858",
+	[TabDefaultBG]	= "#181818",
+	[TagLine]		= "#FF4400",
+#else /* default WinterCoat */
 	[Background]	= "#101010",
 	[Default]		= "#686868",
 	[Occupied]		= "#68A0DD",
@@ -36,6 +51,7 @@ static const char colors[LASTColor][9] = {
 	[TabDefault]	= "#686868",
 	[TabDefaultBG]	= "#181818",
 	[TagLine]		= "#2436AA",
+#endif
 };
 
 static const char	ttwm_cursor			= XC_left_ptr;
