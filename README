@@ -1,13 +1,8 @@
-TTWM is changing names to Alopex.
+The rename of alopex (formerly ttwm) should be complete.
 
-Please bear with me through the transition, there are a lot of 'housekeeping' steps to  coordinate here on github, on the webpage, forum discussion, AUR, and wiki (I'll leave that to H.G.).  Inevitably there will be days over the coming week where a failed coordination will lead to some bumps in the road.
+Let me know if you find any oversights in the transition, or any references to ttwm that should be updated.
 
-This page will be updated when the change is complete.
-
--J.M. 18 Apr 2013 
-
-
-
+-J.M. 23 Apr 2013 
 
 
 ------------------
@@ -21,5 +16,5 @@ that have been incorporated into the current git version.
 Or join the discussion on ArchLinux.org:
 https://bbs.archlinux.org/viewtopic.php?id=146889
 
-Find some nice patches on Doomicide's github:
+Find some nice patches on Doomicide's github for ttwm 1.0:
 https://github.com/Doomicide/ttwm-patches
