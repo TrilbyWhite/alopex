@@ -1,4 +1,4 @@
-/* copyright J.McClure 2012-2013, see ttwm.c or COPYING for details */
+/* copyright J.McClure 2012-2013, see alopex.c or COPYING for details */
 
 static const char font[] =
 	"-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*";
@@ -92,10 +92,10 @@ static int			stackcount			= 3;
 #define CMD(app)	app "&"
 
 /* these are just examples - be sure to edit for your setup.
-   Uncomment and define WALLPAPER suitably to have the wallpaper
+   Uncomment and define WALLPAPER suitably to have the wallpaper */
 
 #define XRANDR_CMD		"xrandr --output LVDS1 --auto --output VGA1 --auto --left-of LVDS1"
-//#define WALLPAPER		"feh --bg-scale ~/images/bg.jpg" */
+//#define WALLPAPER		"feh --bg-scale ~/images/bg.jpg"
 
 /* key definitions */
 #define MOD1 Mod4Mask
