@@ -1,19 +1,49 @@
-.TH TTWM 1
-
-.SH NAME
+'\" t
+.\"     Title: alopex.config
+.\"    Author: [Sam Stuewe]
+.\"      Date: 2013-04-22
+.\"    Manual: \ \&
+.\"    Source: \ \& 2.0
+.\"  Language: English
+.\"
+.TH "ALOPEX" "1" "2013-04-23" "\ \& 2\&.0" "\ \&"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.nh
+.ad l
+.\"
+.\" <- Main Content ->
+.SH "NAME"
 Alopex \- A Tabbed Tiling Window Manager
-
-.SH SYNOPSIS
-.B alopex
-
-.SH DESCRIPTION
-TODO
-
-All keybindings are customizable by modifying config.h and recompiling.  The listings below are the default settings.
-
-.SH KEY BINDINGS
-TODO - man pages are under construction
-
-.SH SEE ALSO
-http://trilbywhite.github.com/ttwm
-
+.SH "SYNOPSIS"
+.sp
+xinit /usr/bin/\fBalopex\fR "/path/to/statusbar-script.sh"
+.SH "DESCRIPTION"
+.sp
+Almost all configuration for \fBalopex\fR is done at compile-time\&. Customizations such as keybinds, statusbar icons, tag appearances and window rules can be achieved through two C header files\&: config\&.h and icons\&.h\&.
+.sp
+The default headers will provide simple sane defaults, but users should expect to customize the setup to their liking\&.
+.sp
+.SH "STATUSBAR"
+.sp 
+A single argument can be passed to \fBalopex\fR to render a statusbar\&. To avoid a CPU race, \fBalopex\fR creates a simple statusbar displaying a clock\&. However, by passing a script or program that can output text (such as conky), far more complex statusbars can be used easily\&.
+.sp
+In this text output, colors and icons can be specified through simple bracketed codes\&. Color codes, when passed, will color all text (and icons) following them until another color code is encountered\&. They are called in the following manner\&:
+.sp
+.RS 4
+{#RRGGBB}
+.sp
+#RRGGBB is a standard hex color-code
+.RE
+.sp
+In a similar manner (if they have been enabled in the custom config\&.h), minimalist icons may be rendered on the statusbar\&. Icons are called in the following manner\&:
+.sp
+.RS 4
+{i #}
+.sp
+# should be replaced by the number of the icon as designated by the array at the bottom of icons\&.h\&.
+.sp
+.RE
+.SH "SEE ALSO"
+.sp
+\fBalopex\&.config\fR(5) \fBalopex\&.icons\fR(5)
