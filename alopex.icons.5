@@ -1,0 +1,48 @@
+'\" t
+.\"     Title: alopex.icons
+.\"    Author: [Sam Stuewe]
+.\"      Date: 2013-04-22
+.\"    Manual: \ \&
+.\"    Source: \ \& 2.0
+.\"  Language: English
+.\"
+.TH "ALOPEX\&.ICONS" "5" "2013-04-22" "\ \& 2\&.0" "\ \&"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.nh
+.ad l
+.\"
+.\" <- Main Content ->
+.SH "NAME"
+alopex.icons \- Custom Iconsets
+.SH "SYNOPSIS"
+.sp
+alopex\&.icons
+.SH "DESCRIPTION"
+.sp
+A custom iconset for \fBalopex\fR can be placed at \fI$XDG_CONFIG_HOME/alopex/icons.h\fR or \fI$HOME/.alopex_icons.h\fR\&. It is a C header file, editable with your favorite text editor\&. Once editing is finished, \fBalopex\fR must be (re)built using the custom iconset\&.
+.SH "SETTINGS"
+.PP
+By default, icons are 10 pixels by 10 pixels\&. However, this can easily be changed by modifying the following values\&:
+.sp
+.RS 4
+.nf
+iconwidth
+iconheight
+.fi
+.RE
+.SH "DECLARATIONS"
+.PP
+Each icon is defined separately in an array which specifies which pixels will be rendered as active which will not\&. This array is made up of a set of sub\-arrays\&. Each sub\-array is a coordinate pair of active pixels\&. A template icon is provided that, if used, would be a solid 10 by 10 square block\&. This template can easily be copied and modified\&.
+.SH "ORDER"
+.PP
+At the bottom of the icons\&.h file, the \fIIcon\fR array establishes the ordinal designation of each icon and which icons are available\&. These designations are made in the following manner\&:
+.RS 4
+.sp
+[#]     = MAKE_ICON(icon_name),
+.sp
+# refers to the ordinal designation, and, of course, icon_name refers to the name given to the specific icon array\&.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBalopex\fR(1) \fBalopex\&.config\fR(5)
