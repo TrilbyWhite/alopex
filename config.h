@@ -93,9 +93,9 @@ static int			stackcount			= 3;
 
 /* these are just examples - be sure to edit for your setup.
    Uncomment and define WALLPAPER suitably to have the wallpaper
-   updated upon changes to screens */
+
 #define XRANDR_CMD		"xrandr --output LVDS1 --auto --output VGA1 --auto --left-of LVDS1"
-//#define WALLPAPER		"feh --bg-scale ~/images/bg.jpg"
+//#define WALLPAPER		"feh --bg-scale ~/images/bg.jpg" */
 
 /* key definitions */
 #define MOD1 Mod4Mask
