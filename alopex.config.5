@@ -1,0 +1,292 @@
+'\" t
+.\"     Title: alopex.config
+.\"    Author: [Sam Stuewe]
+.\"      Date: 2013-04-22
+.\"    Manual: \ \&
+.\"    Source: \ \& 2.0
+.\"  Language: English
+.\"
+.TH "ALOPEX\&.CONFIG" "5" "2013-04-22" "\ \& 2\&.0" "\ \&"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.nh
+.ad l
+.\"
+.\" <- Main Content ->
+.SH "NAME"
+alopex.config \- Configuration Options
+.SH "SYNOPSIS"
+.sp
+alopex\&.config
+.SH "DESCRIPTION"
+.sp
+A custom configuration for \fBalopex\fR can be placed at \fI$XDG_CONFIG_HOME/alopex/config.h\fR or \fI$HOME/.alopex_conf.h\fR\&. It is a C header file, editable with your favorite text editor\&. Once editing is finished, \fBalopex\fR must be (re)built using the custom configuration\&.
+.SH "APPEARANCE SETTINGS"
+.PP
+font
+.RS 4
+An xfontsel value of a valid bitmap font to be used on the statusbar\&.
+.RE
+.PP
+*tile_modes
+.RS 4
+Determines the default status, cycle order and availability of the tiling modes\&. The last value in the array should be \fINULL\fR\&. The first mode in the array will be the default mode when \fBalopex\fR starts\&; the order of the modes when cycling is determined by the order of the modes listed in the array\&. Removing a mode from the array effectively disables that mode's usage\&.
+.RE
+.PP
+tagcons
+.RS 4
+Determines the appearance of tags on the statusbar\&. Each sub-array is made up of three values\&: a text prefix, an icon and a text suffix\&. Each text affix must be quoted, the icon should not be\&. Replacing either text affix with \fINULL\fR (not quoted), will result in the replaced string not appearing\&. Replacing an icon identifier with \fI-1\fR or \fINO_ICON\fR will result in no icon being displayed\&. See \fBalopex\&.icons\fR(5) for more information\&.
+.RE
+.PP
+colors
+.RS 4
+Standard \fI#RRGGBB\fR hex color assignments for various components of \fBalopex\fR's color\-scheme\&.
+.RE
+.PP
+ttwm_cursor
+.RS 4
+The X11 cursor designated for \fBalopex\fR to render\&. (Defaults to \fIXC_left_ptr\fR)
+.RE
+.PP
+borderwidth
+.RS 4
+Width of a border to be drawn around each window\&. Setting to 0 results in no border being drawn\&. (Defaults to 0)
+.RE
+.PP
+tilegap
+.RS 4
+Toggles the "seemless tab mode"\&. Values above 0 will enable the use of nicer\-looking tabs with a gap between statusbar and the windows\&. (Defaults to 0)
+.RE
+.PP
+tagspace
+.RS 4
+Sets the minimum space on the left of the statusbar of which the master tab will stay to the right\&. 0 will keep the master tab flush with the right\-most displayed tag\&. (Defaults to 0)
+.RE
+.PP
+max_status_line
+.RS 4
+The maximum input length you might feed to the stdin reader\&. (Defaults to 256)
+.RE
+.PP
+win_min
+.RS 4
+The smallest allowable width or height of a window\&. This effects the increasing and decreasing of \fItilebias\fR and can protect windows from being "crushed" when too many are open\&. (Defaults to 20)
+.RE
+.PP
+focusfollowmouse
+.RS 4
+Whether window focus can be grabbed by mouse\-movement\&. (Defaults to False)
+.RE
+.PP
+showbar
+.RS 4
+Whether the statusbar should be displayed\&. (Defaults to True)
+.RE
+.PP
+topbar
+.RS 4
+Whether or not the statusbar should be displayed at the top or bottom of the screen\&. True displays the bar at the top\&; False displays the bar at the bottom\&. (Defaults to True)
+.RE
+.PP
+tilebias
+.RS 4
+The number of pixels that the master area will be increased in size at the expense of the same number of pixels being taken from the stack section\&. 0 leaves the two sections at parity\&. (Defaults to 0)
+.RE
+.PP
+attachmode
+.RS 4
+Where new new windows will be placed when created\&. 0 places them at the master section\&; 1 places them at the top of the stack\&; 2 places them at the bottom of the stack\&. (Defaults to 0)
+.RE
+.PP
+stackcount
+.RS 4
+How many windows can be visible in the stack region at a given time\&. (Defaults to 3)
+.RE
+.SH "BEHAVIORAL ARRAYS"
+.PP
+\fIKey\fR
+.RS 4
+Defines the available keybinds\&. Each keybind has four comma\-separated components\&: the modifier, the key, the function and the argument\&.
+.sp
+Four modifiers are defined by default, \fIMOD1\fR through \fIMOD4\fR (Super, Alternate, Control and Shift respectively)\&. Using multiple modifiers for a single keybind can be achieved by listing multiple modifiers separated by \&|s\&. To omit the need for a modifier (useful for media keys), use 0 for the value of the modifier.
+.sp
+The key may be specified either by hex definition or by X11 Keysym\&. See \fBxev\fR(1) for more information on how to discover these values\&.
+.sp
+The following functions are available with an explanation of their accepted arguments\&:
+.sp
+.RS 4
+spawn \- run a program
+.RS 8
+.nf
+CMD("program \-flags \-\-switches arguments")
+CMD(FUNCTION)
+.fi
+.RE
+.sp
+quit \- cleanly exit \fBalopex\fR
+.RS 8
+NULL
+.RE
+.sp
+killclient \- kill the focused program
+.RS 8
+NULL
+.RE
+.sp
+fullscreen \- toggle the focused client fullscreen
+.RS 8
+NULL
+.RE
+.sp
+toggle
+.RS 8
+.nf
+"floating"       \-\- toggle focused client to floating mode
+"place bar"      \-\- toggle statusbar between the top and bottom
+"visible bar"    \-\- toggle visibility of the statusbar
+"monitor focus"  \-\- toggle focus between monitors
+.fi
+.RE
+.sp
+tile \- modify tile mode properties
+.RS 8
+.nf
+"cycle"    \-\- cycle through available tiling layouts
+"bstack"   \-\- switch to the bstack tiling layout
+"rstack"   \-\- switch to the rstack tiling layout
+"monocle"  \-\- switch to the monocle layout
+.fi
+.RE
+.sp
+tile_conf \- modify tiling appearance
+.RS 8
+.nf
+"increase"  \-\- increment \fItilebias\fR in favor of the master section
+"decrease"  \-\- increment \fItilebias\fR in favor of the stack
+"+"         \-\- increase the number of visible windows in the stack
+"-"         \-\- decrease the number of visible windows in the stack
+"all"       \-\- make all windows in the stack section visible
+"one"       \-\- only allow one window in the stack to be visible
+.fi
+.RE
+.sp
+tag \- perform tagging operations
+.RS 8
+"flip"  \-\- switch between views
+.RE
+.sp
+window \- focus and move windows
+.RS 8
+.nf
+"f prev"  \-\- focus previous
+"f next"  \-\- focus next
+"f alt"   \-\- focus alternate
+"s prev"  \-\- swap window with previous
+"s next"  \-\- swap window with next
+"s alt"   \-\- swap window with alternate
+"+"       \-\- Increase focused window's monitor identifier
+"-"       \-\- Decrease focused window's monitor identifier
+.fi
+.sp
+Capitalizing "Next" and "Prev" include floating windows
+.sp
+Each window is given a number identifying on which monitor it will appear\&. Should the identifier number be higher than the number of displays available, the window will appear on the highest numbered display\&.
+.RE
+.RE
+.sp
+A special definition after the modifier masks efficiently defines keybinds for tagging operations\&. When calling this special function, two comma\-separated components must be specified\&: the key and the tag\&. They key is an X11 keysym, and the tag is the ordinal number of the tag in the \fItagcons\fR array with the first position being labeled "1"\&.
+.sp
+Unlike other keybind declarations, \fITagKey\fR declarations are not surrounded by brackets ('{' and '}'), they are called in the following manner\&:
+.RS 4
+.sp
+TagKey(     KEYSYM,       TAGNUMBER     )
+.RE
+.sp
+There should be one declaration for each tag in the \fItagcons\fR array\&.
+.RE
+.RE
+.RE
+.PP
+\fIButton\fR
+.RS 4
+Defines actions to be bound to mouse buttons\&. As with the \fIKey\fR array, it is made up of four comma\-separated components\&: the modifier, the button, the function and the argument\&.
+.sp
+All four pre\-defined modifiers are accepted\&. The button is specified by numeral only \fI1\fR through \fI7\fR, by defalt\&. All functions and arguments from the \fIKey\fR array are available plus one additional function\&:
+.RS 4
+.sp
+mouse
+.RS 8
+.nf
+"move"    \-\- drag window
+"resize"  \-\- resize window
+.fi
+.RE
+.RE
+.RE
+.sp
+.PP
+\fIRule\fR
+.RS 4
+Defines window management rules\&. This array is made up of four comma\-separated components\&: the name, the class, tags and flags\&.
+.sp
+The name and class refer to X11's values \fIWM_NAME\fR and \fIWM_CLASS\fR\&. To determine their values, see \fBxprop\fR(1)\&. Either name or class may be replaced by NULL to ignore their values\&. If both are specified, then the rule will only be applied in cases where both values match\&.
+.sp
+The tags allow the user to specify windows which match the name and class conditions to be automatically assigned given tags\&. These are hex specifications which determine the presence on a given tag\&. To not assign tags to matched windows, use a value of 0\&.
+.sp
+The flags refer to special properties that can be assigned to windows for particular behaviors\&:
+.RS 4
+.sp
+.nf
+TTWM_FLOATING    \-\- force floating mode
+TTWM_FULLSCREEN  \-\- force fullscreen mode
+TTWM_URG_HINT    \-\- give window urgent status upon opening
+.fi
+.sp
+To not assign any special properties, use 0\&.
+.RE
+.RE
+.SH "FUNCTION DEFINITIONS"
+.PP
+\fIXRANDR_CMD\fR
+.RS 4
+The command to use for managing external monitors\&. The default value is not sane for all setups\&; It must be customized for your setup to be functional\&. See \fBxrandr\fR(1) for more information\&.
+.PP
+.RE
+\fIWALLPAPER\fR
+.RS 4
+An optional command to be run in concert with \fIXRANDR_CMD\fR to keep the wallpaper looking clean even through managing external displays\&.
+.RE
+.PP
+\fIPer-User\fR
+.RS 4
+.sp
+#define FUNCTION    "command -flags --switches arguments"
+.sp
+Using the above structure, you would be able to use \fICMD(FUNCTION)\fR as an argument for the \fIspawn\fR function in the \fIKey\fR array\&.
+.RE
+.SH "SPECIAL INCLUDES"
+.PP
+\fIIcons\fR
+.RS 4
+By adding the following line, you will allow \fBalopex\fR to render minimalist icons in the statusbar\&:
+.RS 4
+.sp
+#include icons.h
+.sp
+.RE
+See \fBalopex\&.icons\fR(5) for more information\&.
+.sp
+.RE
+.PP
+\fIKeysyms\fR
+.RS 4
+.sp
+Similarly, by including the following line, you will be able to use XF86 keysyms rather than just X11 keysyms\&:
+.sp
+.RS 4
+#include <X11/XF86keysym.h>
+.RE
+.RE
+.SH "SEE ALSO"
+.sp
+\fBalopex\fR(1) \fBalopex\&.icons\fR(5)
