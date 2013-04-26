@@ -20,7 +20,6 @@ tarball: clean
 
 install: ${PROG}
 	@install -Dm755 ${PROG} ${DESTDIR}${PREFIX}/bin/${PROG}
-	@gzip -9 ${PROG}*.{1,5}
 	@install -Dm666 ${PROG}.1.gz ${DESTDIR}${MANDIR}/man1/${PROG}.1.gz
 	@install -Dm666 ${PROG}.config.5.gz ${DESTDIR}${MANDIR}/man5/${PROG}.config.5.gz
 	@install -Dm666 ${PROG}.icons.5.gz ${DESTDIR}${MANDIR}/man5/${PROG}.icons.5.gz
