@@ -107,3 +107,10 @@ a:hover {
 	content: "•";
 	color: #046;
 }
+
+.code {
+	border: 1px solid #c0c8cf;
+	background: #e0e8ef;
+	padding: 2px;
+	font-family: monospace;
+}
