@@ -20,9 +20,9 @@ tarball: clean
 
 install: ${PROG}
 	@install -Dm755 ${PROG} ${DESTDIR}${PREFIX}/bin/${PROG}
-	@install -Dm666 ${PROG}.1 ${DESTDIR}${MANDIR}/${PROG}.1
-	@install -Dm666 ${PROG}.config.5 ${DESTDIR}${MANDIR}/${PROG}.config.5
-	@install -Dm666 ${PROG}.icons.5 ${DESTDIR}${MANDIR}/${PROG}.icons.5
+	@install -Dm666 ${PROG}.1 ${DESTDIR}${MANDIR}/man1/${PROG}.1
+	@install -Dm666 ${PROG}.config.5 ${DESTDIR}${MANDIR}/man5/${PROG}.config.5
+	@install -Dm666 ${PROG}.icons.5 ${DESTDIR}${MANDIR}/man5/${PROG}.icons.5
 
 
 
