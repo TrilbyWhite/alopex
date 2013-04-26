@@ -1,5 +1,5 @@
 
-h1, h2, h3 {
+h1, h2, h3, h4, h5 {
 	font-family: serif;
 	color: #025;
 }
@@ -9,6 +9,10 @@ h1 {
 }
 h2 {
 	font-size: 20pt;
+}
+h5 {
+	color: #013;
+	margin-bottom: 8px;
 }
 
 a {
@@ -89,4 +93,17 @@ a:hover {
 
 #footer a:hover {
 	color: #68A;
+}
+
+
+
+#content ul {
+	list-style: none;
+	list-style-position: inside;
+	margin: 0px;
+	padding: 0px;
+}
+#content li:before {
+	content: "•";
+	color: #046;
 }
