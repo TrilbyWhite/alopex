@@ -1,2 +1,2 @@
-<frame src="http://trilbywhite.github.com/alopex"/>
+<frame src="http://trilbywhite.github.com/alopex"></iframe>
 
