@@ -103,6 +103,7 @@ a:hover {
 	margin: 0px;
 	padding: 0px;
 }
+
 #content li:before {
 	content: "•";
 	color: #046;
@@ -114,3 +115,7 @@ a:hover {
 	padding: 2px;
 	font-family: monospace;
 }
+
+.left { float: left; }
+.right { float: right; }
+
