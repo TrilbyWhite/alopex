@@ -1,7 +1,7 @@
 # Maintainer: Jesse McClure AKA "Trilby" <jmcclure [at] cns [dot] umass [dot] edu>
 _gitname="alopex"
 pkgname="${_gitname}-git"
-pkgver=0.181.1a63f31
+pkgver=1.229.e61ed7a
 pkgrel=1
 pkgdesc="A Tiny, Tabbed, Tiling Window Manager with Fur"
 url="http://github.com/TrilbyWhite/${pkgname//-/.}"
