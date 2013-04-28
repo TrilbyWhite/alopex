@@ -231,7 +231,20 @@ Defines window management rules\&. This array is made up of four comma\-separate
 .sp
 The name and class refer to X11's values \fIWM_NAME\fR and \fIWM_CLASS\fR\&. To determine their values, see \fBxprop\fR(1)\&. Either name or class may be replaced by NULL to ignore their values\&. If both are specified, then the rule will only be applied in cases where both values match\&.
 .sp
-The tags allow the user to specify windows which match the name and class conditions to be automatically assigned given tags\&. These are hex specifications which determine the presence on a given tag\&. To not assign tags to matched windows, use a value of 0\&.
+The tags allow the user to specify windows which match the name and class conditions to be automatically assigned given tags\&.
+.sp
+.RS 4
+These tag declarations are sets of 16 bits where each bit represents the client's assignment to a particular tag (0 meaning unassigned and 1 meaning assigned)\&. For example, if a window were to be assigned to tag 1, and another to be assigned to all 16 tags, they would be represented (in binary) as "0000000000000001" and "1111111111111111"\&. Because C cannot represent binary numbers, these two sequences can be represented in decimal, hex, bitwise-or statements or sums of powers of 2\&:
+.sp
+.nf
+1           65535
+0x0001      0xFFFF
+(1<<0)      (1<<0) | (1<<1) ... (1<<15)
+2^0         2^0 + 2^1 ... 2^15
+.fi
+.sp
+To not assign tags to matched windows, use a value of 0\&.
+.RE
 .sp
 The flags refer to special properties that can be assigned to windows for particular behaviors\&:
 .RS 4
