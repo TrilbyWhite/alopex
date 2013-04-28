@@ -54,12 +54,9 @@ static const char colors[LASTColor][9] = {
 #endif
 };
 
-static const char	ttwm_cursor			= XC_left_ptr;
+static const char	alopex_cursor		= XC_left_ptr;
 static const int	borderwidth			= 0;
-/* if tilegap is set to zero, this will activate the seemless tab mode
-   like in ttwm-1.0 (when this is implemented)
-   tilegap > 0 will make the status bar have tabs that should look better
-   with a gap between the bar and the windows */
+/* set gap between the windows */
 static const int	tilegap				= 0;
 /* set a minimum space on the left of the bar that the master tab will
    stay to the right of.  Setting to zero will keep the master tab flush
@@ -180,8 +177,8 @@ static Button buttons[] = {
 static Rule rules[] = {
 	/* name				class		tags		flags */
 	/* tags/flags=0 means no change to default */
-	{ NULL,				"float",	0,			TTWM_FLOATING },
-	{ "float",			NULL,		0,			TTWM_FLOATING },
+	{ NULL,				"float",	0,			FLAG_FLOATING },
+	{ "float",			NULL,		0,			FLAG_FLOATING },
 };
 
 // vim: ts=4

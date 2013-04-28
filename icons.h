@@ -1,11 +1,11 @@
 /* ICONS.H
-   default icon set for ttwm. Icon art contributions by github users:
+   default icon set for alopex. Icon art contributions by github users:
      UnderCooled
 	 HalosGhost
 */
 
-#ifndef __TTWM_ICONS_H__
-#define __TTWM_ICONS_H__		"TTWM Icons 0.9"
+#ifndef __ALOPEX_ICONS_H__
+#define __ALOPEX_ICONS_H__		"ALOPEX Icons 0.9"
 
 #define MAKE_ICON(x)	{ (sizeof(x)/sizeof(x[0])), (XPoint *) x }
 
@@ -431,6 +431,6 @@ static const Icon icons[] = {
 };
 
 // vim: ts=4
-#endif /* __TTWM_ICONS_H__ */
+#endif /* __ALOPEX_ICONS_H__ */
 
 

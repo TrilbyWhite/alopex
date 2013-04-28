@@ -1,5 +1,5 @@
 /**************************************************************************\
-* TTWM - a tiny tabbed tagging tiling wm
+* ALOPEX - a tiny tabbed tagging tiling wm
 *
 * Author: Jesse McClure, copyright 2012-2013
 * License: GPLv3
@@ -39,13 +39,13 @@
 
 #define MAX(a,b)	((a)>(b) ? (a) : (b))
 
-#define TTWM_ANY		0xFFFF
-#define TTWM_FLOATING	0x0010
-#define TTWM_TRANSIENT	0x0030
-#define TTWM_FULLSCREEN	0x0040
-#define TTWM_TOPSTACK	0x0080
-#define TTWM_URG_HINT	0x0400
-#define TTWM_FOC_HINT	0x0300
+#define FLAG_ANY		0xFFFF
+#define FLAG_FLOATING	0x0010
+#define FLAG_TRANSIENT	0x0030
+#define FLAG_FULLSCREEN	0x0040
+#define FLAG_TOPSTACK	0x0080
+#define FLAG_URG_HINT	0x0400
+#define FLAG_FOC_HINT	0x0300
 #define FOCUS_NOINPUT	0x0000
 #define FOCUS_PASSIVE	0x0100
 #define FOCUS_LOCAL		0x0200
@@ -127,7 +127,7 @@ static void tile(const char *);
 static void toggle(const char *);
 static void window(const char *);
 
-/* 1.2 TTWM INTERNAL PROTOTYPES */
+/* 1.2 ALOPEX INTERNAL PROTOTYPES */
 static inline Bool tile_check(Client *, Monitor *);
 static int apply_rules(Client *);
 static int draw();
@@ -185,7 +185,7 @@ void buttonpress(XEvent *ev) {
 	if (!( (c=wintoclient(e->subwindow)) && e->state) ) return;
 	if (c && e->button < 4) {
 		focused = c;
-		if (c->flags & TTWM_FLOATING) XRaiseWindow(dpy,c->win);
+		if (c->flags & FLAG_FLOATING) XRaiseWindow(dpy,c->win);
 	}
 	int i; mouseEvent = *e;
 	for (i = 0; i < sizeof(buttons)/sizeof(buttons[0]); i++)
@@ -215,7 +215,7 @@ void configurerequest(XEvent *ev) {
 	Client *c;
 	if ( (c=wintoclient(e->window)) && (e->width==c->m->w) &&
 			(e->height==c->m->h) ) {
-		c->flags |= TTWM_FULLSCREEN;
+		c->flags |= FLAG_FULLSCREEN;
 		draw();
 		return;
 	}
@@ -278,9 +278,9 @@ void maprequest(XEvent *ev) {
 	if (c->tags == 0)
 		c->tags = (	(tagsSel & 0xFFFF) ? tagsSel : (tagsSel |= 1) ) & 0xFFFF;
 	if (c->tags == 0) c->tags = 1;
-	if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= TTWM_FULLSCREEN;
+	if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= FLAG_FULLSCREEN;
 	if (XGetTransientForHint(dpy,c->win,&c->parent))
-		c->flags |= TTWM_TRANSIENT;
+		c->flags |= FLAG_TRANSIENT;
 	else
 		c->parent = e->parent;
 	if (!XFetchName(dpy,c->win,&c->title) || c->title == NULL) {
@@ -303,7 +303,7 @@ void maprequest(XEvent *ev) {
 	XMapWindow(dpy,c->win);
 	XRaiseWindow(dpy,c->win);
 	focused = c;
-	if (!(c->flags & TTWM_FLOATING)) tile(tile_modes[ntilemode]);
+	if (!(c->flags & FLAG_FLOATING)) tile(tile_modes[ntilemode]);
 	draw();
 }
 
@@ -319,7 +319,7 @@ void motionnotify(XEvent *ev) {
 	else if (mouseMode == MResize) {
 		focused->w+=xdiff; focused->h+=ydiff; draw();
 	}
-	focused->flags |= TTWM_FLOATING;
+	focused->flags |= FLAG_FLOATING;
 	mouseEvent.x_root+=xdiff; mouseEvent.y_root+=ydiff;
 }
 
@@ -364,7 +364,7 @@ void unmapnotify(XEvent *ev) {
 
 void fullscreen(const char *arg) {
 	if (!focused) return;
-	focused->flags ^= TTWM_FULLSCREEN;
+	focused->flags ^= FLAG_FULLSCREEN;
 	XRaiseWindow(dpy,focused->win);
 	draw();
 }
@@ -405,7 +405,7 @@ void tag(const char *arg) {
 	if (!focused || !(focused->tags & tagsSel)) {
 		for (c = clients; c; c = c->next) if (c->tags & tagsSel) {
 			if (!t) t = c;
-			if (c->flags & TTWM_FULLSCREEN) t = c;
+			if (c->flags & FLAG_FULLSCREEN) t = c;
 		}
 		if (t) focused = t;
 	}
@@ -438,7 +438,7 @@ void tile(const char *arg) {
 	maxTiled = 0;
 	for (i = 0, m = mons; m; i++, m = m->next) m->count = 0;
 	for (c = clients; c; c = c->next)
-		if (c->tags & tagsSel && !(c->flags & TTWM_FLOATING)) {
+		if (c->tags & tagsSel && !(c->flags & FLAG_FLOATING)) {
 			c->m->count++;
 			maxTiled = MAX(maxTiled,c->m->count);
 		}
@@ -454,7 +454,7 @@ void tile(const char *arg) {
 	if (focused) {
 		XRaiseWindow(dpy,focused->win);
 		for (c = clients; c; c = c->next)
-			if ( (c->tags & tagsSel) && (c->flags & TTWM_FLOATING))
+			if ( (c->tags & tagsSel) && (c->flags & FLAG_FLOATING))
 				XRaiseWindow(dpy,c->win);
 	}
 	draw();
@@ -464,7 +464,7 @@ void toggle(const char *arg) {
 	Monitor *m;
 	if (arg[0] == 'p') topbar = !topbar;
 	else if (arg[0] == 'v') showbar = !showbar;
-	else if (arg[0] == 'f' && focused) focused->flags ^= TTWM_FLOATING;
+	else if (arg[0] == 'f' && focused) focused->flags ^= FLAG_FLOATING;
 
 else if (arg[0] == 'm' ) {
 	Client *c;
@@ -500,7 +500,7 @@ void window(const char *arg) {
 		neighbors(focused,True);
 	}
 	else {
-		if (focused->flags & TTWM_FLOATING) return;
+		if (focused->flags & FLAG_FLOATING) return;
 		neighbors(focused,False);
 	}
 	Client *t = NULL;
@@ -519,7 +519,7 @@ void window(const char *arg) {
 /* 2.2 WM INTERNAL FUNCTIONS */
 
 inline Bool tile_check(Client *c, Monitor *m) {
-	return (c&&(c->tags&tagsSel) && !(c->flags&TTWM_FLOATING) && (c->m==m));
+	return (c&&(c->tags&tagsSel) && !(c->flags&FLAG_FLOATING) && (c->m==m));
 }
 
 static int apply_rules(Client *c) {
@@ -541,7 +541,7 @@ static int apply_rules(Client *c) {
 }
 
 static inline void draw_tab(Pixmap buf, Client *c,int *x,int tw) {
-	int col1 = (c->flags & TTWM_URG_HINT ? Urgent : (c==focused?Title:Default));
+	int col1 = (c->flags & FLAG_URG_HINT ? Urgent : (c==focused?Title:Default));
 	int col2 = (c==focused ? TabFocused :  ( ((c==c->m->master || c==c->m->stack) && 
 			!(tile_modes[ntilemode][0] == 'm')) ? TabTop : TabDefault ));
 	XPoint top_pts[6] = { {*x,barheight}, {0,2-barheight}, {2,-2},
@@ -589,13 +589,13 @@ int draw() {
 			XMoveWindow(dpy,stack->win,-2*mons[0].w,0);
 			stack = stack->next; continue;
 		}
-		else if (!(stack->flags & TTWM_FLOATING)) { /* tiled */
+		else if (!(stack->flags & FLAG_FLOATING)) { /* tiled */
 			if (!stack->m->master) stack->m->master = stack;
 			else if (!stack->m->stack) stack->m->stack = stack;
-			else if (stack->flags & TTWM_TOPSTACK) stack->m->stack = stack;
+			else if (stack->flags & FLAG_TOPSTACK) stack->m->stack = stack;
 		}
-		stack->flags &= ~TTWM_TOPSTACK;
-		if (stack->flags & TTWM_FULLSCREEN)
+		stack->flags &= ~FLAG_TOPSTACK;
+		if (stack->flags & FLAG_FULLSCREEN)
 			XMoveResizeWindow(dpy,stack->win,stack->m->x-borderwidth,
 					stack->m->y-borderwidth,stack->m->w,stack->m->h);
 		else
@@ -608,9 +608,9 @@ int draw() {
 		stack = stack->next;
 	}
 	if (focused) {
-		if ( (focused != focused->m->master) && !(focused->flags & TTWM_FLOATING) )
+		if ( (focused != focused->m->master) && !(focused->flags & FLAG_FLOATING) )
 			focused->m->stack = focused;
-		if ( (focused->flags & TTWM_FOC_HINT) > 1) {
+		if ( (focused->flags & FLAG_FOC_HINT) > 1) {
 XEvent ev;
 ev.type = ClientMessage; ev.xclient.window = focused->win;
 ev.xclient.message_type = XInternAtom(dpy,"WM_PROTOCOLS",True);
@@ -622,10 +622,10 @@ XSendEvent(dpy,focused->win,False,NoEventMask,&ev);
 		else {
 			XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
 		}
-		focused->flags &= ~TTWM_URG_HINT;
+		focused->flags &= ~FLAG_URG_HINT;
 	}
 	for (m = mons; m ; m = m->next) {
-		if (m->stack) m->stack->flags |= TTWM_TOPSTACK;
+		if (m->stack) m->stack->flags |= FLAG_TOPSTACK;
 		/* clear buffers */
 		XFillRectangle(dpy,m->buf,setcolor(Background),0,0,m->w,barheight);
 	}
@@ -691,10 +691,10 @@ int get_hints(Client *c) {
 	if ( (hint=XGetWMHints(dpy,c->win)) ) {
 		if (hint->flags & XUrgencyHint) {
 			tagsUrg |= c->tags;
-			c->flags |= TTWM_URG_HINT;
+			c->flags |= FLAG_URG_HINT;
 		}
 		else if (hint->flags & InputHint && !hint->input) {
-			c->flags |= TTWM_FOC_HINT; /* TODO: termine Local vs Global */
+			c->flags |= FLAG_FOC_HINT; /* TODO: termine Local vs Global */
 		}
 		XFree(hint);
 	}
@@ -835,11 +835,11 @@ int swap(Client *a, Client *b) {
 	t.flags = a->flags; a->flags = b->flags; b->flags = t.flags;
 	t.win = a->win; a->win = b->win; b->win = t.win;
 	t.m = a->m; a->m = b->m; b->m = t.m;
-	if (a->flags & TTWM_TOPSTACK) {
-		a->flags &= ~TTWM_TOPSTACK; b->flags |= TTWM_TOPSTACK;
+	if (a->flags & FLAG_TOPSTACK) {
+		a->flags &= ~FLAG_TOPSTACK; b->flags |= FLAG_TOPSTACK;
 	}
-	else if (b->flags & TTWM_TOPSTACK) {
-		b->flags &= ~TTWM_TOPSTACK; a->flags |= TTWM_TOPSTACK;
+	else if (b->flags & FLAG_TOPSTACK) {
+		b->flags &= ~FLAG_TOPSTACK; a->flags |= FLAG_TOPSTACK;
 	}
 	return 0;
 }
@@ -917,7 +917,7 @@ Client *wintoclient(Window w) {
 int xerror(Display *d, XErrorEvent *ev) {
 	char msg[1024];
 	XGetErrorText(dpy,ev->error_code,msg,sizeof(msg));
-	fprintf(stderr,"[TTWM] (%d:%d) %s\n",ev->request_code,ev->error_code,msg);
+	fprintf(stderr,"[ALOPEX] (%d:%d) %s\n",ev->request_code,ev->error_code,msg);
 	return 0;
 }
 
@@ -930,7 +930,7 @@ int main(int argc, const char **argv) {
 	scr = DefaultScreen(dpy);
 	root = DefaultRootWindow(dpy);
 	XSetErrorHandler(xerror);
-	XDefineCursor(dpy,root,XCreateFontCursor(dpy,ttwm_cursor));
+	XDefineCursor(dpy,root,XCreateFontCursor(dpy,alopex_cursor));
 	/* gc init */
 	cmap = DefaultColormap(dpy,scr);
 	XColor color;
