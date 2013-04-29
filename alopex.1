@@ -18,14 +18,26 @@ Alopex \- A Tabbed Tiling Window Manager
 .SH "SYNOPSIS"
 .sp
 xinit /usr/bin/\fBalopex\fR "/path/to/statusbar-script.sh"
-.SH "DESCRIPTION"
 .sp
+.SH "DESCRIPTION"
 Almost all configuration for \fBalopex\fR is done at compile-time\&. Customizations such as keybinds, statusbar icons, tag appearances and window rules can be achieved through two C header files\&: config\&.h and icons\&.h\&.
 .sp
 The default headers will provide simple sane defaults, but users should expect to customize the setup to their liking\&.
 .sp
+.SH "WINDOW LAYOUTS"
+\fBAlopex\fR offers three window layouts\&: rstack, bstack and monocle\&. Both stack modes divide the screen into two sections, the master region and the stack\&. Monocle keeps the screen unified in one region\&. All layouts render a tab per-client to the right of the tags and the left of the statusbar\&.
+.sp
+.RS 4
+.nf
+\fIrstack\fR    \-\-  master on left, stack on right; clients stack vertically
+\fIbstack\fR    \-\-  master on top, stack on bottom; clients stack horizontally
+\fImonocle\fR   \-\-  master region fills the screen
+.fi
+.sp
+.RE
+These three layouts are further supplemented by transient, floating and fullscreen modes\&.
+.sp
 .SH "STATUSBAR"
-.sp 
 A single argument can be passed to \fBalopex\fR to render a statusbar\&. To avoid a CPU race, \fBalopex\fR creates a simple statusbar displaying a clock\&. However, by passing a script or program that can output text (such as conky), far more complex statusbars can be used easily\&.
 .sp
 In this text output, colors and icons can be specified through simple bracketed codes\&. Color codes, when passed, will color all text (and icons) following them until another color code is encountered\&. They are called in the following manner\&:
@@ -36,7 +48,7 @@ In this text output, colors and icons can be specified through simple bracketed 
 #RRGGBB is a standard hex color-code
 .RE
 .sp
-In a similar manner (if they have been enabled in the custom config\&.h), minimalist icons may be rendered on the statusbar\&. Icons are called in the following manner\&:
+In a similar manner, minimalist icons may be rendered on the statusbar\&. Icons are called in the following manner\&:
 .sp
 .RS 4
 {i #}
@@ -44,6 +56,11 @@ In a similar manner (if they have been enabled in the custom config\&.h), minima
 # should be replaced by the number of the icon as designated by the array at the bottom of icons\&.h\&.
 .sp
 .RE
-.SH "SEE ALSO"
+.SH "MULTIHEAD SETUP"
+\fBAlopex\fR offers support for 16 external displays\&. Auto\-detection and setup of external displays is not supported, but is planned for a future release\&.
 .sp
+Along with being assigned to tags, each client is given an identifier which determines on what display the client will appear\&. Should the number applied to the client exceed the number of the highest display available, that client will appear on the highest numbered display available\&.
+.sp
+.RE
+.SH "SEE ALSO"
 \fBalopex\&.config\fR(5) \fBalopex\&.icons\fR(5)
