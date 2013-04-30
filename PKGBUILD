@@ -14,11 +14,11 @@ sha256sums=('SKIP')
 
 pkgver() {
 	cd "${_gitname}";
-	echo 1.$(git rev-list --count HEAD).$(git describe --always )
+	echo "1.$(git rev-list --count HEAD).$(git describe --always )"
 }
 
 prepare() {
-	for config in {"$HOME/.${_gitname}_","$XDG_CONFIG_HOME/${_gitname}"/}{conf,config,icons}.h; do
+	for config in {"$HOME/.${_gitname}_","$XDG_CONFIG_HOME/${_gitname}/"}{conf,config,icons,theme}.h; do
 		if [[ -f "$config" ]]; then
 			case "$config" in
 				*conf.h | *config.h)
@@ -30,6 +30,10 @@ prepare() {
 					cp "$config" "${srcdir}/${_gitname}/icons.h"
 					echo "Using icons from $config"
 					;;
+                *theme.h)
+                    cp "$config" "${srcdir}/${_gitname}/theme.h"
+                    echo "Using theme from $config"
+                    ;;
 			esac
 		fi
 	done
