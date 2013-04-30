@@ -20,9 +20,9 @@ Alopex \- A Tabbed Tiling Window Manager
 xinit /usr/bin/\fBalopex\fR "/path/to/statusbar-script.sh"
 .sp
 .SH "DESCRIPTION"
-Almost all configuration for \fBalopex\fR is done at compile-time\&. Customizations such as keybinds, statusbar icons, tag appearances and window rules can be achieved through two C header files\&: config\&.h and icons\&.h\&.
+Almost all configuration for \fBalopex\fR is done at compile-time\&. Customizations such as keybinds, statusbar icons, tag appearances and window rules can be achieved through three C header files\&: config\&.h, icons\&.h and theme\&.h\&.
 .sp
-The default headers will provide simple sane defaults, but users should expect to customize the setup to their liking\&.
+The default headers will provide simple, sane defaults, but users should expect to customize the setup to their liking\&.
 .sp
 .SH "WINDOW LAYOUTS"
 \fBAlopex\fR offers three window layouts\&: rstack, bstack and monocle\&. Both stack modes divide the screen into two sections, the master region and the stack\&. Monocle keeps the screen unified in one region\&. All layouts render a tab per-client to the right of the tags and the left of the statusbar\&.
@@ -36,6 +36,9 @@ The default headers will provide simple sane defaults, but users should expect t
 .sp
 .RE
 These three layouts are further supplemented by transient, floating and fullscreen modes\&.
+.sp
+.SH "THEMES"
+Themes for \fBalopex\fR are sets of standard \fI#RRGGBB\fR hex codes assigned to various parts of the interface\&. By default, two themes are provided called "WinterCoat" and "SummerCoat" with several others under construction\&. However, through creating a custom theme\&.h located at \fI$XDG_CONFIG_HOME/alopex/theme\&.h\fR or \fI$HOME/.alopex_theme.h\fR, creating custom themes is very simple\&.
 .sp
 .SH "STATUSBAR"
 A single argument can be passed to \fBalopex\fR to render a statusbar\&. To avoid a CPU race, \fBalopex\fR creates a simple statusbar displaying a clock\&. However, by passing a script or program that can output text (such as conky), far more complex statusbars can be used easily\&.
