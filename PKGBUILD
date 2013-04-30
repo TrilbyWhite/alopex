@@ -14,7 +14,7 @@ sha256sums=('SKIP')
 
 pkgver() {
 	cd "${_gitname}";
-	echo "1.$(git rev-list --count HEAD).$(git describe --always)"
+	echo "1.$(git rev-list --count HEAD).$(git describe --always )"
 }
 
 prepare() {
