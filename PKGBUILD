@@ -23,16 +23,16 @@ prepare() {
 			case "$config" in
 				*conf.h | *config.h)
 					cp "$config" "${srcdir}/${_gitname}/config.h"
-					echo "Using configuration from $config"
-					echo "Check the default config.h for changes"
+					msg2 "Using configuration from $config"
+					msg2 "Check the default config.h for changes"
 					;;
 				*icons.h)
 					cp "$config" "${srcdir}/${_gitname}/icons.h"
-					echo "Using icons from $config"
+					msg2 "Using icons from $config"
 					;;
 				*theme.h)
 					cp "$config" "${srcdir}/${_gitname}/theme.h"
-					echo "Using theme from $config"
+					msg2 "Using theme from $config"
 					;;
 			esac
 		fi

@@ -3,6 +3,7 @@
 static const char colors[LASTColor][9] = {
 
 #ifdef SummerCoat
+#define THEME_NAME "SummerCoat"
 	[Background]	= "#201814",
 	[Default]		= "#686858",
 	[Occupied]		= "#DDBB88",
@@ -16,8 +17,27 @@ static const char colors[LASTColor][9] = {
 	[TabDefault]	= "#686858",
 	[TabDefaultBG]	= "#181818",
 	[TagLine]		= "#FF4400",
+#endif
 
-#else /* default WinterCoat */
+#ifdef DayLight
+#define THEME_NAME "DayLight"
+	[Background]	= "#FAF0E6",
+	[Default]		= "#121212",
+	[Occupied]		= "#A04222",
+	[Selected]		= "#CD6839",
+	[Urgent]		= "#FF4222",
+	[Title]			= "#B13E0F",
+	[TabFocused]	= "#FF7216",
+	[TabFocusedBG]	= "#EEE5DE",
+	[TabTop]		= "#FF7216",
+	[TabTopBG]		= "#EEE5DE",
+	[TabDefault]	= "#A04222",
+	[TabDefaultBG]	= "#CDC5BF",
+	[TagLine]		= "#FF4400",
+#endif
+
+#ifdef WinterCoat 
+#define THEME_NAME "WinterCoat"
 	[Background]	= "#101010",
 	[Default]		= "#686868",
 	[Occupied]		= "#68A0DD",
@@ -31,7 +51,7 @@ static const char colors[LASTColor][9] = {
 	[TabDefault]	= "#686868",
 	[TabDefaultBG]	= "#181818",
 	[TagLine]		= "#2436AA",
-
 #endif
+
 };
 

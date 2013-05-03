@@ -4,7 +4,7 @@ LIBS	=	-lX11 -lXrandr
 PREFIX	?=	/usr
 MANDIR	?=	/usr/share/man
 VER		=	2.0b
-HEADERS	=	config.h icons.h
+HEADERS	=	config.h icons.h theme.h
 MOLT	?=	WinterCoat
 
 ${PROG}: ${PROG}.c ${HEADERS}

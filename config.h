@@ -6,19 +6,6 @@ static const char font[] =
 static const char *tile_modes[] =
 	{"rstack", "bstack","monocle", NULL};
 
-
-
-#define WinterCoat
-//#define SummerCoat
-/* Themes in progress: */
-//#define Daylight
-//#define Grassland
-
-/* include "theme.h" for default themes, or include your own here: */
-#include "theme.h"
-
-
-
 /* each tagcon entry defines and icon and/or a name for each tag.
    You may use any combination of entries for any tags including
    using names (pre/post) for some, icons for others, and both for
@@ -67,7 +54,13 @@ static const int	attachmode			= 0;
 static int			stackcount			= 3;
 
 #define DMENU		"dmenu_run -fn \"-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
+
+#ifdef THEME_NAME
+#define TERM		"urxvt -name " THEME_NAME
+#else
 #define TERM		"urxvt" 		/* or "urxvtc","xterm","terminator",etc */
+#endif
+
 #define CMD(app)	app "&"
 
 /* these are just examples - be sure to edit for your setup.

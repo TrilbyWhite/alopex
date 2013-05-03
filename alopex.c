@@ -144,6 +144,7 @@ static int xerror(Display *,XErrorEvent *);
 
 /* 1.3 GLOBAL VARIABLES */
 #include "icons.h"
+#include "theme.h"
 #include "config.h"
 static Display *dpy;
 static int scr;
@@ -542,7 +543,7 @@ static int apply_rules(Client *c) {
 
 static inline void draw_tab(Pixmap buf, Client *c,int *x,int tw) {
 	int col1 = (c->flags & FLAG_URG_HINT ? Urgent : (c==focused?Title:Default));
-	int col2 = (c==focused ? TabFocused :  ( ((c==c->m->master || c==c->m->stack) && 
+	int col2 = (c==focused ? TabFocused : ( ((c==c->m->master || c==c->m->stack) && 
 			!(tile_modes[ntilemode][0] == 'm')) ? TabTop : TabDefault ));
 	XPoint top_pts[6] = { {*x,barheight}, {0,2-barheight}, {2,-2},
 		{tw,0}, {2,2}, {0,barheight-2} };
@@ -551,6 +552,7 @@ static inline void draw_tab(Pixmap buf, Client *c,int *x,int tw) {
 	*x+=8;
 	XFillPolygon(dpy,buf,setcolor(col2+1),(topbar ? top_pts : bot_pts),6,
 		Convex,CoordModePrevious);
+	top_pts[0].x -=1;
 	XDrawString(dpy,buf,setcolor(col1),*x,fontheight,c->title,strlen(c->title));
 	XFillRectangle(dpy,buf,bgc,*x+tw-5,0,tw,barheight);
 	XDrawLines(dpy,buf,setcolor(col2),(topbar?top_pts:bot_pts),
