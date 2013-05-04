@@ -87,7 +87,7 @@ struct Client {
 	Window win, parent;
 	Client *next;
 	int x,y,w,h;
-	int tags, flags;
+	unsigned int tags, flags;
 	char *title;
 	Monitor *m;
 };
@@ -162,7 +162,8 @@ static int mouseMode = MOff, ntilemode = 0;
 static Client *clients = NULL, *focused = NULL, *nextwin, *prevwin, *altwin;
 static FILE *inpipe;
 static const char *noname_window = "(UNNAMED)";
-static int tagsUrg = 0, tagsSel = 1, maxTiled = 1, RREvent, RRError;
+static unsigned int tagsUrg = 0, tagsSel = 1, tagsOcc = 0, maxTiled = 1;
+static int RREvent, RRError;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]		= buttonpress,
 	[ButtonRelease]		= buttonrelease,
@@ -274,10 +275,9 @@ void maprequest(XEvent *ev) {
 	c->w = wa.width; c->h = wa.height;
 	if (c->x < 0) c->x = 0; if (c->y < 0) c->y = 0;
 	c->x = (c->m->w - c->w)/2; c->y = (c->m->h - c->h)/2;
-	c->tags = (	(tagsSel & 0xFFFF) ? tagsSel : (tagsSel |= 1) ) & 0xFFFF;
+	//tagsSel |= c->tags = ((tagsSel & 0xFFFF) ? tagsSel : 1);
 	apply_rules(c);
-	if (c->tags == 0)
-		c->tags = (	(tagsSel & 0xFFFF) ? tagsSel : (tagsSel |= 1) ) & 0xFFFF;
+	tagsSel |= c->tags = (tagsSel & 0xFFFF ? tagsSel : ~tagsOcc & (tagsOcc + 1));
 	if (c->tags == 0) c->tags = 1;
 	if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= FLAG_FULLSCREEN;
 	if (XGetTransientForHint(dpy,c->win,&c->parent))
@@ -580,7 +580,7 @@ static void draw_tabs(Pixmap buf, int x, int w, int mid, Monitor *m) {
 }
 
 int draw() {
-	tagsUrg &= ~tagsSel; int tagsOcc = 0; Monitor *m;
+	tagsUrg &= ~tagsSel; tagsOcc = 0; Monitor *m;
 	/* windows */
 	Client *stack = clients;
 	for (m = mons; m; m = m->next) m->master = m->stack = NULL;
