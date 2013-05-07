@@ -203,6 +203,7 @@ void buttonpress(XEvent *ev) {
 void buttonrelease(XEvent *ev) {
 	XUngrabPointer(dpy, CurrentTime);
 	mouseMode = MOff;
+	tile(tile_modes[ntilemode]);
 }
 
 void configurenotify(XEvent *ev) {
