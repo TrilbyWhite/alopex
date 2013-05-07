@@ -276,8 +276,8 @@ void maprequest(XEvent *ev) {
 	if (c->x < 0) c->x = 0; if (c->y < 0) c->y = 0;
 	c->x = (c->m->w - c->w)/2; c->y = (c->m->h - c->h)/2;
 	//tagsSel |= c->tags = ((tagsSel & 0xFFFF) ? tagsSel : 1);
-	apply_rules(c);
 	tagsSel |= c->tags = (tagsSel & 0xFFFF ? tagsSel &0xFFFF : ~tagsOcc & (tagsOcc + 1));
+	apply_rules(c);
 	if (c->tags == 0) c->tags = 1;
 	if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= FLAG_FULLSCREEN;
 	if (XGetTransientForHint(dpy,c->win,&c->parent))
