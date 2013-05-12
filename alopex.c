@@ -276,8 +276,8 @@ void maprequest(XEvent *ev) {
 	c->w = wa.width; c->h = wa.height;
 	if (c->x < 0) c->x = 0; if (c->y < 0) c->y = 0;
 	c->x = (c->m->w - c->w)/2; c->y = (c->m->h - c->h)/2;
-	//tagsSel |= c->tags = ((tagsSel & 0xFFFF) ? tagsSel : 1);
-	tagsSel |= c->tags = (tagsSel & 0xFFFF ? tagsSel &0xFFFF : ~tagsOcc & (tagsOcc + 1));
+	tagsSel |= c->tags = (tagsSel & 0xFFFF ? tagsSel &0xFFFF :
+			~tagsOcc & (tagsOcc + 1));
 	apply_rules(c);
 	if (c->tags == 0) c->tags = 1;
 	if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= FLAG_FULLSCREEN;
@@ -534,7 +534,7 @@ static int apply_rules(Client *c) {
 		if (rc && hc && !strncmp(rc,hc,strlen(rc))) m++;
 		if (rn && hn && !strncmp(rn,hn,strlen(rn))) m++;
 		if ( (m && !(rc && rn)) || (m == 2) ) {
-			if (rules[i].tags >= 0) c->tags = rules[i].tags;
+			if (rules[i].tags > 0) c->tags = rules[i].tags;
 			c->flags |= rules[i].flags;
 		}
 	}
