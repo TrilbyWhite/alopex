@@ -216,9 +216,13 @@ void configurenotify(XEvent *ev) {
 void configurerequest(XEvent *ev) {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	Client *c;
-	if ( (c=wintoclient(e->window)) && (e->width==c->m->w) &&
-			(e->height==c->m->h) ) {
-		c->flags |= FLAG_FULLSCREEN;
+	if ( (c=wintoclient(e->window)) ) {
+		if ( (e->value_mask & CWWidth) && (e->value_mask & CWHeight) ) {
+			if ( (e->width==c->m->w) && (e->height==c->m->h) )
+				c->flags |= FLAG_FULLSCREEN;
+			else 
+				c->flags &= ~FLAG_FULLSCREEN;
+		}
 		draw();
 		return;
 	}
