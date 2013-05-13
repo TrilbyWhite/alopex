@@ -282,7 +282,7 @@ void maprequest(XEvent *ev) {
 	c->x = (c->m->w - c->w)/2; c->y = (c->m->h - c->h)/2;
 	c->tags = (tagsSel & 0xFFFF ? tagsSel &0xFFFF : ~tagsOcc & (tagsOcc + 1));
 	apply_rules(c);
-	tagsSel |= c->tags;
+	if ( !(tagsSel & 0xFFFF) ) tagsSel |= c->tags;
 	if (c->tags == 0) c->tags = 1;
 	if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= FLAG_FULLSCREEN;
 	if (XGetTransientForHint(dpy,c->win,&c->parent))
@@ -307,7 +307,7 @@ void maprequest(XEvent *ev) {
 	}
 	XSetWindowBorderWidth(dpy,c->win,borderwidth);
 	XRaiseWindow(dpy,c->win);
-	focused = c;
+	if (c->tags & tagsSel) focused = c;
 	if (!(c->flags & FLAG_FLOATING)) tile(tile_modes[ntilemode]);
 	draw();
 	XMapWindow(dpy,c->win);
