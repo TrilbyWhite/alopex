@@ -322,9 +322,11 @@ void motionnotify(XEvent *ev) {
 	xdiff = e->x_root - mouseEvent.x_root;
 	ydiff = e->y_root - mouseEvent.y_root;
 	if (mouseMode == MMove) {
+		XDefineCursor(dpy,focused->win,XCreateFontCursor(dpy,XC_fleur));
 		focused->x+=xdiff; focused->y+=ydiff; draw();
 	}
 	else if (mouseMode == MResize) {
+		XDefineCursor(dpy,focused->win,XCreateFontCursor(dpy,XC_sizing));
 		focused->w+=xdiff; focused->h+=ydiff; draw();
 	}
 	focused->flags |= FLAG_FLOATING;
