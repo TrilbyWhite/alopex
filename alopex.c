@@ -220,8 +220,9 @@ void configurerequest(XEvent *ev) {
 		if ( (e->value_mask & CWWidth) && (e->value_mask & CWHeight) ) {
 			if ( (e->width==c->m->w) && (e->height==c->m->h) )
 				c->flags |= FLAG_FULLSCREEN;
-			else 
+			else
 				c->flags &= ~FLAG_FULLSCREEN;
+			c->x = e->x; c->y = e->y; c->w = e->width; c->h = e->height;
 		}
 		draw();
 		return;
