@@ -306,10 +306,11 @@ void maprequest(XEvent *ev) {
 		c->next = clients; clients = c;
 	}
 	XSetWindowBorderWidth(dpy,c->win,borderwidth);
-	XMapWindow(dpy,c->win);
 	XRaiseWindow(dpy,c->win);
 	focused = c;
 	if (!(c->flags & FLAG_FLOATING)) tile(tile_modes[ntilemode]);
+	draw();
+	XMapWindow(dpy,c->win);
 	draw();
 }
 
