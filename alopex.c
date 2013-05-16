@@ -87,7 +87,7 @@ struct Client {
 	Window win, parent;
 	Client *next;
 	int x,y,w,h;
-	int tags, flags;
+	unsigned int tags, flags;
 	char *title;
 	Monitor *m;
 };
@@ -162,7 +162,8 @@ static int mouseMode = MOff, ntilemode = 0;
 static Client *clients = NULL, *focused = NULL, *nextwin, *prevwin, *altwin;
 static FILE *inpipe;
 static const char *noname_window = "(UNNAMED)";
-static int tagsUrg = 0, tagsSel = 1, maxTiled = 1, RREvent, RRError;
+static unsigned int tagsUrg = 0, tagsSel = 1, tagsOcc = 0, maxTiled = 1;
+static int RREvent, RRError;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]		= buttonpress,
 	[ButtonRelease]		= buttonrelease,
@@ -202,6 +203,7 @@ void buttonpress(XEvent *ev) {
 void buttonrelease(XEvent *ev) {
 	XUngrabPointer(dpy, CurrentTime);
 	mouseMode = MOff;
+	tile(tile_modes[ntilemode]);
 }
 
 void configurenotify(XEvent *ev) {
@@ -214,9 +216,14 @@ void configurenotify(XEvent *ev) {
 void configurerequest(XEvent *ev) {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	Client *c;
-	if ( (c=wintoclient(e->window)) && (e->width==c->m->w) &&
-			(e->height==c->m->h) ) {
-		c->flags |= FLAG_FULLSCREEN;
+	if ( (c=wintoclient(e->window)) ) {
+		if ( (e->value_mask & CWWidth) && (e->value_mask & CWHeight) ) {
+			if ( (e->width==c->m->w) && (e->height==c->m->h) )
+				c->flags |= FLAG_FULLSCREEN;
+			else
+				c->flags &= ~FLAG_FULLSCREEN;
+			c->x = e->x; c->y = e->y; c->w = e->width; c->h = e->height;
+		}
 		draw();
 		return;
 	}
@@ -274,10 +281,9 @@ void maprequest(XEvent *ev) {
 	c->w = wa.width; c->h = wa.height;
 	if (c->x < 0) c->x = 0; if (c->y < 0) c->y = 0;
 	c->x = (c->m->w - c->w)/2; c->y = (c->m->h - c->h)/2;
-	c->tags = (	(tagsSel & 0xFFFF) ? tagsSel : (tagsSel |= 1) ) & 0xFFFF;
+	c->tags = (tagsSel & 0xFFFF ? tagsSel &0xFFFF : ~tagsOcc & (tagsOcc + 1));
 	apply_rules(c);
-	if (c->tags == 0)
-		c->tags = (	(tagsSel & 0xFFFF) ? tagsSel : (tagsSel |= 1) ) & 0xFFFF;
+	if ( !(tagsSel & 0xFFFF) ) tagsSel |= c->tags;
 	if (c->tags == 0) c->tags = 1;
 	if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= FLAG_FULLSCREEN;
 	if (XGetTransientForHint(dpy,c->win,&c->parent))
@@ -301,10 +307,11 @@ void maprequest(XEvent *ev) {
 		c->next = clients; clients = c;
 	}
 	XSetWindowBorderWidth(dpy,c->win,borderwidth);
-	XMapWindow(dpy,c->win);
 	XRaiseWindow(dpy,c->win);
-	focused = c;
+	if (c->tags & tagsSel) focused = c;
 	if (!(c->flags & FLAG_FLOATING)) tile(tile_modes[ntilemode]);
+	draw();
+	XMapWindow(dpy,c->win);
 	draw();
 }
 
@@ -315,9 +322,11 @@ void motionnotify(XEvent *ev) {
 	xdiff = e->x_root - mouseEvent.x_root;
 	ydiff = e->y_root - mouseEvent.y_root;
 	if (mouseMode == MMove) {
+		XDefineCursor(dpy,focused->win,XCreateFontCursor(dpy,XC_fleur));
 		focused->x+=xdiff; focused->y+=ydiff; draw();
 	}
 	else if (mouseMode == MResize) {
+		XDefineCursor(dpy,focused->win,XCreateFontCursor(dpy,XC_sizing));
 		focused->w+=xdiff; focused->h+=ydiff; draw();
 	}
 	focused->flags |= FLAG_FLOATING;
@@ -533,7 +542,7 @@ static int apply_rules(Client *c) {
 		if (rc && hc && !strncmp(rc,hc,strlen(rc))) m++;
 		if (rn && hn && !strncmp(rn,hn,strlen(rn))) m++;
 		if ( (m && !(rc && rn)) || (m == 2) ) {
-			if (rules[i].tags >= 0) c->tags = rules[i].tags;
+			if (rules[i].tags > 0) c->tags = rules[i].tags;
 			c->flags |= rules[i].flags;
 		}
 	}
@@ -580,7 +589,7 @@ static void draw_tabs(Pixmap buf, int x, int w, int mid, Monitor *m) {
 }
 
 int draw() {
-	tagsUrg &= ~tagsSel; int tagsOcc = 0; Monitor *m;
+	tagsUrg &= ~tagsSel; tagsOcc = 0; Monitor *m;
 	/* windows */
 	Client *stack = clients;
 	for (m = mons; m; m = m->next) m->master = m->stack = NULL;
