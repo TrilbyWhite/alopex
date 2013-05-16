@@ -222,7 +222,7 @@ mouse
 .RS 4
 Defines window management rules\&. This array is made up of four comma\-separated components\&: the name, the class, tags and flags\&.
 .sp
-The name and class refer to X11's values \fIWM_NAME\fR and \fIWM_CLASS\fR\&. To determine their values, see \fBxprop\fR(1)\&. Either name or class may be replaced by NULL to ignore their values\&. If both are specified, then the rule will only be applied in cases where both values match\&.
+The name and class refer to X11's values of \fBresource name\fR and \fBresource class\fR from \fIWM_CLASS\fR\&. To determine their values, see \fBxprop\fR(1)\&. Either name or class may be replaced by NULL to ignore their values\&. If both are specified, then the rule will only be applied in cases where both values match\&.
 .sp
 The tags allow the user to specify windows which match the name and class conditions to be automatically assigned given tags\&.
 .sp
