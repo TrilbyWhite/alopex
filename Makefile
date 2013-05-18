@@ -3,7 +3,7 @@ PROG	=	alopex
 LIBS	=	-lX11 -lXrandr
 PREFIX	?=	/usr
 MANDIR	?=	/usr/share/man
-VER		=	2.0b
+VER		=	2.0
 HEADERS	=	config.h icons.h theme.h
 MOLT	?=	WinterCoat
 

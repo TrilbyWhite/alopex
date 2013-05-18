@@ -1,7 +1,7 @@
 # Maintainer: Jesse McClure AKA "Trilby" <jmcclure [at] cns [dot] umass [dot] edu>
 _gitname="alopex"
 pkgname="${_gitname}-git"
-pkgver=1.229.e61ed7a
+pkgver=2.229.e61ed7a
 pkgrel=1
 pkgdesc="A Tiny, Tabbed, Tiling Window Manager with Fur"
 url="http://github.com/TrilbyWhite/${pkgname//-/.}"
@@ -14,7 +14,7 @@ sha256sums=('SKIP')
 
 pkgver() {
 	cd "${_gitname}";
-	echo "1.$(git rev-list --count HEAD).$(git describe --always )"
+	echo "2.$(git rev-list --count HEAD).$(git describe --always )"
 }
 
 prepare() {
