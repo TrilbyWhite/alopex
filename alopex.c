@@ -220,8 +220,9 @@ void configurerequest(XEvent *ev) {
 		if ( (e->value_mask & CWWidth) && (e->value_mask & CWHeight) ) {
 			if ( (e->width==c->m->w) && (e->height==c->m->h) )
 				c->flags |= FLAG_FULLSCREEN;
-			else 
+			else
 				c->flags &= ~FLAG_FULLSCREEN;
+			c->x = e->x; c->y = e->y; c->w = e->width; c->h = e->height;
 		}
 		draw();
 		return;
@@ -280,9 +281,9 @@ void maprequest(XEvent *ev) {
 	c->w = wa.width; c->h = wa.height;
 	if (c->x < 0) c->x = 0; if (c->y < 0) c->y = 0;
 	c->x = (c->m->w - c->w)/2; c->y = (c->m->h - c->h)/2;
-	tagsSel |= c->tags = (tagsSel & 0xFFFF ? tagsSel &0xFFFF :
-			~tagsOcc & (tagsOcc + 1));
+	c->tags = (tagsSel & 0xFFFF ? tagsSel &0xFFFF : ~tagsOcc & (tagsOcc + 1));
 	apply_rules(c);
+	if ( !(tagsSel & 0xFFFF) ) tagsSel |= c->tags;
 	if (c->tags == 0) c->tags = 1;
 	if ( (c->w==c->m->w) && (c->h==c->m->h) ) c->flags |= FLAG_FULLSCREEN;
 	if (XGetTransientForHint(dpy,c->win,&c->parent))
@@ -307,7 +308,7 @@ void maprequest(XEvent *ev) {
 	}
 	XSetWindowBorderWidth(dpy,c->win,borderwidth);
 	XRaiseWindow(dpy,c->win);
-	focused = c;
+	if (c->tags & tagsSel) focused = c;
 	if (!(c->flags & FLAG_FLOATING)) tile(tile_modes[ntilemode]);
 	draw();
 	XMapWindow(dpy,c->win);
@@ -321,9 +322,11 @@ void motionnotify(XEvent *ev) {
 	xdiff = e->x_root - mouseEvent.x_root;
 	ydiff = e->y_root - mouseEvent.y_root;
 	if (mouseMode == MMove) {
+		XDefineCursor(dpy,focused->win,XCreateFontCursor(dpy,XC_fleur));
 		focused->x+=xdiff; focused->y+=ydiff; draw();
 	}
 	else if (mouseMode == MResize) {
+		XDefineCursor(dpy,focused->win,XCreateFontCursor(dpy,XC_sizing));
 		focused->w+=xdiff; focused->h+=ydiff; draw();
 	}
 	focused->flags |= FLAG_FLOATING;
