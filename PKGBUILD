@@ -4,12 +4,12 @@ pkgname="${_gitname}-git"
 pkgver=2.229.e61ed7a
 pkgrel=1
 pkgdesc="A Tiny, Tabbed, Tiling Window Manager with Fur"
-url="http://github.com/TrilbyWhite/${pkgname//-/.}"
+url="http://trilbywhite.github.io/alopex/"
 arch=('any')
 license=('GPLv3')
 depends=('libx11' 'libxrandr')
 makedepends=('git')
-source=("${_gitname}::git://github.com/TrilbyWhite/${pkgname//-/.}")
+source=("${_gitname}::git://github.com/TrilbyWhite/alopex.git")
 sha256sums=('SKIP')
 
 pkgver() {
