@@ -430,7 +430,7 @@ void tile_conf(const char *arg) {
 	else if (arg[0] == 'a') stackcount = maxTiled;
 	else if (arg[0] == 'o') stackcount = 1;
 	if (stackcount < 1) stackcount = 1;
-	else if (stackcount > maxTiled) stackcount = maxTiled;
+	else if (stackcount >= maxTiled) stackcount = maxTiled - 1;
 	if (tilebias > min_len/2 - win_min) tilebias = min_len/2 - win_min;
 	else if (tilebias < win_min - min_len/2) tilebias = win_min - min_len/2;
 	tile(tile_modes[ntilemode]);
