@@ -537,8 +537,7 @@ void windowlist(const char *arg) {
 	}
 	fclose(wl);
 	if ( (wl=popen(arg,"r")) ) {
-		if (fscanf(wl,"%p",&c)) {
-			printf("%p\n",c);
+		if (fscanf(wl,"%p",&c)==1) {
 			focused = c;
 			if (!(c->tags & tagsSel)) c->tags |= tagsSel;
 			draw();
