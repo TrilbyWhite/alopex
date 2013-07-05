@@ -89,6 +89,7 @@ static Key keys[] = {
 	{ MOD1|MOD4,		XK_q,		quit,		NULL			},
 	{ MOD2,				XK_F4,		killclient,	NULL			},
 	{ MOD1,				XK_f,		fullscreen,	NULL			},
+	{ MOD1,				XK_Menu,	windowlist,	"interrobang alopex"},
 	{ MOD1|MOD2,		XK_f,		toggle,		"floating"		},
 	{ MOD1,				XK_x,		toggle,		"place bar"		},
 	{ MOD1,				XK_a,		toggle,		"visible bar"	},

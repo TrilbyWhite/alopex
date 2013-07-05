@@ -126,6 +126,7 @@ static void tile_conf(const char *);
 static void tile(const char *);
 static void toggle(const char *);
 static void window(const char *);
+static void windowlist(const char *);
 
 /* 1.2 ALOPEX INTERNAL PROTOTYPES */
 static inline Bool tile_check(Client *, Monitor *);
@@ -524,6 +525,26 @@ void window(const char *arg) {
 	else if (arg[0] == 's') { swap(focused, t); focused = t; }
 	XRaiseWindow(dpy,focused->win);
 	draw();
+}
+
+void windowlist(const char *arg) {
+	Client *c;
+	const char *wlname = "/tmp/alopex_windows";
+	FILE *wl = fopen(wlname,"w");
+	for (c = clients; c; c = c->next) {
+		fprintf(wl,"%p %s\n",c,c->title);
+		printf("%p %s\n",c,c->title);
+	}
+	fclose(wl);
+	if ( (wl=popen(arg,"r")) ) {
+		if (fscanf(wl,"%p",&c)) {
+			printf("%p\n",c);
+			focused = c;
+			if (!(c->tags & tagsSel)) c->tags |= tagsSel;
+			draw();
+		}
+		pclose(wl);
+	}
 }
 
 /* 2.2 WM INTERNAL FUNCTIONS */
