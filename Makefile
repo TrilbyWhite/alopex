@@ -1,4 +1,3 @@
-CFLAGS	+=	-Os -Wall -Wno-unused-parameter -Wno-unused-result
 PROG	=	alopex
 LIBS	=	-lX11 -lXrandr
 PREFIX	?=	/usr
