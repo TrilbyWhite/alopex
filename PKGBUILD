@@ -1,7 +1,7 @@
 # Maintainer: Jesse McClure AKA "Trilby" <jmcclure [at] cns [dot] umass [dot] edu>
 _gitname="alopex"
 pkgname="${_gitname}-git"
-pkgver=2.229.e61ed7a
+pkgver=2.291.1763f16
 pkgrel=1
 pkgdesc="A Tiny, Tabbed, Tiling Window Manager with Fur"
 url="http://trilbywhite.github.io/alopex/"
@@ -21,7 +21,7 @@ prepare() {
 	_dir="$HOME/.config/alopex"
 	[[ -n "$XDG_CONFIG_HOME" ]] && _dir="$XDG_CONFIG_HOME/alopex"
 	if [[ -d "$_dir" ]]; then
-		for _file in config.h icons.h theme.h; do
+		for _file in {config,icons,theme}.h; do
 			if [[ -a "${_dir}/${_file}" ]]; then
 				cp "${_dir}/${_file}" "${srcdir}/${_gitname}/${_file}"
 				msg2 "Using ${_file%.h} from $_dir/$_file"
