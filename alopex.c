@@ -642,13 +642,13 @@ int draw() {
 		if ( (focused != focused->m->master) && !(focused->flags & FLAG_FLOATING) )
 			focused->m->stack = focused;
 		if ( (focused->flags & FLAG_FOC_HINT) > 1) {
-XEvent ev;
-ev.type = ClientMessage; ev.xclient.window = focused->win;
-ev.xclient.message_type = XInternAtom(dpy,"WM_PROTOCOLS",True);
-ev.xclient.format = 32;
-ev.xclient.data.l[0] = XInternAtom(dpy,"WM_TAKE_FOCUS",True);
-ev.xclient.data.l[1] = CurrentTime;
-XSendEvent(dpy,focused->win,False,NoEventMask,&ev);
+			XEvent ev;
+			ev.type = ClientMessage; ev.xclient.window = focused->win;
+			ev.xclient.message_type = XInternAtom(dpy,"WM_PROTOCOLS",True);
+			ev.xclient.format = 32;
+			ev.xclient.data.l[0] = XInternAtom(dpy,"WM_TAKE_FOCUS",True);
+			ev.xclient.data.l[1] = CurrentTime;
+			XSendEvent(dpy,focused->win,False,NoEventMask,&ev);
 		}
 		else {
 			XSetInputFocus(dpy,focused->win,RevertToPointerRoot,CurrentTime);
@@ -668,39 +668,38 @@ XSendEvent(dpy,focused->win,False,NoEventMask,&ev);
 		col = (tagsUrg & (1<<i) ? Urgent :
 			(tagsOcc & (1<<i) ? Occupied : Default));
 		if (focused && focused->tags & (1<<i)) col = Selected;
-
-w = 0;
-if (tagcons[i].pre) {
-	XDrawString(dpy,m->buf,setcolor(col),x,fontheight,
-			tagcons[i].pre,strlen(tagcons[i].pre));
-	w += XTextWidth(fontstruct,tagcons[i].pre,strlen(tagcons[i].pre));
-}
-if (tagcons[i].icon > -1) {
-XFillRectangle(dpy,iconbuf,bgc,0,0,iconwidth,iconheight);
-XDrawPoints(dpy,iconbuf,setcolor(col),icons[tagcons[i].icon].pts,icons[tagcons[i].icon].n,
-		CoordModeOrigin);
-XCopyArea(dpy,iconbuf,m->buf,gc,0,0,iconwidth,iconheight,
-		x+w,(barheight-iconheight)/2);
-w += iconwidth;
-}
-if (tagcons[i].post) {
-		w += 2;
-		XDrawString(dpy,m->buf,setcolor(col),x+w,fontheight,
-			tagcons[i].post,strlen(tagcons[i].post));
-		w += XTextWidth(fontstruct,tagcons[i].post,strlen(tagcons[i].post));
-}
-setcolor(TagLine);
-if (tagsSel & (1<<i)) {
-	XDrawLine(dpy,m->buf,gc,x-2,barheight-1,x+w+2,barheight-1);
-	XDrawPoint(dpy,m->buf,gc,x-2,barheight-2);
-	XDrawPoint(dpy,m->buf,gc,x+w+2,barheight-2);
-}
-if (tagsAlt & (1<<i)) {
-	XDrawLine(dpy,m->buf,gc,x-2,0,x+w+2,0);
-	XDrawPoint(dpy,m->buf,gc,x-2,1);
-	XDrawPoint(dpy,m->buf,gc,x+w+2,1);
-}
-x+=w+5;
+			w = 0;
+			if (tagcons[i].pre) {
+				XDrawString(dpy,m->buf,setcolor(col),x,fontheight,
+						tagcons[i].pre,strlen(tagcons[i].pre));
+				w += XTextWidth(fontstruct,tagcons[i].pre,strlen(tagcons[i].pre));
+			}
+			if (tagcons[i].icon > -1) {
+			XFillRectangle(dpy,iconbuf,bgc,0,0,iconwidth,iconheight);
+			XDrawPoints(dpy,iconbuf,setcolor(col),icons[tagcons[i].icon].pts,
+					icons[tagcons[i].icon].n,CoordModeOrigin);
+			XCopyArea(dpy,iconbuf,m->buf,gc,0,0,iconwidth,iconheight,
+					x+w,(barheight-iconheight)/2);
+			w += iconwidth;
+			}
+			if (tagcons[i].post) {
+					w += 2;
+					XDrawString(dpy,m->buf,setcolor(col),x+w,fontheight,
+						tagcons[i].post,strlen(tagcons[i].post));
+					w += XTextWidth(fontstruct,tagcons[i].post,strlen(tagcons[i].post));
+			}
+			setcolor(TagLine);
+			if (tagsSel & (1<<i)) {
+				XDrawLine(dpy,m->buf,gc,x-2,barheight-1,x+w+2,barheight-1);
+				XDrawPoint(dpy,m->buf,gc,x-2,barheight-2);
+				XDrawPoint(dpy,m->buf,gc,x+w+2,barheight-2);
+			}
+			if (tagsAlt & (1<<i)) {
+				XDrawLine(dpy,m->buf,gc,x-2,0,x+w+2,0);
+				XDrawPoint(dpy,m->buf,gc,x-2,1);
+				XDrawPoint(dpy,m->buf,gc,x+w+2,1);
+			}
+			x+=w+5;
 	}
 	if ( (x+=5) < tagspace ) x = tagspace; /* add padding */
 	/* titles / tabs */
