@@ -300,6 +300,10 @@ if (n && *list) {
 c->title = strdup(*list);
 XFreeStringList(list);
 }
+else {
+if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
+else c->title = strdup(noname_window);
+}
 //	if (!XFetchName(dpy,c->win,&c->title) || c->title == NULL) {
 //		if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
 //		else c->title = strdup(noname_window);
@@ -349,10 +353,21 @@ void propertynotify(XEvent *ev) {
 	if (!(c=wintoclient(e->window)) ) return;
 	if (e->atom == XA_WM_NAME) {
 		XFree(c->title); c->title = NULL;
-		if (!XFetchName(dpy,c->win,&c->title) || c->title == NULL) {
-			if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
-			else c->title = strdup(noname_window);
-		}
+XTextProperty name; char **list = NULL; int n;
+XGetTextProperty(dpy,c->win,&name,XA_WM_NAME);
+XmbTextPropertyToTextList(dpy,&name,&list,&n);
+if (n && *list) {
+c->title = strdup(*list);
+XFreeStringList(list);
+}
+else {
+if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
+else c->title = strdup(noname_window);
+}
+//		if (!XFetchName(dpy,c->win,&c->title) || c->title == NULL) {
+//			if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
+//			else c->title = strdup(noname_window);
+//		}
 	}
 	else if (e->atom == XA_WM_HINTS) get_hints(c);
 	else if (e->atom == XA_WM_CLASS) apply_rules(c);
