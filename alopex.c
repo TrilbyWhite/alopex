@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <locale.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
@@ -154,10 +155,11 @@ static Pixmap sbar, iconbuf;
 static GC gc,bgc;
 static Colormap cmap;
 static XColor color;
-static XFontStruct *fontstruct;
+//static XFontStruct *fontstruct;
 static XButtonEvent mouseEvent;
 static Monitor *mons = NULL;
 static Bool running = True;
+static XFontSet xfs;
 static int fontheight, barheight, statuswidth = 0, min_len = 2048;
 static int mouseMode = MOff, ntilemode = 0;
 static Client *clients = NULL, *focused = NULL, *nextwin, *prevwin, *altwin;
@@ -291,10 +293,17 @@ void maprequest(XEvent *ev) {
 		c->flags |= FLAG_TRANSIENT;
 	else
 		c->parent = e->parent;
-	if (!XFetchName(dpy,c->win,&c->title) || c->title == NULL) {
-		if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
-		else c->title = strdup(noname_window);
-	}
+XTextProperty name; char **list = NULL; int n;
+XGetTextProperty(dpy,c->win,&name,XA_WM_NAME);
+XmbTextPropertyToTextList(dpy,&name,&list,&n);
+if (n && *list) {
+c->title = strdup(*list);
+XFreeStringList(list);
+}
+//	if (!XFetchName(dpy,c->win,&c->title) || c->title == NULL) {
+//		if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
+//		else c->title = strdup(noname_window);
+//	}
 	get_hints(c);
 	XSelectInput(dpy,c->win,PropertyChangeMask | EnterWindowMask);
 	if (clients && attachmode == 1) {
@@ -582,7 +591,8 @@ static inline void draw_tab(Pixmap buf, Client *c,int *x,int tw) {
 	XFillPolygon(dpy,buf,setcolor(col2+1),(topbar ? top_pts : bot_pts),6,
 		Convex,CoordModePrevious);
 	top_pts[0].x -=1;
-	XDrawString(dpy,buf,setcolor(col1),*x,fontheight,c->title,strlen(c->title));
+XmbDrawString(dpy,buf,xfs,setcolor(col1),*x,fontheight,c->title,strlen(c->title));
+//	XDrawString(dpy,buf,setcolor(col1),*x,fontheight,c->title,strlen(c->title));
 	XFillRectangle(dpy,buf,bgc,*x+tw-5,0,tw,barheight);
 	XDrawLines(dpy,buf,setcolor(col2),(topbar?top_pts:bot_pts),
 			6,CoordModePrevious);
@@ -670,9 +680,12 @@ int draw() {
 		if (focused && focused->tags & (1<<i)) col = Selected;
 			w = 0;
 			if (tagcons[i].pre) {
-				XDrawString(dpy,m->buf,setcolor(col),x,fontheight,
-						tagcons[i].pre,strlen(tagcons[i].pre));
-				w += XTextWidth(fontstruct,tagcons[i].pre,strlen(tagcons[i].pre));
+XmbDrawString(dpy,m->buf,xfs,setcolor(col),x,fontheight,
+tagcons[i].pre,strlen(tagcons[i].pre));
+w += XmbTextEscapement(xfs,tagcons[i].pre,strlen(tagcons[i].pre));
+//				XDrawString(dpy,m->buf,setcolor(col),x,fontheight,
+//						tagcons[i].pre,strlen(tagcons[i].pre));
+//				w += XTextWidth(fontstruct,tagcons[i].pre,strlen(tagcons[i].pre));
 			}
 			if (tagcons[i].icon > -1) {
 			XFillRectangle(dpy,iconbuf,bgc,0,0,iconwidth,iconheight);
@@ -684,9 +697,12 @@ int draw() {
 			}
 			if (tagcons[i].post) {
 					w += 2;
-					XDrawString(dpy,m->buf,setcolor(col),x+w,fontheight,
-						tagcons[i].post,strlen(tagcons[i].post));
-					w += XTextWidth(fontstruct,tagcons[i].post,strlen(tagcons[i].post));
+XmbDrawString(dpy,m->buf,xfs,setcolor(col),x+w,fontheight,
+tagcons[i].post,strlen(tagcons[i].post));
+w += XmbTextEscapement(xfs,tagcons[i].post,strlen(tagcons[i].post));
+//					XDrawString(dpy,m->buf,setcolor(col),x+w,fontheight,
+//						tagcons[i].post,strlen(tagcons[i].post));
+//					w += XTextWidth(fontstruct,tagcons[i].post,strlen(tagcons[i].post));
 			}
 			setcolor(TagLine);
 			if (tagsSel & (1<<i)) {
@@ -842,8 +858,10 @@ int status(char *msg) {
 		else {
 			if ( (t=strchr(c,'{'))==NULL) t = strchr(c,'\n');
 			if ( (l = (t == NULL ? 0 : t - c) ) ) {
-				XDrawString(dpy,sbar,gc,statuswidth,fontheight,c,l);
-				statuswidth += XTextWidth(fontstruct,c,l);
+XmbDrawString(dpy,sbar,xfs,gc,statuswidth,fontheight,c,l);
+statuswidth += XmbTextEscapement(xfs,c,l);
+//				XDrawString(dpy,sbar,gc,statuswidth,fontheight,c,l);
+//				statuswidth += XTextWidth(fontstruct,c,l);
 			}
 			c+=l;
 		}
@@ -955,8 +973,10 @@ int main(int argc, const char **argv) {
 	if (argc > 1) inpipe = popen(argv[1] ,"r");
 	else inpipe = popen("while :; do date \"+%I:%M %p\"; sleep 10; done","r");
 	/* init X */
-	if (!(dpy=XOpenDisplay(0x0))) return 1;
-	if (!(XRRQueryExtension(dpy,&RREvent,&RRError))) return 2;
+	if (!(setlocale(LC_CTYPE,"") && XSupportsLocale())) return 1;
+	if (!XSetLocaleModifiers("")) return 2;
+	if (!(dpy=XOpenDisplay(0x0))) return 3;
+	if (!(XRRQueryExtension(dpy,&RREvent,&RRError))) return 4;
 	scr = DefaultScreen(dpy);
 	root = DefaultRootWindow(dpy);
 	XSetErrorHandler(xerror);
@@ -965,11 +985,19 @@ int main(int argc, const char **argv) {
 	cmap = DefaultColormap(dpy,scr);
 	XColor color;
 	XGCValues val;
-	val.font = XLoadFont(dpy,font);
-	fontstruct = XQueryFont(dpy,val.font);
-	fontheight = fontstruct->ascent+1;
-	barheight = fontstruct->ascent+fontstruct->descent+2;
-	gc = XCreateGC(dpy,root,GCFont,&val);
+char **missing, **names, *def; int nmiss;
+xfs = XCreateFontSet(dpy,font,&missing,&nmiss,&def);
+if (!xfs) return 5;
+XFontStruct **fss;
+XFontsOfFontSet(xfs,&fss,&names);
+if (missing) XFreeStringList(missing);
+fontheight = fss[0]->ascent;
+barheight = fss[0]->ascent+fss[0]->descent+2;
+//	val.font = XLoadFont(dpy,font);
+//	fontstruct = XQueryFont(dpy,val.font);
+//	fontheight = fontstruct->ascent+1;
+//	barheight = fontstruct->ascent+fontstruct->descent+2;
+	gc = XCreateGC(dpy,root,0,&val);
 	bgc = DefaultGC(dpy,scr);
 	XAllocNamedColor(dpy,cmap,colors[Background],&color,&color);
 	XSetForeground(dpy,bgc,color.pixel);
@@ -1032,7 +1060,8 @@ int main(int argc, const char **argv) {
 	free(mons);
 	XDestroyWindow(dpy,sbar);
 	free(line);
-	XFreeFontInfo(NULL,fontstruct,1);
+XFreeFontSet(dpy,xfs);
+//	XFreeFontInfo(NULL,fontstruct,1);
 	XUnloadFont(dpy,val.font);
 	XCloseDisplay(dpy);
 	return 0;
