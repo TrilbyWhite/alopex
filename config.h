@@ -52,6 +52,10 @@ static const int	attachmode			= 0;
    For "ttwm" tiling mode, set stackcount to 1.  The value can be changed
    via a key binding (default Mod+ or Mod-). */
 static int			stackcount			= 3;
+/* Workaround for SDL games: set to true if you only ever use one
+   monitor or otherwise want alopex to ignore any reconfigurations of
+   the root window.  */
+static Bool			ignore_root_resize	= False;
 
 #define DMENU		"dmenu_run -fn \"-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-*\" -nb \"#101010\" -nf \"#484862\" -sb \"#080808\" -sf \"#FFDD0E\""
 
@@ -91,6 +95,7 @@ static Key keys[] = {
 	{ KEY1,				XK_f,		fullscreen,	NULL			},
 	{ KEY1,				XK_Menu,	windowlist,	"interrobang alopex"},
 	{ KEY1|KEY2,		XK_f,		toggle,		"floating"		},
+	{ KEY1|KEY2,		XK_r,		toggle,		"root resize"	},
 	{ KEY1,				XK_x,		toggle,		"place bar"		},
 	{ KEY1,				XK_a,		toggle,		"visible bar"	},
 	{ 0,				0x1008ff59,	spawn,		XRANDR_CMD		},

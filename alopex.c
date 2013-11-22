@@ -210,6 +210,7 @@ void buttonrelease(XEvent *ev) {
 }
 
 void configurenotify(XEvent *ev) {
+	if (ignore_root_resize) return;
 	XConfigureEvent *e = &ev->xconfigure;
 	if (e->window != root) return;
 	get_monitors();
@@ -353,21 +354,17 @@ void propertynotify(XEvent *ev) {
 	if (!(c=wintoclient(e->window)) ) return;
 	if (e->atom == XA_WM_NAME) {
 		XFree(c->title); c->title = NULL;
-XTextProperty name; char **list = NULL; int n;
-XGetTextProperty(dpy,c->win,&name,XA_WM_NAME);
-XmbTextPropertyToTextList(dpy,&name,&list,&n);
-if (n && *list) {
-c->title = strdup(*list);
-XFreeStringList(list);
-}
-else {
-if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
-else c->title = strdup(noname_window);
-}
-//		if (!XFetchName(dpy,c->win,&c->title) || c->title == NULL) {
-//			if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
-//			else c->title = strdup(noname_window);
-//		}
+		XTextProperty name; char **list = NULL; int n;
+		XGetTextProperty(dpy,c->win,&name,XA_WM_NAME);
+		XmbTextPropertyToTextList(dpy,&name,&list,&n);
+		if (n && *list) {
+		c->title = strdup(*list);
+		XFreeStringList(list);
+		}
+		else {
+		if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
+		else c->title = strdup(noname_window);
+		}
 	}
 	else if (e->atom == XA_WM_HINTS) get_hints(c);
 	else if (e->atom == XA_WM_CLASS) apply_rules(c);
@@ -500,7 +497,7 @@ void toggle(const char *arg) {
 	if (arg[0] == 'p') topbar = !topbar;
 	else if (arg[0] == 'v') showbar = !showbar;
 	else if (arg[0] == 'f' && focused) focused->flags ^= FLAG_FLOATING;
-
+	else if (arg[0] == 'r') ignore_root_resize = !ignore_root_resize;
 else if (arg[0] == 'm' ) {
 	Client *c;
 	if (focused) m = focused->m;
@@ -510,7 +507,6 @@ else if (arg[0] == 'm' ) {
 	for (c = clients; c && !tile_check(c,m); c = c->next);
 	if (c) focused=c;
 }	
-
 	for (m = mons; m; m = m->next)
 		XMoveWindow(dpy,m->bar,(showbar ? m->x : -4*mons[0].w),
 				(topbar ? 0 : m->h-barheight));
@@ -572,7 +568,7 @@ void windowlist(const char *arg) {
 
 /* 2.2 WM INTERNAL FUNCTIONS */
 
-inline Bool tile_check(Client *c, Monitor *m) {
+static inline Bool tile_check(Client *c, Monitor *m) {
 	return (c&&(c->tags&tagsSel) && !(c->flags&FLAG_FLOATING) && (c->m==m));
 }
 
@@ -1001,7 +997,7 @@ int main(int argc, const char **argv) {
 	XColor color;
 	XGCValues val;
 char **missing, **names, *def; int nmiss;
-xfs = XCreateFontSet(dpy,font,&missing,&nmiss,&def);
+xfs = XCreateFontSet(dpy,(char *) font,&missing,&nmiss,&def);
 if (!xfs) return 5;
 XFontStruct **fss;
 XFontsOfFontSet(xfs,&fss,&names);
