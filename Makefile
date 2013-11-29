@@ -7,7 +7,8 @@ LDFLAGS  += `pkg-config --libs x11 cairo freetype2`
 PREFIX   ?= /usr
 MODULES  =  alopex draw input key_chain tile
 HEADERS  =  alopex.h config.h
-VPATH		=  src
+MANPAGES =  alopex.1
+VPATH    =  src:doc
 
 ${PROG}: ${MODULES:%=%.o}
 	@cd src && ${CC} -o ../${PROG} ${MODULES:%=%.o} ${LDFLAGS}
@@ -18,6 +19,11 @@ ${PROG}: ${MODULES:%=%.o}
 install: ${PROG}
 	@echo Not yet
 
+${MANPAGES}: alopex.%: alopex-%.tex
+	@latex2man $< $@
+
+man: ${MANPAGES}
+
 clean:
 	@rm -f ${PROG} ${PROG}-${VER}.tar.gz
 	@cd src && rm -f ${MODULES:%=%.o}
@@ -25,4 +31,4 @@ clean:
 dist: clean
 	@tar -czf ${PROG}-${VER}.tar.gz *
 
-.PHONY: clean dist
+.PHONY: clean dist man
