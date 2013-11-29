@@ -18,7 +18,7 @@ pkgver() {
 }
 
 prepare() {
-   _dir="${XDG_CONFIG_HOME:-$HOME/.config/alopex}"
+   _dir="${XDG_CONFIG_HOME:-$HOME/.config}/alopex"
 	if [[ -d "$_dir" ]]; then
 		for _file in {config,icons,theme}.h; do
 			if [[ -a "${_dir}/${_file}" ]]; then
