@@ -3,8 +3,8 @@ _gitname="alopex"
 pkgname="${_gitname}-git"
 pkgver=3.291.1763f16
 pkgrel=1
-pkgdesc="A Tiny, Tabbed, Tiling Window Manager with Fur"
-url="http://trilbywhite.github.io/alopex/"
+pkgdesc='A Tiny, Tabbed, Tiling Window Manager with Fur'
+url='http://trilbywhite.github.io/alopex/'
 arch=('any')
 license=('GPLv3')
 depends=('libx11' 'libxrandr')
@@ -18,8 +18,7 @@ pkgver() {
 }
 
 prepare() {
-	_dir="$HOME/.config/alopex"
-	[[ -n "$XDG_CONFIG_HOME" ]] && _dir="$XDG_CONFIG_HOME/alopex"
+   _dir="${XDG_CONFIG_HOME:-$HOME/.config/alopex}"
 	if [[ -d "$_dir" ]]; then
 		for _file in {config,icons,theme}.h; do
 			if [[ -a "${_dir}/${_file}" ]]; then
