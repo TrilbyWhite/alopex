@@ -12,14 +12,12 @@
 */
 
 const char *status_fmt = "%i%n %T%t %1\n%2\n%3\n";
-const char *font = "-misc-";
-const char *modes[] = { "rstack", "bstack", "monocle", NULL};
 const Bool focusfollowmouse = False;
 
 const int containers[]	= { 1, 3, -1 };
 const int container_pad	= 10;
 const int client_opts	= ATTACH_TOP;
-const int bar_opts		= BAR_VISIBLE | BAR_TOP | SET_BAR_HEIGHT(22);
+const int bar_opts		= BAR_VISIBLE | BAR_TOP | SET_BAR_HEIGHT(18);
 
 const char *string[127] = {
 	[ 0 ] = "mm",

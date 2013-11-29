@@ -73,7 +73,9 @@ void die(const char *fmt) {
 
 void enternotify(XEvent *ev) {
 	Client *c = wintoclient(ev->xcrossing.window);
-	if (c && focusfollowmouse) focused = c;
+	if (c && focusfollowmouse) {
+		// TODO
+	}
 	if (mons->next) {
 		// root_x root_y, which monitor
 		// m = mons[i]
@@ -148,7 +150,6 @@ void unmapnotify(XEvent *ev) {
 	XUnmapEvent *e = &ev->xunmap;
 	if (!(c=wintoclient(e->window)) || e->send_event)
 		return;
-	if (c == focused) focused = c->next;
 	if (c == clients) clients = c->next;
 	else {
 		for (t = clients; t && t->next && t->next != c; t = t->next);

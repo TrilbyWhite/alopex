@@ -15,13 +15,11 @@
 #include <X11/cursorfont.h>
 #include <cairo.h>
 
-#define NCONTAIN	4
-
 #define BAR_TOP		0x0100
 #define BAR_BOTTOM	0x0200
 #define BAR_VISIBLE	0x0400
 
-#define BAR_HEIGHT(x)	(x & 0x00FF)
+#define BAR_HEIGHT(x)		(x & 0x00FF)
 #define SET_BAR_HEIGHT(x)	x
 
 #define RSTACK			0x1000
@@ -72,20 +70,13 @@ struct Monitor {
 Monitor *mons;
 Monitor *m;
 Client *clients;
-Client *focused;
-void key_chain(const char *);
-void x11();
-
 Display *dpy;
 int scr;
 Window root;
 Bool running;
 GC gc;
 
-extern const Key key[];
-extern const char *font;
 extern const char *status_fmt;
-extern const char *modes[];
 extern const char *string[];
 
 #endif /* __ALOPEX_H__ */
