@@ -1,9 +1,14 @@
-
-#include "alopex.h"
+/********************************************************************\
+* KEY_CHAIN.C - part of alopex, see alopex.c for license information
+*
+* Author: Jesse McClure, copyright 2012-2013
+\********************************************************************/
 
 /********************************************************************/
 /*  LOCAL DATA                                                      */
 /********************************************************************/
+
+#include "alopex.h"
 
 static const char *bar(const char *);
 static const char *command(const char *);

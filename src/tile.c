@@ -1,9 +1,14 @@
-
-#include "alopex.h"
+/********************************************************************\
+* TILE.C - part of alopex, see alopex.c for license information
+*
+* Author: Jesse McClure, copyright 2012-2013
+\********************************************************************/
 
 /********************************************************************/
 /*  LOCAL DATA                                                      */
 /********************************************************************/
+
+#include "alopex.h"
 
 static void tile_client(Client *, int, int, int, int);
 static void tile_container(Monitor *, Container *, int, int);

@@ -1,9 +1,14 @@
-
-#include "alopex.h"
+/********************************************************************\
+* DRAW.C - part of alopex, see alopex.c for license information
+*
+* Author: Jesse McClure, copyright 2012-2013
+\********************************************************************/
 
 /********************************************************************/
 /*  LOCAL DATA                                                      */
 /********************************************************************/
+
+#include "alopex.h"
 
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
@@ -31,7 +36,6 @@ int draw_tab(Container *C, int con, Client *c, int n, int count) {
 	int tw = C->w/count;
 	int tx = n * tw;
 	int th = BAR_HEIGHT(C->bar.opts);
-fprintf(stderr,"tx: %d tw: %d\n",tx,tw);
 	if (m->focus == C && C->top == c)
 		cairo_set_source_rgba(C->bar.ctx,1,1,0,1);
 	else if (C->top == c)
