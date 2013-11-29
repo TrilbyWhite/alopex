@@ -15,6 +15,8 @@
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
 #include <cairo.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #define BAR_TOP		0x0100
 #define BAR_BOTTOM	0x0200
@@ -85,6 +87,8 @@ int scr;
 Window root;
 Bool running;
 GC gc;
+FT_Library library;
+FT_Face face;
 
 extern const char *status_fmt;
 extern const char *string[];

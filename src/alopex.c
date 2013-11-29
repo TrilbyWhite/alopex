@@ -50,6 +50,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 static int default_cursor = 64;
 static Bool mod_down = False;
 static const char *noname_window = "(WINDOW)";
+static cairo_font_face_t *cfont;
 
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
@@ -198,9 +199,10 @@ static cairo_t *X_init_cairo_create(Pixmap *buf, int w, int h) {
 	cairo_t *ctx = cairo_create(t);
 	cairo_surface_destroy(t);
 	cairo_set_line_join(ctx,CAIRO_LINE_JOIN_ROUND);
-	cairo_select_font_face(ctx,"sans-serif",
-			CAIRO_FONT_SLANT_NORMAL,CAIRO_FONT_WEIGHT_NORMAL);
-	cairo_set_font_size(ctx,12);
+	cairo_set_font_face(ctx,cfont);
+	//cairo_select_font_face(ctx,"sans-serif",
+	//		CAIRO_FONT_SLANT_NORMAL,CAIRO_FONT_WEIGHT_NORMAL);
+	cairo_set_font_size(ctx,font_size);
 	return ctx;
 }
 
@@ -217,13 +219,19 @@ void X_init() {
 	XSetWindowAttributes wa;
 	gc = DefaultGC(dpy,scr);
 
+	if (FT_Init_FreeType(&library) |
+			FT_New_Face(library,font_path,0,&face) |
+			FT_Set_Pixel_Sizes(face,0,font_size) )
+		die("unable to init freetype lib and load font");
+	cfont = cairo_ft_font_face_create_for_ft_face(face,0);
 	/* monitors */
 	if (!(mons=calloc(1,sizeof(Monitor))))
 		die("unable to allocatememory");
 	m = mons;
 	Monitor *M;
 	Container *C, *CC = NULL;
-	int i,j, bh;
+	int i,j, bh = (BAR_HEIGHT(bar_opts) ? BAR_HEIGHT(bar_opts) :
+			font_size+4);
 	wa.override_redirect = True;
 	wa.event_mask = ExposureMask;
 	for (M = mons; M; M = M->next) {
@@ -236,9 +244,8 @@ void X_init() {
 		for (i = 0; i < sizeof(containers)/sizeof(containers[0]); i++) {
 			C = calloc(1,sizeof(Container));
 			C->n = containers[i];
-			C->bar.opts = bar_opts;
+			C->bar.opts = bar_opts | bh;
 			// TODO replace "12" with font height
-			bh = (BAR_HEIGHT(bar_opts) ? BAR_HEIGHT(bar_opts) : 12 );
 			C->bar.win = XCreateSimpleWindow(dpy, root, M->x,
 					(bar_opts & BAR_TOP ? M->y : M->y + M->h - bh),
 					M->w, bh, 0, 0, 0);
@@ -298,6 +305,8 @@ void X_free() {
 			XDestroyWindow(dpy,C->bar.win);
 		}
 	}
+	cairo_font_face_destroy(cfont);
+	FT_Done_Face(face);
 	free(C);
 	free(mons);
 	XCloseDisplay(dpy);

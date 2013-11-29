@@ -16,12 +16,16 @@ STATUS INPUT NOT IMPLEMENTED JUST YET
 
 const char *status_fmt = "%T\n %C \n";
 //const char *status_fmt = "%T\n %1 %C \n";
+const char *font_path = "/usr/share/fonts/TTF/DroidSansMono.ttf";
+//const char *font_path = "/usr/share/fonts/TTF/comic.ttf";
+const int font_size = 14;
 
 const Bool focusfollowmouse = False;
 const int containers[]	= { 1, 3, 3, -1 };
 const int container_pad	= 4;
 const int client_opts	= ATTACH_TOP;
-const int bar_opts		= BAR_VISIBLE | BAR_TOP | SET_BAR_HEIGHT(18);
+//const int bar_opts		= BAR_VISIBLE | BAR_TOP | SET_BAR_HEIGHT(18);
+const int bar_opts		= BAR_VISIBLE | BAR_TOP;
 const char *tag_names[] = { "one", "two", "three", "four", NULL };
 const int tag_pad			= 5;
 
