@@ -17,6 +17,20 @@ pkgver() {
 	echo "3.$(git rev-list --count HEAD).$(git describe --always )"
 }
 
+prepare() {
+	_dir="$HOME/.config/alopex"
+	[[ -n "$XDG_CONFIG_HOME" ]] && _dir="$XDG_CONFIG_HOME/alopex"
+	if [[ -d "$_dir" ]]; then
+		for _file in {config,icons,theme}.h; do
+			if [[ -a "${_dir}/${_file}" ]]; then
+				cp "${_dir}/${_file}" "${srcdir}/${_gitname}/${_file}"
+				msg2 "Using ${_file%.h} from $_dir/$_file"
+				msg2 "Check the default $_file for changes"
+			fi
+		done
+	fi
+}
+
 build() {
 	cd "${_gitname}"
 	make
