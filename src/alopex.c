@@ -49,6 +49,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 
 static int default_cursor = 64;
 static Bool mod_down = False;
+static const char *noname_window = "(WINDOW)";
 
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
@@ -119,10 +120,25 @@ void maprequest(XEvent *ev) {
 	if (wintoclient(e->window)) return;
 	if (!(c=calloc(1,sizeof(Client)))) die("unable to allocate memory");
 	c->win = e->window;
+	c->tags = m->tags;
+	// get transient hint
+	XTextProperty name; char **list = NULL; int n;
+	XGetTextProperty(dpy, c->win, &name, XA_WM_NAME);
+	XmbTextPropertyToTextList(dpy, &name, &list, &n);
+	if (n && *list) {
+		c->title = strdup(*list);
+		XFreeStringList(list);
+	}
+	else {
+		/*if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
+		else */ c->title = strdup(noname_window);
+	}
+	// get icon
 	// apply_rules
-	// get title
-	c->tags = 1;
+	if (!(c->tags)) c->tags = 1;
+	if (!(m->tags && 0xFFFF)) m->tags = c->tags;
 	// get hints
+	//XSelectInput(dpy, c->win, PropertyChangeMask | EnterWindowMask);
 	if (clients) {
 		/*if (client_opts & ATTACH_ABOVE) {
 		}
@@ -155,7 +171,7 @@ void unmapnotify(XEvent *ev) {
 		for (t = clients; t && t->next && t->next != c; t = t->next);
 		t->next = c->next;
 	}
-	//XFree(c->title);
+	XFree(c->title);
 	free(c); c = NULL;
 	draw();
 }
@@ -220,6 +236,10 @@ void X_init() {
 					DefaultVisual(dpy,scr),M->w,bh);
 			C->bar.ctx = cairo_create(t);
 			cairo_surface_destroy(t);
+cairo_set_line_join(C->bar.ctx,CAIRO_LINE_JOIN_ROUND);
+cairo_select_font_face(C->bar.ctx,"sans-serif",
+	CAIRO_FONT_SLANT_NORMAL,CAIRO_FONT_WEIGHT_NORMAL);
+cairo_set_font_size(C->bar.ctx,12);
 			if (!M->container) M->container = C;
 			if (CC) CC->next = C;
 			CC = C;

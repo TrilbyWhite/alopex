@@ -40,14 +40,20 @@ void tile() {
 		if (M->mode < 0 || !M->container->next || ncon == 1) {
 			M->focus = M->container;
 			tile_monocle(M,n);
-			for (C = M->container->next; C; C = C->next)
+			for (C = M->container->next; C; C = C->next) {
 				XMoveWindow(dpy,C->bar.win,M->w*3,0);
+				C->top = NULL;
+				if (M->focus == C) M->focus = M->container;
+			}
 		}
 		else {
 			for (n = 0, C = M->container; C && n < ncon; n++, C = C->next)
 				tile_container(M,C,ncon,nlast);
-			for (C; C; C = C->next)
+			for (C; C; C = C->next) {
 				XMoveWindow(dpy,C->bar.win,M->w*3,0);
+				C->top = NULL;
+				if (M->focus == C) M->focus = M->container;
+			}
 		}
 	}
 }
@@ -90,19 +96,24 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 		}
 	}
 	Client *c, *top = NULL;
+	int nx;
 	for (n = 0, CC = M->container; CC != C; n += CC->n, CC = CC->next);
 	for (c = clients; c && n; c = c->next)
 		if (c->tags && M->tags) n--;
 	for (c; c; c = c->next) if (c->tags && M->tags) {
 		if (C->n > 0 && (++n) > C->n) break;
 		else if (C->n < 0) n++;
-		if (!top) top = c;
+		if (!top) { top = c; nx = n-1; }
 		if (C->top == c) top = c;
 		tile_client(c,x,y,w,h);
 		if (con < ncon - 1) draw_tab(C,con,c,n-1,C->n);
 		else draw_tab(C,con,c,n-1,nlast);
 	}
-	C->top = top;
+	if (C->top != top) {
+		C->top = top;
+		if (con < ncon - 1) draw_tab(C,con,top,nx,C->n);
+		else draw_tab(C,con,top,nx,nlast);
+	}
 	XRaiseWindow(dpy,C->top->win);
 	XCopyArea(dpy, C->bar.buf, C->bar.win, gc, 0, 0, C->w,
 			BAR_HEIGHT(C->bar.opts), 0, 0);

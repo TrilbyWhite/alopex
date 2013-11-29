@@ -40,6 +40,8 @@ typedef struct Client Client;
 struct Client {
 	Client *next;
 	Window win;
+	char *title;
+	// icon
 	int tags;
 };
 

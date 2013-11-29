@@ -16,6 +16,7 @@ static const char *focus_move(const char *);
 static const char *mode(const char *);
 static const char *nclients(const char *);
 static const char *other(const char *);
+static const char *quit(const char *);
 static const char *size(const char *);
 static const char *tag(const char *);
 static const char *toggle(const char *);
@@ -49,6 +50,7 @@ void key_chain(const char *chain) {
 			case '+': case '-': case '<': case '>': c = nclients(c); break;
 			case 'f': case 'F': c = toggle(c); break;
 			case 'T': c = mode(c); break;
+			case 'q': c = quit(c); break;
 			default: break;
 		}
 	}
@@ -79,6 +81,7 @@ const char *focus_move(const char *ch) {
 		Container *C, *CP = NULL, *CN = NULL, *CC;
 		for (C = m->container; C != m->focus; CP = C, C = C->next);
 		C = m->focus; CN = C->next;
+		if (CN && !CN->top) CN = NULL;
 		/* find next and previous clients (cn cp) */
 		Client *c, *cp = NULL, *cn = NULL;
 		int n = 0;
@@ -107,6 +110,16 @@ const char *mode(const char *c) {return c;}
 const char *move(const char *c) {return c;}
 const char *nclients(const char *c) {return c;}
 const char *other(const char *c) {return c;}
+
+const char *quit(const char *ch) {
+	ch++;
+	if (*ch == '!') running = False;
+	else {
+		// warn ?
+	}
+	return (++ch);
+}
+
 const char *size(const char *c) {return c;}
 const char *tag(const char *c) {return c;}
 const char *toggle(const char *c) {return c;}
