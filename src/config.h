@@ -1,23 +1,29 @@
 
 
 /* STATUS FORMAT STRING
-	i	tag icon
-	n	tag name
-	T	master tabs
-	t	stack tabs
-	1	status one
-	2	status two
-	3	status three
+	%T	tags (icon + name)
+	%t tags (name + icon)
+	%n tags (name)
+	%i tags (icon)
+	%C clock (24 hour)
+	%c clock (12 hour)
+STATUS INPUT NOT IMPLEMENTED JUST YET
+	%1 first line of status input
+	%2 second (or previous) line of status input
+	%3 ...
 	...
 */
 
-const char *status_fmt = "%i%n %T%t %1\n%2\n%3\n";
-const Bool focusfollowmouse = False;
+const char *status_fmt = "%T\n %C \n";
+//const char *status_fmt = "%T\n %1 %C \n";
 
+const Bool focusfollowmouse = False;
 const int containers[]	= { 1, 3, 3, -1 };
 const int container_pad	= 4;
 const int client_opts	= ATTACH_TOP;
 const int bar_opts		= BAR_VISIBLE | BAR_TOP | SET_BAR_HEIGHT(18);
+const char *tag_names[] = { "one", "two", "three", "four", NULL };
+const int tag_pad			= 5;
 
 const char *string[127] = {
 	[ 0 ] = "mm",

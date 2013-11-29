@@ -1,7 +1,8 @@
 
-- Add status bar space to bars 1 and 2
-- Implement basic status bar drawing
+X Add status bar space to bars 1 and 2
+X Implement basic status bar drawing
 - Finish implementing tags
+- Write status input reader
 - Get client window icons
 - Replace placeholder tabs with nicer looking tabs
 - Add key_chain actions for adjusting parameters

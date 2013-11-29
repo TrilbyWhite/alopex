@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 #include <locale.h>
 #include <X11/Xlib.h>
@@ -52,6 +53,12 @@ typedef struct Bar {
 	int opts;
 } Bar;
 
+typedef struct SBar {
+	Pixmap buf;
+	cairo_t *ctx;
+	int x, width, height;
+} SBar;
+
 typedef struct Container Container;
 struct Container {
 	Container *next;
@@ -64,9 +71,10 @@ typedef struct Monitor Monitor;
 struct Monitor {
 	Monitor *next;
 	int x, y, w, h, gap;
-	int tags, mode, split;
+	int tags, occ, mode, split;
 	Container *container;
 	Container *focus;
+	SBar sbar[2];
 };
 
 Monitor *mons;
@@ -80,6 +88,8 @@ GC gc;
 
 extern const char *status_fmt;
 extern const char *string[];
+extern const char *tag_names[];
+extern const int tag_pad;
 
 #endif /* __ALOPEX_H__ */
 

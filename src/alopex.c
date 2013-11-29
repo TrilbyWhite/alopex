@@ -58,6 +58,7 @@ static const char *noname_window = "(WINDOW)";
 int main(int argc, const char **argv) {
 	X_init();
 	XEvent ev;
+	draw_status();
 	while (running && !XNextEvent(dpy,&ev))
 		if (ev.type < 33 && handler[ev.type]) handler[ev.type](&ev);
 	X_free();
@@ -136,7 +137,7 @@ void maprequest(XEvent *ev) {
 	// get icon
 	// apply_rules
 	if (!(c->tags)) c->tags = 1;
-	if (!(m->tags && 0xFFFF)) m->tags = c->tags;
+	if (!(m->tags & 0xFFFF)) m->tags = c->tags;
 	// get hints
 	//XSelectInput(dpy, c->win, PropertyChangeMask | EnterWindowMask);
 	if (clients) {
@@ -158,6 +159,7 @@ void maprequest(XEvent *ev) {
 		clients = c;
 	}
 	XMapWindow(dpy,c->win);
+	draw_status();
 	draw();
 }
 
@@ -187,6 +189,19 @@ int xerror(Display *d, XErrorEvent *e) {
 	char msg[1024];
 	XGetErrorText(d,e->error_code,msg,sizeof(msg));
 	fprintf(stderr,"[X11 %d:%d] %s\n",e->request_code,e->error_code,msg);
+}
+
+static cairo_t *X_init_cairo_create(Pixmap *buf, int w, int h) {
+	*buf = XCreatePixmap(dpy, root, w, h, DefaultDepth(dpy,scr));
+	cairo_surface_t *t;
+	t = cairo_xlib_surface_create(dpy, *buf, DefaultVisual(dpy,scr),w,h);
+	cairo_t *ctx = cairo_create(t);
+	cairo_surface_destroy(t);
+	cairo_set_line_join(ctx,CAIRO_LINE_JOIN_ROUND);
+	cairo_select_font_face(ctx,"sans-serif",
+			CAIRO_FONT_SLANT_NORMAL,CAIRO_FONT_WEIGHT_NORMAL);
+	cairo_set_font_size(ctx,12);
+	return ctx;
 }
 
 void X_init() {
@@ -227,24 +242,23 @@ void X_init() {
 			C->bar.win = XCreateSimpleWindow(dpy, root, M->x,
 					(bar_opts & BAR_TOP ? M->y : M->y + M->h - bh),
 					M->w, bh, 0, 0, 0);
-			C->bar.buf = XCreatePixmap(dpy, root, M->w, bh,
-					DefaultDepth(dpy,scr));
 			XChangeWindowAttributes(dpy,C->bar.win,CWOverrideRedirect |
 					CWEventMask, &wa);
+			C->bar.ctx = X_init_cairo_create(&C->bar.buf,M->w,bh);
 			XMapWindow(dpy,C->bar.win);
-			cairo_surface_t *t = cairo_xlib_surface_create(dpy,C->bar.buf,
-					DefaultVisual(dpy,scr),M->w,bh);
-			C->bar.ctx = cairo_create(t);
-			cairo_surface_destroy(t);
-cairo_set_line_join(C->bar.ctx,CAIRO_LINE_JOIN_ROUND);
-cairo_select_font_face(C->bar.ctx,"sans-serif",
-	CAIRO_FONT_SLANT_NORMAL,CAIRO_FONT_WEIGHT_NORMAL);
-cairo_set_font_size(C->bar.ctx,12);
 			if (!M->container) M->container = C;
 			if (CC) CC->next = C;
 			CC = C;
 		}
-		M->tags = 1;
+		M->sbar[0].width = M->w/2;
+		M->sbar[1].width = M->w/2;
+		M->sbar[0].height = BAR_HEIGHT(M->container->bar.opts);
+		M->sbar[1].height = M->sbar[0].height;
+		M->sbar[0].ctx = X_init_cairo_create(&M->sbar[0].buf,
+				M->sbar[0].width,M->sbar[0].height);
+		M->sbar[1].ctx = X_init_cairo_create(&M->sbar[1].buf,
+				M->sbar[1].width,M->sbar[1].height);
+		//M->tags = 1;
 		M->mode = RSTACK;
 		M->focus = M->container;
 	}
@@ -273,6 +287,10 @@ void X_free() {
 	Monitor *M;
 	Container *C, *CC = NULL;
 	for (M = mons; M; M = M->next) {
+		cairo_destroy(M->sbar[0].ctx);
+		XFreePixmap(dpy,M->sbar[0].buf);
+		cairo_destroy(M->sbar[1].ctx);
+		XFreePixmap(dpy,M->sbar[1].buf);
 		for (C = M->container; C; CC = C, C = C->next) {
 			if (CC) free(CC);
 			cairo_destroy(C->bar.ctx);
