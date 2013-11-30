@@ -14,9 +14,11 @@
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
-#include <cairo.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include <cairo.h>
+#include <cairo-xlib.h>
+#include <cairo-ft.h>
 
 #define BAR_TOP		0x0100
 #define BAR_BOTTOM	0x0200

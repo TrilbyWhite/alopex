@@ -22,7 +22,8 @@ const int font_size = 14;
 
 const Bool focusfollowmouse = False;
 const int containers[]	= { 1, 3, 3, -1 };
-const int container_pad	= 4;
+//const int container_pad	= 4;
+const int container_pad	= 2;
 const int client_opts	= ATTACH_TOP;
 //const int bar_opts		= BAR_VISIBLE | BAR_TOP | SET_BAR_HEIGHT(18);
 const int bar_opts		= BAR_VISIBLE | BAR_TOP;
