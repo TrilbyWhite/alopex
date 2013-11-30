@@ -10,11 +10,11 @@
 
 #include "alopex.h"
 
-static void round_rect(cairo_t *, int, int, int, int, const Theme *);
+static void round_rect(cairo_t *, int, int, int, int, int);
 static void sbar_clock(SBar *, char);
 static void sbar_tags(Monitor *, SBar *, char);
 static void sbar_text(SBar *, const char *);
-static void set_color(cairo_t *, const Theme *);
+static void set_color(cairo_t *, int);
 
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
@@ -38,19 +38,40 @@ int draw_tab(Container *C, int con, Client *c, int n, int count) {
 	int tw = w/count;
 	int tx = x + n * tw;
 	int th = BAR_HEIGHT(C->bar.opts);
-	if (m->focus == C && C->top == c)
-	set_color(C->bar.ctx,&theme[tabRGBAFocus]);
-	else if (C->top == c) set_color(C->bar.ctx,&theme[tabRGBATop]);
-	else set_color(C->bar.ctx,&theme[tabRGBAOther]);
-	round_rect(C->bar.ctx,tx,0,tw,th,&theme[tabOffset]);
-	cairo_fill_preserve(C->bar.ctx);
-	cairo_set_source_rgba(C->bar.ctx,0,0,0,0.8);
-	cairo_stroke(C->bar.ctx);
-
-
+	double off;
+	cairo_text_extents_t ext;
+	cairo_text_extents(C->bar.ctx,c->title,&ext);
 	//TODO need to trim long titles:
-	cairo_set_source_rgba(C->bar.ctx,0,0,0,1);
-	cairo_move_to(C->bar.ctx,tx+4,th-4);
+	if (m->focus == C && C->top == c) {
+		set_color(C->bar.ctx,tabRGBAFocus);
+		round_rect(C->bar.ctx,tx,0,tw,th,tabOffset);
+		cairo_fill_preserve(C->bar.ctx);
+		set_color(C->bar.ctx,tabRGBAFocusBrd);
+		cairo_stroke(C->bar.ctx);
+		set_color(C->bar.ctx,tabRGBAFocusText);
+		off = theme[tabRGBAFocusText].e;
+	}
+	else if (C->top == c) {
+		set_color(C->bar.ctx,tabRGBATop);
+		round_rect(C->bar.ctx,tx,0,tw,th,tabOffset);
+		cairo_fill_preserve(C->bar.ctx);
+		set_color(C->bar.ctx,tabRGBATopBrd);
+		cairo_stroke(C->bar.ctx);
+		set_color(C->bar.ctx,tabRGBATopText);
+		off = theme[tabRGBATopText].e;
+	}
+	else {
+		set_color(C->bar.ctx,tabRGBAOther);
+		round_rect(C->bar.ctx,tx,0,tw,th,tabOffset);
+		cairo_fill_preserve(C->bar.ctx);
+		set_color(C->bar.ctx,tabRGBAOtherBrd);
+		cairo_stroke(C->bar.ctx);
+		set_color(C->bar.ctx,tabRGBAOtherText);
+		off = theme[tabRGBAOtherText].e;
+	}
+	if (off < 0) off *= -1;
+	else off *= tw - ext.x_advance;
+	cairo_move_to(C->bar.ctx,tx + off,th-4);
 	cairo_show_text(C->bar.ctx,c->title);
 	cairo_stroke(C->bar.ctx);
 }
@@ -123,7 +144,8 @@ int draw() {
 /*  LOCAL FUNCTIONS                                                 */
 /********************************************************************/
 
-void round_rect(cairo_t *ctx, int x, int y, int w, int h, const Theme *q) {
+void round_rect(cairo_t *ctx, int x, int y, int w, int h, int qn) {
+	const Theme *q = &theme[qn];
 	cairo_new_sub_path(ctx);
 	x += q->a; y += q->b; w += q->c; h += q->d;
 	cairo_arc(ctx, x + w - q->e, y + q->e, q->e, -0.5 * M_PI, 0);
@@ -179,6 +201,6 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 	}
 }
 
-void set_color(cairo_t *ctx, const Theme *q) {
-	cairo_set_source_rgba(ctx,q->a,q->b,q->c,q->d);
+void set_color(cairo_t *ctx, int q) {
+	cairo_set_source_rgba(ctx,theme[q].a,theme[q].b,theme[q].c,theme[q].d);
 }

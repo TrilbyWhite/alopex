@@ -31,16 +31,33 @@ const char *tag_names[] = { "one", "two", "three", "four", NULL };
 const int tag_pad			= 5;
 
 const Theme theme[] = {
-						/*  X    Y     W    H     Radius */
-	[tabOffset]			= { 2.0, 2.0, -4.0, 10.0, 5.0 },
-						/*  R    G    B    A    Ignore */
-	[tabRGBAFocus]		= { 1.0, 1.0, 0.0, 0.8, 0.0 },
-	[tabRGBATop]		= { 0.0, 1.0, 1.0, 0.7, 0.0 },
-	[tabRGBAOther]		= { 0.0, 0.0, 1.0, 0.5, 0.0 },
-						/*  R    G    B    A    Alignment */
-	[tabRGBAFocusText]	= { 0.0, 0.0, 0.0, 1.0, 0.0 },
-	[tabRGBATopText]	= { 0.0, 0.0, 0.0, 1.0, 0.0 },
-	[tabRGBAOtherText]	= { 0.0, 0.0, 0.0, 1.0, 0.0 },
+								/*  X     Y     W     H     Radius [1] */
+	[tabOffset]				= { 2.00, 2.00, -4.0, 10.0, 5.0 },
+								/*  R     G     B     A     Ignore [2] */
+	[tabRGBAFocus]			= { 0.14, 0.14, 0.14, 1.00, 2.0 },
+	[tabRGBATop]			= { 0.14, 0.14, 0.14, 0.80, 0.0 },
+	[tabRGBAOther]			= { 0.04, 0.04, 0.04, 0.40, 0.0 },
+	[tabRGBAFocusBrd]		= { 0.60, 0.90, 1.00, 0.90, 0.0 },
+	[tabRGBATopBrd]		= { 0.00, 0.40, 1.00, 0.70, 0.0 },
+	[tabRGBAOtherBrd]		= { 0.00, 0.20, 1.00, 0.40, 0.0 },
+								/*  R     G     B     A     Alignment [3] */
+	[tabRGBAFocusText]	= { 0.90, 0.95, 1.00, 0.90, -10 },
+	[tabRGBATopText]		= { 0.25, 0.65, 1.00, 0.70, 0.5 },
+	[tabRGBAOtherText]	= { 0.25, 0.45, 1.00, 0.40, 0.5 },
+/***  THEME NOTES:
+[1]: Offset values are added to the calculated space for the
+     item.  Y and H values are inverted for bottom bars.
+
+[2]: The last value of tabRGBAFocus is used to the line
+     width for all tab borders.
+
+[3]: positive alignment numbers are a fraction tab space.
+     0.0 is left aligned,
+     0.5 is centered,
+     1.0 is right aligned.
+     Negative alignment numbers are used for a number of 
+     pixels to offset from the start of the tab.
+****/
 };
 
 

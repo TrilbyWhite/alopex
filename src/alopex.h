@@ -28,21 +28,24 @@
 #define BAR_HEIGHT(x)		(x & 0x00FF)
 #define SET_BAR_HEIGHT(x)	x
 
-#define RSTACK				0x1000
-#define BSTACK				0x2000
+#define RSTACK					0x1000
+#define BSTACK					0x2000
 
 #define ATTACH_TOP			0x0001
 #define ATTACH_BOTTOM		0x0002
-#define ATTACH_ABOVE		0x0003
-#define ATTACH_BELOW		0x0004
+#define ATTACH_ABOVE			0x0003
+#define ATTACH_BELOW			0x0004
 
-#define tabOffset			0x01
-#define tabRGBAFocus		0x02
+#define tabOffset				0x01
+#define tabRGBAFocus			0x02
 #define tabRGBATop			0x03
-#define tabRGBAOther		0x04
-#define tabRGBAFocusText	0x05
-#define tabRGBATopText		0x06
-#define tabRGBAOtherText	0x07
+#define tabRGBAOther			0x04
+#define tabRGBAFocusBrd		0x05
+#define tabRGBATopBrd		0x06
+#define tabRGBAOtherBrd		0x07
+#define tabRGBAFocusText	0x08
+#define tabRGBATopText		0x09
+#define tabRGBAOtherText	0x0a
 
 typedef struct Key {
 	unsigned short int mod;
