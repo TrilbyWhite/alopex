@@ -193,12 +193,12 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 	const char *tag;
 	S->x += tag_pad;
 	for (i = 0; (tag=tag_names[i]); i++) {
-		if (M->focus && M->focus->top && (M->focus->top->tags & (1<<i)))
-			set_color(S->ctx,tagRGBAFoc);
-		else if ( (M->tags & (1<<i)) && (M->tags & (1<<(i+16))) ) 
+		if ( (M->tags & (1<<i)) && (M->tags & (1<<(i+16))) ) 
 			set_color(S->ctx,tagRGBABoth);
 		else if (M->tags & (1<<i))
 			set_color(S->ctx,tagRGBASel);
+		else if (M->focus && M->focus->top && (M->focus->top->tags & (1<<i)))
+			set_color(S->ctx,tagRGBAFoc);
 		else if (M->tags & (1<<(i+16)))
 			set_color(S->ctx,tagRGBAAlt);
 		else if (M->occ & (1<<i))
