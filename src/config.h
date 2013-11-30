@@ -33,13 +33,22 @@ const int tag_pad			= 5;
 const Theme theme[] = {
 								/*  X     Y     W     H     Radius [1] */
 	[tabOffset]				= { 2.00, 2.00, -4.0, 10.0, 5.0 },
+	[statOffset]			= { 2.00, 2.00, -4.0, -8.0, 5.0 },
 								/*  R     G     B     A     Ignore [2] */
 	[tabRGBAFocus]			= { 0.14, 0.14, 0.14, 1.00, 2.0 },
-	[tabRGBATop]			= { 0.14, 0.14, 0.14, 0.80, 0.0 },
-	[tabRGBAOther]			= { 0.04, 0.04, 0.04, 0.40, 0.0 },
-	[tabRGBAFocusBrd]		= { 0.60, 0.90, 1.00, 0.90, 0.0 },
-	[tabRGBATopBrd]		= { 0.00, 0.40, 1.00, 0.70, 0.0 },
-	[tabRGBAOtherBrd]		= { 0.00, 0.20, 1.00, 0.40, 0.0 },
+	[tabRGBATop]			= { 0.14, 0.14, 0.14, 0.85, 0.0 },
+	[tabRGBAOther]			= { 0.04, 0.04, 0.04, 0.50, 0.0 },
+	[tabRGBAFocusBrd]		= { 0.60, 0.90, 1.00, 0.95, 0.0 },
+	[tabRGBATopBrd]		= { 0.00, 0.40, 1.00, 0.80, 0.0 },
+	[tabRGBAOtherBrd]		= { 0.00, 0.20, 1.00, 0.45, 0.0 },
+	[statRGBA]				= { 0.14, 0.14, 0.14, 0.40, 1.0 },
+	[statRGBABrd]			= { 1.00, 1.00, 1.00, 0.60, 0.0 },
+	[statRGBAText]			= { 0.80, 0.80, 0.80, 1.00, 0.0 },
+	[tagRGBAOcc]			= { 0.00, 0.00, 1.00, 1.00, 0.0 },
+	[tagRGBASel]			= { 1.00, 1.00, 1.00, 1.00, 0.0 },
+	[tagRGBAFoc]			= { 0.60, 0.90, 1.00, 1.00, 0.0 },
+	[tagRGBAAlt]			= { 0.80, 0.00, 0.00, 1.00, 0.0 },
+	[tagRGBABoth]			= { 0.80, 0.00, 0.80, 1.00, 0.0 },
 								/*  R     G     B     A     Alignment [3] */
 	[tabRGBAFocusText]	= { 0.90, 0.95, 1.00, 0.90, -10 },
 	[tabRGBATopText]		= { 0.25, 0.65, 1.00, 0.70, 0.5 },
@@ -48,8 +57,8 @@ const Theme theme[] = {
 [1]: Offset values are added to the calculated space for the
      item.  Y and H values are inverted for bottom bars.
 
-[2]: The last value of tabRGBAFocus is used to the line
-     width for all tab borders.
+[2]: The last values of tabRGBAFocus and statGRBA are used for
+     to set the line width for all tab or status borders.
 
 [3]: positive alignment numbers are a fraction tab space.
      0.0 is left aligned,

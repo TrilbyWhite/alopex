@@ -5,14 +5,13 @@ X Implement basic status bar drawing
 X Fix statusbar drawing to allow for psuedo transparency
 - Write status input reader
 - Get client window icons
-- Write configurenotify event handler for title updates
-- Replace placeholder tabs with nicer looking tabs
-- Allow user customization of tabs and status bars
-	> color
-	> shape
-	> transparency
-	> tab font alignment
-	(done for tabs, not yet for tags and status bars)
+- Write configurenotify event handler for window title updates
+X Replace placeholder tabs with nicer looking tabs
+X Allow user customization of tabs and status bars
+	X color
+	X shape
+	X transparency
+	X tab font alignment
 - Add key_chain actions for adjusting parameters
 - Much much more ...
 

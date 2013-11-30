@@ -216,7 +216,7 @@ static cairo_t *X_init_cairo_create(Pixmap *buf, int w, int h) {
 	cairo_t *ctx = cairo_create(t);
 	cairo_surface_destroy(t);
 	cairo_set_line_join(ctx,CAIRO_LINE_JOIN_ROUND);
-	cairo_set_line_width(ctx,theme[tabRGBAFocus].e);
+	cairo_set_line_width(ctx,theme[statRGBA].e);
 	cairo_set_font_face(ctx,cfont);
 	cairo_set_font_size(ctx,font_size);
 	return ctx;

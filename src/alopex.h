@@ -36,6 +36,7 @@
 #define ATTACH_ABOVE			0x0003
 #define ATTACH_BELOW			0x0004
 
+/* Theme elements */
 #define tabOffset				0x01
 #define tabRGBAFocus			0x02
 #define tabRGBATop			0x03
@@ -46,6 +47,15 @@
 #define tabRGBAFocusText	0x08
 #define tabRGBATopText		0x09
 #define tabRGBAOtherText	0x0a
+#define statOffset			0x0b
+#define statRGBA				0x0c
+#define statRGBABrd			0x0d
+#define statRGBAText			0x0e
+#define tagRGBAOcc			0x10
+#define tagRGBASel			0x11
+#define tagRGBAFoc			0x12
+#define tagRGBAAlt			0x13
+#define tagRGBABoth			0x14
 
 typedef struct Key {
 	unsigned short int mod;

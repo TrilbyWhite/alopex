@@ -10,8 +10,8 @@
 
 #include "alopex.h"
 
-static void round_rect(cairo_t *, int, int, int, int, int);
 static void sbar_clock(SBar *, char);
+static void sbar_parse(SBar *, int);
 static void sbar_tags(Monitor *, SBar *, char);
 static void sbar_text(SBar *, const char *);
 static void set_color(cairo_t *, int);
@@ -20,9 +20,29 @@ static void set_color(cairo_t *, int);
 /*  GLOBAL FUNCTIONS                                                */
 /********************************************************************/
 
+double round_rect(cairo_t *ctx, int x, int y, int w, int h,
+		int off, int bg, int brd, int txt) {
+	const Theme *q = &theme[off];
+	cairo_new_sub_path(ctx);
+	x += q->a; y += q->b; w += q->c; h += q->d;
+	cairo_arc(ctx, x + w - q->e, y + q->e, q->e, -0.5 * M_PI, 0);
+	cairo_arc(ctx, x + w - q->e, y + h - q->e, q->e, 0, 0.5 * M_PI);
+	cairo_arc(ctx, x + q->e, y + h - q->e, q->e, 0.5 * M_PI, M_PI);
+	cairo_arc(ctx, x + q->e, y + q->e, q->e, M_PI, 1.5 * M_PI);
+	cairo_close_path(ctx);
+
+	set_color(ctx,bg);
+	cairo_fill_preserve(ctx);
+	set_color(ctx,brd);
+	cairo_stroke(ctx);
+	set_color(ctx,txt);
+	return theme[txt].e;
+}
+
 int draw_background(Container *C) {
 	XClearWindow(dpy,C->bar.win);
-	XCopyArea(dpy,C->bar.win,C->bar.buf,gc,0,0,C->w,BAR_HEIGHT(C->bar.opts),0,0);
+	XCopyArea(dpy,C->bar.win, C->bar.buf, gc, 0, 0,
+			C->w, BAR_HEIGHT(C->bar.opts), 0, 0);
 }
 
 int draw_tab(Container *C, int con, Client *c, int n, int count) {
@@ -42,33 +62,15 @@ int draw_tab(Container *C, int con, Client *c, int n, int count) {
 	cairo_text_extents_t ext;
 	cairo_text_extents(C->bar.ctx,c->title,&ext);
 	//TODO need to trim long titles:
-	if (m->focus == C && C->top == c) {
-		set_color(C->bar.ctx,tabRGBAFocus);
-		round_rect(C->bar.ctx,tx,0,tw,th,tabOffset);
-		cairo_fill_preserve(C->bar.ctx);
-		set_color(C->bar.ctx,tabRGBAFocusBrd);
-		cairo_stroke(C->bar.ctx);
-		set_color(C->bar.ctx,tabRGBAFocusText);
-		off = theme[tabRGBAFocusText].e;
-	}
-	else if (C->top == c) {
-		set_color(C->bar.ctx,tabRGBATop);
-		round_rect(C->bar.ctx,tx,0,tw,th,tabOffset);
-		cairo_fill_preserve(C->bar.ctx);
-		set_color(C->bar.ctx,tabRGBATopBrd);
-		cairo_stroke(C->bar.ctx);
-		set_color(C->bar.ctx,tabRGBATopText);
-		off = theme[tabRGBATopText].e;
-	}
-	else {
-		set_color(C->bar.ctx,tabRGBAOther);
-		round_rect(C->bar.ctx,tx,0,tw,th,tabOffset);
-		cairo_fill_preserve(C->bar.ctx);
-		set_color(C->bar.ctx,tabRGBAOtherBrd);
-		cairo_stroke(C->bar.ctx);
-		set_color(C->bar.ctx,tabRGBAOtherText);
-		off = theme[tabRGBAOtherText].e;
-	}
+	if (m->focus == C && C->top == c)
+		off = round_rect(C->bar.ctx, tx, 0, tw, th,
+				tabOffset, tabRGBAFocus, tabRGBAFocusBrd, tabRGBAFocusText);
+	else if (C->top == c)
+		off = round_rect(C->bar.ctx, tx, 0, tw, th,
+				tabOffset, tabRGBATop, tabRGBATopBrd, tabRGBATopText);
+	else
+		off = round_rect(C->bar.ctx, tx, 0, tw, th,
+				tabOffset, tabRGBAOther, tabRGBAOtherBrd, tabRGBAOtherText);
 	if (off < 0) off *= -1;
 	else off *= tw - ext.x_advance;
 	cairo_move_to(C->bar.ctx,tx + off,th-4);
@@ -85,15 +87,10 @@ void draw_status() {
 	for (M = mons; M; M = M->next)
 	for (c = status_fmt, i = 0; i < 2; c++, i++) {
 		S = &M->sbar[i];
-cairo_save(S->ctx);
-cairo_set_operator(S->ctx,CAIRO_OPERATOR_CLEAR);
-cairo_paint(S->ctx);
-cairo_restore(S->ctx);
-//cairo_set_source_rgba(S->ctx,0.5,0.5,0.5,0.2);
-//cairo_rectangle(S->ctx,0,0,S->width*2,S->height);
-//cairo_fill_preserve(S->ctx);
-//cairo_set_source_rgba(S->ctx,0.5,0.5,1,0.5);
-//cairo_stroke(S->ctx);
+		cairo_save(S->ctx);
+		cairo_set_operator(S->ctx,CAIRO_OPERATOR_CLEAR);
+		cairo_paint(S->ctx);
+		cairo_restore(S->ctx);
 		S->x = 0;
 		for (c; *c != '\n'; c++) {
 			if (*c == '%') {
@@ -103,26 +100,21 @@ cairo_restore(S->ctx);
 						sbar_tags(M,S,*c); break;
 					case 'C': case 'c': 
 						sbar_clock(S,*c); break;
+					case '1': case '2': case '3': case '4': case '5':
+					case '6': case '7': case '8': case '9':
+						sbar_parse(S,*c - 49); break;
 					default:
 						die("unrecognized status bar format string");
 				}
 			}
 			else {
 				str[0] = *c;
-				cairo_set_source_rgba(S->ctx,0,0,1,1);
+				set_color(S->ctx,statRGBAText);
 				sbar_text(S,str);
 			}
 		}
-		if (S->width != S->x) {
-			S->width = S->x;
-			trigger = True;
-		}
-		else {
-			// copy from S to the right C->bar.win
-			// XFlush(dpy);
-		}
+		S->width = S->x;
 	}
-	//if (trigger) draw();
 }
 
 int draw() {
@@ -140,20 +132,10 @@ int draw() {
 	XFlush(dpy);
 }
 
+
 /********************************************************************/
 /*  LOCAL FUNCTIONS                                                 */
 /********************************************************************/
-
-void round_rect(cairo_t *ctx, int x, int y, int w, int h, int qn) {
-	const Theme *q = &theme[qn];
-	cairo_new_sub_path(ctx);
-	x += q->a; y += q->b; w += q->c; h += q->d;
-	cairo_arc(ctx, x + w - q->e, y + q->e, q->e, -0.5 * M_PI, 0);
-	cairo_arc(ctx, x + w - q->e, y + h - q->e, q->e, 0, 0.5 * M_PI);
-	cairo_arc(ctx, x + q->e, y + h - q->e, q->e, 0.5 * M_PI, M_PI);
-	cairo_arc(ctx, x + q->e, y + q->e, q->e, M_PI, 1.5 * M_PI);
-	cairo_close_path(ctx);
-}
 
 void sbar_clock(SBar *S, char ch) {
 	time_t raw = time(NULL);
@@ -161,8 +143,11 @@ void sbar_clock(SBar *S, char ch) {
 	char str[8];
 	if (ch == 'C') strftime(str,8,"%H:%M",now);
 	else if (ch == 'c') strftime(str,8,"%I:%M",now);
-	cairo_set_source_rgba(S->ctx,1,1,0,1);
+	set_color(S->ctx,statRGBAText);
 	sbar_text(S,str);
+}
+
+void sbar_parse(SBar *S, int n) {
 }
 
 void sbar_text(SBar *S, const char *str) {
@@ -179,13 +164,16 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 	const char *tag;
 	S->x += tag_pad;
 	for (i = 0; (tag=tag_names[i]); i++) {
-		if (M->focus && M->focus->top &&
-				(M->focus->top->tags & (1<<i)))
-			cairo_set_source_rgba(S->ctx,1,1,0,1);
+		if (M->focus && M->focus->top && (M->focus->top->tags & (1<<i)))
+			set_color(S->ctx,tagRGBAFoc);
+		else if ( (M->tags & (1<<i)) && (M->tags & (1<<(i+16))) ) 
+			set_color(S->ctx,tagRGBABoth);
 		else if (M->tags & (1<<i))
-			cairo_set_source_rgba(S->ctx,0,1,1,1);
+			set_color(S->ctx,tagRGBASel);
+		else if (M->tags & (1<<(i+16)))
+			set_color(S->ctx,tagRGBAAlt);
 		else if (M->occ & (1<<i))
-			cairo_set_source_rgba(S->ctx,0,0,1,1);
+			set_color(S->ctx,tagRGBAOcc);
 		else
 			continue;
 		if (ch == 'T' || ch == 'i') {
@@ -202,5 +190,6 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 }
 
 void set_color(cairo_t *ctx, int q) {
-	cairo_set_source_rgba(ctx,theme[q].a,theme[q].b,theme[q].c,theme[q].d);
+	cairo_set_source_rgba(ctx, theme[q].a, theme[q].b,
+			theme[q].c, theme[q].d);
 }
