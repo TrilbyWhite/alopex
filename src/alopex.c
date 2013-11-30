@@ -174,6 +174,8 @@ void unmapnotify(XEvent *ev) {
 	XUnmapEvent *e = &ev->xunmap;
 	if (!(c=wintoclient(e->window)) || e->send_event)
 		return;
+	int i;
+	for (i = 0; i < 10; i++) if (winmarks[i] == c) winmarks[i] = NULL;
 	if (c == clients) clients = c->next;
 	else {
 		for (t = clients; t && t->next && t->next != c; t = t->next);
