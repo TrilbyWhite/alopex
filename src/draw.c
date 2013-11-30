@@ -19,9 +19,11 @@ static void sbar_text(SBar *, const char *);
 /********************************************************************/
 
 int draw_background(Container *C) {
-	cairo_set_source_rgba(C->bar.ctx,0.5,0.5,0.5,1);
-	cairo_rectangle(C->bar.ctx,0,0,C->w,BAR_HEIGHT(C->bar.opts));
-	cairo_fill(C->bar.ctx);
+	XClearWindow(dpy,C->bar.win);
+	XCopyArea(dpy,C->bar.win,C->bar.buf,gc,0,0,C->w,BAR_HEIGHT(C->bar.opts),0,0);
+//	cairo_set_source_rgba(C->bar.ctx,0.5,0.5,0.5,1);
+//	cairo_rectangle(C->bar.ctx,0,0,C->w,BAR_HEIGHT(C->bar.opts));
+//	cairo_fill(C->bar.ctx);
 }
 
 int draw_tab(Container *C, int con, Client *c, int n, int count) {
@@ -38,13 +40,16 @@ int draw_tab(Container *C, int con, Client *c, int n, int count) {
 	int tx = x + n * tw;
 	int th = BAR_HEIGHT(C->bar.opts);
 	if (m->focus == C && C->top == c)
-		cairo_set_source_rgba(C->bar.ctx,1,1,0,1);
+		cairo_set_source_rgba(C->bar.ctx,1,1,0,0.8);
 	else if (C->top == c)
-		cairo_set_source_rgba(C->bar.ctx,0,1,1,1);
+		cairo_set_source_rgba(C->bar.ctx,0,1,1,0.7);
 	else
-		cairo_set_source_rgba(C->bar.ctx,0,0,0.5,1);
+		cairo_set_source_rgba(C->bar.ctx,0,0,0.5,0.5);
 	cairo_rectangle(C->bar.ctx,tx+2,2,tw-4,th-4);
-	cairo_fill(C->bar.ctx);
+	cairo_fill_preserve(C->bar.ctx);
+	cairo_set_source_rgba(C->bar.ctx,0,0,0,0.8);
+	cairo_stroke(C->bar.ctx);
+
 
 	//TODO need to trim long titles:
 	cairo_set_source_rgba(C->bar.ctx,0,0,0,1);
@@ -64,7 +69,9 @@ void draw_status() {
 		S = &M->sbar[i];
 cairo_set_source_rgba(S->ctx,0.5,0.5,0.5,1);
 cairo_rectangle(S->ctx,0,0,S->width*2,S->height);
-cairo_fill(S->ctx);
+cairo_fill_preserve(S->ctx);
+cairo_set_source_rgba(S->ctx,0.5,0.5,1,1);
+cairo_stroke(S->ctx);
 		S->x = 0;
 		for (c; *c != '\n'; c++) {
 			if (*c == '%') {

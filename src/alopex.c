@@ -70,7 +70,7 @@ int die(const char *fmt) {
 	exit(1);
 }
 
-int purgatory(Window *win) {
+int purgatory(Window win) {
 	XMoveWindow(dpy,win,purgX,purgY);
 }
 
@@ -204,6 +204,7 @@ static cairo_t *X_init_cairo_create(Pixmap *buf, int w, int h) {
 	cairo_t *ctx = cairo_create(t);
 	cairo_surface_destroy(t);
 	cairo_set_line_join(ctx,CAIRO_LINE_JOIN_ROUND);
+	cairo_set_line_width(ctx,1);
 	cairo_set_font_face(ctx,cfont);
 	//cairo_select_font_face(ctx,"sans-serif",
 	//		CAIRO_FONT_SLANT_NORMAL,CAIRO_FONT_WEIGHT_NORMAL);
@@ -239,6 +240,7 @@ void X_init() {
 			font_size+4);
 	wa.override_redirect = True;
 	wa.event_mask = ExposureMask;
+	wa.background_pixmap = ParentRelative;
 	for (M = mons; M; M = M->next) {
 		// TODO monitor checks ?
 		M->x = 0; M->y = 0;
@@ -255,7 +257,7 @@ void X_init() {
 					(bar_opts & BAR_TOP ? M->y : M->y + M->h - bh),
 					M->w, bh, 0, 0, 0);
 			XChangeWindowAttributes(dpy,C->bar.win,CWOverrideRedirect |
-					CWEventMask, &wa);
+					CWEventMask | CWBackPixmap, &wa);
 			C->bar.ctx = X_init_cairo_create(&C->bar.buf,M->w,bh);
 			XMapWindow(dpy,C->bar.win);
 			if (!M->container) M->container = C;
