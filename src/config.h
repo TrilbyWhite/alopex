@@ -41,24 +41,25 @@ const char *string[127] = {
 /* clients:
 	0	currently focused
 	1	last focused
-	2	top master
-	3	bottom master
-	4	top stack
-	5	bottom stack
+	2	user marks
+	3	''
+	...
 */
 
 #define KEY1	Mod4Mask
 #define KEY2	Mod1Mask
 #define KEY3	ControlMask
 #define KEY4	ShiftMask
-/* tag-like */
+
+/* tag-like: */
 #define TagKey(KEY,TAG)	\
 	{ KEY1,			KEY,	"t" TAG }, \
 	{ KEY1|KEY2,	KEY,	"x" TAG }, \
 	{ KEY1|KEY3,	KEY,	"T" TAG }, \
 	{ KEY1|KEY4,	KEY,	"m" TAG }
 
-/* more "desktop-like":
+/* more "desktop-like": */
+/*
 #define TagKey(KEY,TAG)	\
 	{ KEY1,			KEY,	"x" TAG }, \
 	{ KEY1|KEY2,	KEY,	"t" TAG }, \
@@ -72,6 +73,7 @@ const Key key[] = {
 	{ KEY1,	XK_w,			"cw"},
 	{ KEY1,	XK_q,			"Q"},
 	{ KEY2,	XK_F4,		"q0"},
+	{ KEY1,	XK_Tab,		"o"},
 	{ KEY2,	XK_Tab,		"v"},
 	TagKey(	XK_1,			"1"),
 	TagKey(	XK_2,			"2"),
@@ -85,7 +87,7 @@ const Key key[] = {
 
 
 
-/* keys
+/* keys  
     e g      n pqr  u w yz
  BCDE G I    NOPQR  UVW YZ
 
@@ -95,13 +97,13 @@ COMMAND MODE
 		s|S = show/hide
 		x|X = show exclusively (hide others) (default)
 		t|T = top/bottom
-	t[#]
-		toggle visibility of tag # (default = current)
-	T[#][WIN]
-		toggle window's presence on tag # (default = current)
-	s|S|x|X[#]
+	t#
+		toggle visibility of tag # 
+	T#[WIN]
+		toggle window's presence on tag # (default = current win)
+	(s|S|x|X)#
 		show/hide exlusive/all-but tag #
-	m|a|A[#]
+	(m|a|A)#
 		move/add/remove focused window to tag #
 	v
 		toggle view

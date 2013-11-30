@@ -24,7 +24,9 @@ void tile() {
 	Monitor *M;
 	Container *C;
 	for (M = mons; M; M = M->next) {
+		M->occ = 0;
 		for (n = 0, c = clients; c; c = c->next) {
+			M->occ |= c->tags;
 			if (c->tags & M->tags) n++;
 			else purgatory(c->win);
 		}

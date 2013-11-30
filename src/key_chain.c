@@ -116,7 +116,19 @@ const char *focus_move(const char *ch) {
 const char *mode(const char *c) {return ++c;}
 const char *move(const char *c) {return ++c;}
 const char *nclients(const char *c) {return ++c;}
-const char *other(const char *c) {return ++c;}
+
+const char *other(const char *ch) {
+	int i;
+	if (m->focus == m->container) {
+		for (i = 0; i < (rep ? rep : 1); i++)
+			if (m->focus->next) m->focus = m->focus->next;
+	}
+	else {
+		m->focus = m->container;
+	}
+	trigger = 2;
+	return ++ch;
+}
 
 const char *quit(const char *ch) {
 	running = False;
@@ -126,7 +138,8 @@ const char *quit(const char *ch) {
 const char *size(const char *c) {return ++c;}
 
 const char *tag(const char *ch) {
-	int t = atoi(ch+1);
+	int t;
+	t = atoi(ch+1);
 	if (!t) return (++ch);
 	else if ((--t) > 15) t = 15;
 	else if (t < 0) t = 0;
