@@ -304,12 +304,19 @@ void X_init() {
 	code=XKeysymToKeycode(dpy,XK_Super_L);
 	for (j = 0; j < 4; j++)
 		XGrabKey(dpy,code,mod[j],root,True,GrabModeAsync,GrabModeAsync);
+	memset(winmarks,0,10*sizeof(Client *));
 	running = True;
 }
 
 void X_free() {
+	Client *c;
 	Monitor *M;
 	Container *C, *CC = NULL;
+	for (c = clients; c; c = c->next) {
+		winmarks[0] = c;
+		key_chain("q0");
+	}
+	XFlush(dpy);
 	for (M = mons; M; M = M->next) {
 		cairo_surface_destroy(M->sbar[0].buf);
 		cairo_destroy(M->sbar[0].ctx);

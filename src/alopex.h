@@ -89,6 +89,7 @@ Bool running;
 GC gc;
 FT_Library library;
 FT_Face face;
+Client *winmarks[10];
 
 extern const char *status_fmt;
 extern const char *string[];

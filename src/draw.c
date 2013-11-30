@@ -108,9 +108,14 @@ int draw() {
 	draw_status();
 	tile();
 	if (!m->focus) m->focus = m->container;
-	if (m->focus->top)
+	if (m->focus->top) {
 		XSetInputFocus(dpy,m->focus->top->win,
 				RevertToPointerRoot,CurrentTime);
+		if (m->focus->top != winmarks[0]) {
+			winmarks[1] = winmarks[0];
+			winmarks[0] = m->focus->top;
+		}
+	}
 	XFlush(dpy);
 }
 

@@ -11,9 +11,9 @@
 #include "alopex.h"
 
 static const char *bar(const char *);
-static const char *close_win(const char *);
 static const char *command(const char *);
 static const char *focus_move(const char *);
+static const char *killclient(const char *);
 static const char *mode(const char *);
 static const char *nclients(const char *);
 static const char *other(const char *);
@@ -53,7 +53,7 @@ int key_chain(const char *chain) {
 			case '+': case '-': case '<': case '>': c = nclients(c); break;
 			case 'f': case 'F': c = toggle(c); break;
 			case 'T': c = mode(c); break;
-			case 'q': c = close_win(c); break;
+			case 'q': c = killclient(c); break;
 			case 'Q': c = quit(c); break;
 			default: break;
 		}
@@ -66,7 +66,6 @@ int key_chain(const char *chain) {
 /********************************************************************/
 
 const char *bar(const char *c) {return ++c;}
-const char *close_win(const char *c) {return ++c;}
 
 const char *command(const char *ch) {
 	if (*(++ch)=='\0') return ch;
@@ -111,6 +110,22 @@ const char *focus_move(const char *ch) {
 	}
 	trigger = 2;
 	return (++ch);
+}
+
+const char *killclient(const char *ch) {
+	int t=atoi(ch+1);
+	for (ch++; *ch > 47 && *ch < 58; ch++);
+	Client *c = NULL;
+	if ( !(c=winmarks[t]) ) return;
+	XEvent ev;
+	ev.type = ClientMessage; ev.xclient.window = c->win;
+	ev.xclient.message_type = XInternAtom(dpy,"WM_PROTOCOLS",True);
+	ev.xclient.format = 32;
+	ev.xclient.data.l[0] = XInternAtom(dpy,"WM_DELETE_WINDOW",True);
+	ev.xclient.data.l[1] = CurrentTime;
+	XSendEvent(dpy,c->win,False,NoEventMask,&ev);
+	winmarks[t] = NULL;
+	return ch;
 }
 
 const char *mode(const char *c) {return ++c;}
