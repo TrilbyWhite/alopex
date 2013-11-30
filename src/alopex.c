@@ -59,7 +59,7 @@ static cairo_font_face_t *cfont;
 int main(int argc, const char **argv) {
 	X_init();
 	XEvent ev;
-	draw_status();
+	draw();
 	while (running && !XNextEvent(dpy,&ev))
 		if (ev.type < 33 && handler[ev.type]) handler[ev.type](&ev);
 	X_free();
@@ -92,15 +92,16 @@ void expose(XEvent *ev) {
 
 #define MOD(x)		((x->state&~Mod2Mask)&~LockMask)
 void keypress(XEvent *ev) {
-	int i;
+	int i, ret;
 	XKeyEvent *e = &ev->xkey;
 	KeySym sym = XkbKeycodeToKeysym(dpy,(KeyCode)e->keycode,0,0);
 	if (sym == XK_Super_L) mod_down = True;
 	for (i = 0; i < sizeof(key)/sizeof(key[0]); i++)
 		if ( (sym==key[i].keysym) && key[i].arg && key[i].mod==MOD(e) ) {
-			key_chain(key[i].arg);
+			ret = key_chain(key[i].arg);
 			mod_down = False;
 		}
+	if (ret) draw();
 }
 
 void keyrelease(XEvent *ev) {
@@ -108,9 +109,9 @@ void keyrelease(XEvent *ev) {
 	KeySym sym = XkbKeycodeToKeysym(dpy,(KeyCode)e->keycode,0,0);
 	if (sym != XK_Super_L || !mod_down) return;
 	mod_down = False;
-	char str[256];
-	if (input(str)) key_chain(str);
-	draw();
+	char str[256]; int ret = 0;
+	if (input(str)) ret = key_chain(str);
+	if (ret) draw();
 }
 
 void maprequest(XEvent *ev) {
@@ -137,8 +138,9 @@ void maprequest(XEvent *ev) {
 	}
 	// get icon
 	// apply_rules
+	if (!(c->tags)) c->tags = m->tags;
 	if (!(c->tags)) c->tags = 1;
-	if (!(m->tags & 0xFFFF)) m->tags = c->tags;
+	if (!(m->tags & 0xFF)) m->tags = c->tags;
 	// get hints
 	//XSelectInput(dpy, c->win, PropertyChangeMask | EnterWindowMask);
 	if (clients) {
@@ -160,7 +162,6 @@ void maprequest(XEvent *ev) {
 		clients = c;
 	}
 	XMapWindow(dpy,c->win);
-	draw_status();
 	draw();
 }
 

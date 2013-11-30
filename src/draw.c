@@ -18,15 +18,6 @@ static void sbar_text(SBar *, const char *);
 /*  GLOBAL FUNCTIONS                                                */
 /********************************************************************/
 
-int draw() {
-	tile();
-	if (!m->focus) m->focus = m->container;
-	if (m->focus->top)
-		XSetInputFocus(dpy,m->focus->top->win,
-				RevertToPointerRoot,CurrentTime);
-	XFlush(dpy);
-}
-
 int draw_background(Container *C) {
 	cairo_set_source_rgba(C->bar.ctx,0.5,0.5,0.5,1);
 	cairo_rectangle(C->bar.ctx,0,0,C->w,BAR_HEIGHT(C->bar.opts));
@@ -102,7 +93,17 @@ cairo_fill(S->ctx);
 			// XFlush(dpy);
 		}
 	}
-	if (trigger) draw();
+	//if (trigger) draw();
+}
+
+int draw() {
+	draw_status();
+	tile();
+	if (!m->focus) m->focus = m->container;
+	if (m->focus->top)
+		XSetInputFocus(dpy,m->focus->top->win,
+				RevertToPointerRoot,CurrentTime);
+	XFlush(dpy);
 }
 
 /********************************************************************/
@@ -133,7 +134,10 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 	const char *tag;
 	S->x += tag_pad;
 	for (i = 0; (tag=tag_names[i]); i++) {
-		if (M->tags & (1<<i))
+		if (M->focus && M->focus->top &&
+				(M->focus->top->tags & (1<<i)))
+			cairo_set_source_rgba(S->ctx,1,1,0,1);
+		else if (M->tags & (1<<i))
 			cairo_set_source_rgba(S->ctx,0,1,1,1);
 		else if (M->occ & (1<<i))
 			cairo_set_source_rgba(S->ctx,0,0,1,1);
