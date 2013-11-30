@@ -68,7 +68,7 @@ struct Client {
 	Client *next;
 	Window win;
 	char *title;
-	// icon
+	XWMHints *hints;
 	int tags;
 };
 

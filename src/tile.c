@@ -169,23 +169,19 @@ void tile_monocle(Monitor *M,int n) {
 			draw_tab(C,0,c,i++,n);
 		}
 	M->container->top = top;
-	round_rect(C->bar.ctx, 0, 0, M->sbar[0].width,
+	if (M->occ || M->tags) round_rect(C->bar.ctx, 0, 0, M->sbar[0].width,
 			BAR_HEIGHT(C->bar.opts), statOffset, statRGBA,
 			statRGBABrd, statRGBAText);
-cairo_set_source_surface(C->bar.ctx,M->sbar[0].buf,0,0);
-cairo_paint(C->bar.ctx);
-cairo_save(C->bar.ctx);
-cairo_translate(C->bar.ctx,C->w - M->sbar[1].width,0);
+	cairo_set_source_surface(C->bar.ctx,M->sbar[0].buf,0,0);
+	cairo_paint(C->bar.ctx);
+	cairo_save(C->bar.ctx);
+	cairo_translate(C->bar.ctx,C->w - M->sbar[1].width,0);
 	round_rect(C->bar.ctx, 0, 0, M->sbar[1].width,
 			BAR_HEIGHT(C->bar.opts), statOffset, statRGBA,
 			statRGBABrd, statRGBAText);
-cairo_set_source_surface(C->bar.ctx,M->sbar[1].buf,0,0);
-cairo_paint(C->bar.ctx);
-cairo_restore(C->bar.ctx);
-//	XCopyArea(dpy,M->sbar[0].buf,C->bar.buf,gc,0,0,
-//			M->sbar[0].width,BAR_HEIGHT(C->bar.opts),0,0);
-//	XCopyArea(dpy,M->sbar[1].buf,C->bar.buf,gc,0,0, M->sbar[1].width,
-//			BAR_HEIGHT(C->bar.opts), C->w - M->sbar[1].width,0);
+	cairo_set_source_surface(C->bar.ctx,M->sbar[1].buf,0,0);
+	cairo_paint(C->bar.ctx);
+	cairo_restore(C->bar.ctx);
 	XCopyArea(dpy, C->bar.buf, C->bar.win, gc, 0, 0, C->w,
 			BAR_HEIGHT(C->bar.opts), 0, 0);
 }

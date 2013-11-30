@@ -16,9 +16,34 @@ static void sbar_tags(Monitor *, SBar *, char);
 static void sbar_text(SBar *, const char *);
 static void set_color(cairo_t *, int);
 
+static cairo_surface_t *icon_img;
+static int icon_size;
+
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
 /********************************************************************/
+
+int icons_init(const char *fname, int size) {
+return 0;
+	cairo_surface_t *img = cairo_image_surface_create_from_png(fname);
+	int w = cairo_image_surface_get_width(img);
+	int h = cairo_image_surface_get_height(img);
+	icon_img = cairo_image_surface_create(0, size * 10, size * 10);
+	cairo_t *ctx = cairo_create(icon_img);
+	cairo_scale(ctx, size * 10 / w, size * 10 / h);
+	cairo_set_source_surface(ctx, img, 0, 0);
+	cairo_paint(ctx);
+	cairo_surface_destroy(img);
+	cairo_destroy(ctx);
+	icon_size = size;
+	return 0;
+}
+
+int icons_free() {
+return 0;
+	cairo_surface_destroy(icon_img);
+	return 0;
+}
 
 double round_rect(cairo_t *ctx, int x, int y, int w, int h,
 		int off, int bg, int brd, int txt) {
@@ -61,6 +86,10 @@ int draw_tab(Container *C, int con, Client *c, int n, int count) {
 	double off;
 	cairo_text_extents_t ext;
 	cairo_text_extents(C->bar.ctx,c->title,&ext);
+/* ICONS:
+c->hints->icon_pixmap
+c->hints->icon_mask
+*/
 	//TODO need to trim long titles:
 	if (m->focus == C && C->top == c)
 		off = round_rect(C->bar.ctx, tx, 0, tw, th,

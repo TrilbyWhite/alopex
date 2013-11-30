@@ -128,7 +128,8 @@ void maprequest(XEvent *ev) {
 	if (!(c=calloc(1,sizeof(Client)))) die("unable to allocate memory");
 	c->win = e->window;
 	c->tags = m->tags;
-	// get transient hint
+	c->hints = XGetWMHints(dpy,c->win);
+	// get transient hint ?
 	XTextProperty name; char **list = NULL; int n;
 	XGetTextProperty(dpy, c->win, &name, XA_WM_NAME);
 	XmbTextPropertyToTextList(dpy, &name, &list, &n);
@@ -140,12 +141,10 @@ void maprequest(XEvent *ev) {
 		/*if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
 		else */ c->title = strdup(noname_window);
 	}
-	// get icon
 	// apply_rules
 	if (!(c->tags)) c->tags = m->tags;
 	if (!(c->tags)) c->tags = 1;
 	if (!(m->tags & 0xFF)) m->tags = c->tags;
-	// get hints
 	//XSelectInput(dpy, c->win, PropertyChangeMask | EnterWindowMask);
 	if (clients) {
 		/*if (client_opts & ATTACH_ABOVE) {
@@ -172,8 +171,7 @@ void maprequest(XEvent *ev) {
 void unmapnotify(XEvent *ev) {
 	Client *c, *t;
 	XUnmapEvent *e = &ev->xunmap;
-	if (!(c=wintoclient(e->window)) || e->send_event)
-		return;
+	if (!(c=wintoclient(e->window)) || e->send_event) return;
 	int i;
 	for (i = 0; i < 10; i++) if (winmarks[i] == c) winmarks[i] = NULL;
 	if (c == clients) clients = c->next;
@@ -182,6 +180,7 @@ void unmapnotify(XEvent *ev) {
 		t->next = c->next;
 	}
 	XFree(c->title);
+	XFree(c->hints);
 	free(c); c = NULL;
 	draw();
 }
@@ -234,12 +233,12 @@ void X_init() {
 	XDefineCursor(dpy,root,XCreateFontCursor(dpy,68));
 	XSetWindowAttributes wa;
 	gc = DefaultGC(dpy,scr);
-
 	if (FT_Init_FreeType(&library) |
 			FT_New_Face(library,font_path,0,&face) |
 			FT_Set_Pixel_Sizes(face,0,font_size) )
 		die("unable to init freetype lib and load font");
 	cfont = cairo_ft_font_face_create_for_ft_face(face,0);
+	icons_init(icons_path);
 	/* monitors */
 	if (!(mons=calloc(1,sizeof(Monitor))))
 		die("unable to allocatememory");
@@ -331,6 +330,7 @@ void X_free() {
 			XDestroyWindow(dpy,C->bar.win);
 		}
 	}
+	icons_free();
 	cairo_font_face_destroy(cfont);
 	FT_Done_Face(face);
 	free(C);

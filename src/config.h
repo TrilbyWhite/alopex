@@ -17,6 +17,7 @@ STATUS INPUT NOT IMPLEMENTED JUST YET
 const char *status_fmt = "%T\n %C \n";
 //const char *status_fmt = "%T\n %1 %C \n";
 const char *font_path = "/usr/share/fonts/TTF/DroidSansMono.ttf";
+const char *icons_path = "/usr/share/alopex/icons.png";
 //const char *font_path = "/usr/share/fonts/TTF/comic.ttf";
 const int font_size = 14;
 
