@@ -24,8 +24,10 @@ void tile() {
 	Monitor *M;
 	Container *C;
 	for (M = mons; M; M = M->next) {
-		for (n = 0, c = clients; c; c = c->next)
-			if (c->tags && M->tags) n++;
+		for (n = 0, c = clients; c; c = c->next) {
+			if (c->tags & M->tags) n++;
+			else purgatory(c->win);
+		}
 		ncon = 0;
 		Container *focus = NULL;
 		nn = n;
@@ -41,7 +43,7 @@ void tile() {
 			M->focus = M->container;
 			tile_monocle(M,n);
 			for (C = M->container->next; C; C = C->next) {
-				XMoveWindow(dpy,C->bar.win,M->w*3,0);
+				purgatory(C->bar.win);
 				C->top = NULL;
 				if (M->focus == C) M->focus = M->container;
 			}
@@ -50,7 +52,7 @@ void tile() {
 			for (n = 0, C = M->container; C && n<ncon; n++, C=C->next)
 				tile_container(M,C,ncon,nlast);
 			for (C; C; C = C->next) {
-				XMoveWindow(dpy,C->bar.win,M->w*3,0);
+				purgatory(C->bar.win);
 				C->top = NULL;
 				if (M->focus == C) M->focus = M->container;
 			}
@@ -99,8 +101,8 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 	int nx;
 	for (n = 0, CC = M->container; CC != C; n += CC->n, CC = CC->next);
 	for (c = clients; c && n; c = c->next)
-		if (c->tags && M->tags) n--;
-	for (c; c; c = c->next) if (c->tags && M->tags) {
+		if (c->tags & M->tags) n--;
+	for (c; c; c = c->next) if (c->tags & M->tags) {
 		if (C->n > 0 && (++n) > C->n) break;
 		else if (C->n < 0) n++;
 		if (!top) { top = c; nx = n-1; }
@@ -146,7 +148,7 @@ void tile_monocle(Monitor *M,int n) {
 	Client *c, *top = NULL;
 	int i = 0;
 	for (c = clients; c; c = c->next)
-		if (c->tags && M->tags) {
+		if (c->tags & M->tags) {
 			if (!top) top = c;
 			if (M->container->top == c) top = c;
 			tile_client(c,x,y,w,h);

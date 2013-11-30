@@ -47,7 +47,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[UnmapNotify]	= unmapnotify,
 };
 
-static int default_cursor = 64;
+static int default_cursor = 64, purgX = 0, purgY = 0;
 static Bool mod_down = False;
 static const char *noname_window = "(WINDOW)";
 static cairo_font_face_t *cfont;
@@ -65,9 +65,13 @@ int main(int argc, const char **argv) {
 	X_free();
 }
 
-void die(const char *fmt) {
+int die(const char *fmt) {
 	fprintf(stderr,"[ALOPEX] %s\n",fmt);
 	exit(1);
+}
+
+int purgatory(Window *win) {
+	XMoveWindow(dpy,win,purgX,purgY);
 }
 
 /********************************************************************/
@@ -269,6 +273,8 @@ void X_init() {
 		//M->tags = 1;
 		M->mode = RSTACK;
 		M->focus = M->container;
+		if (M->x + M->w > purgX) purgX = M->x + M->w + 10;
+		if (M->y + M->h > purgX) purgY = M->y + M->h + 10;
 	}
 	/* configure root window */
 	wa.event_mask = ExposureMask | FocusChangeMask | ButtonReleaseMask |
