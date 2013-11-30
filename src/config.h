@@ -30,6 +30,20 @@ const int bar_opts		= BAR_VISIBLE | BAR_TOP;
 const char *tag_names[] = { "one", "two", "three", "four", NULL };
 const int tag_pad			= 5;
 
+const Theme theme[] = {
+						/*  X    Y     W    H     Radius */
+	[tabOffset]			= { 2.0, 2.0, -4.0, 10.0, 5.0 },
+						/*  R    G    B    A    Ignore */
+	[tabRGBAFocus]		= { 1.0, 1.0, 0.0, 0.8, 0.0 },
+	[tabRGBATop]		= { 0.0, 1.0, 1.0, 0.7, 0.0 },
+	[tabRGBAOther]		= { 0.0, 0.0, 1.0, 0.5, 0.0 },
+						/*  R    G    B    A    Alignment */
+	[tabRGBAFocusText]	= { 0.0, 0.0, 0.0, 1.0, 0.0 },
+	[tabRGBATopText]	= { 0.0, 0.0, 0.0, 1.0, 0.0 },
+	[tabRGBAOtherText]	= { 0.0, 0.0, 0.0, 1.0, 0.0 },
+};
+
+
 const char *string[127] = {
 	[ 0 ] = "mm",
 	[ 1 ] = "mm",

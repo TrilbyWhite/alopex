@@ -8,6 +8,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <locale.h>
+#include <math.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
@@ -20,20 +21,28 @@
 #include <cairo-xlib.h>
 #include <cairo-ft.h>
 
-#define BAR_TOP		0x0100
-#define BAR_BOTTOM	0x0200
-#define BAR_VISIBLE	0x0400
+#define BAR_TOP				0x0100
+#define BAR_BOTTOM			0x0200
+#define BAR_VISIBLE			0x0400
 
 #define BAR_HEIGHT(x)		(x & 0x00FF)
 #define SET_BAR_HEIGHT(x)	x
 
-#define RSTACK			0x1000
-#define BSTACK			0x2000
+#define RSTACK				0x1000
+#define BSTACK				0x2000
 
-#define ATTACH_TOP		0x0001
-#define ATTACH_BOTTOM	0x0002
+#define ATTACH_TOP			0x0001
+#define ATTACH_BOTTOM		0x0002
 #define ATTACH_ABOVE		0x0003
 #define ATTACH_BELOW		0x0004
+
+#define tabOffset			0x01
+#define tabRGBAFocus		0x02
+#define tabRGBATop			0x03
+#define tabRGBAOther		0x04
+#define tabRGBAFocusText	0x05
+#define tabRGBATopText		0x06
+#define tabRGBAOtherText	0x07
 
 typedef struct Key {
 	unsigned short int mod;
@@ -81,6 +90,10 @@ struct Monitor {
 	SBar sbar[2];
 };
 
+typedef struct Theme {
+	double a, b, c, d, e;
+} Theme;
+
 Monitor *mons;
 Monitor *m;
 Client *clients;
@@ -97,6 +110,7 @@ extern const char *status_fmt;
 extern const char *string[];
 extern const char *tag_names[];
 extern const int tag_pad;
+extern const Theme theme[];
 
 #endif /* __ALOPEX_H__ */
 

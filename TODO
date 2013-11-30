@@ -7,6 +7,11 @@ X Fix statusbar drawing to allow for psuedo transparency
 - Get client window icons
 - Replace placeholder tabs with nicer looking tabs
 - Allow user customization of tabs and status bars
+	> color
+	> shape
+	> transparency
+	- tab font alignment
+	(first three done for tabs)
 - Add key_chain actions for adjusting parameters
 - Much much more ...
 

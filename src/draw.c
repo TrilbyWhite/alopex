@@ -10,9 +10,11 @@
 
 #include "alopex.h"
 
+static void round_rect(cairo_t *, int, int, int, int, const Theme *);
 static void sbar_clock(SBar *, char);
 static void sbar_tags(Monitor *, SBar *, char);
 static void sbar_text(SBar *, const char *);
+static void set_color(cairo_t *, const Theme *);
 
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
@@ -37,12 +39,10 @@ int draw_tab(Container *C, int con, Client *c, int n, int count) {
 	int tx = x + n * tw;
 	int th = BAR_HEIGHT(C->bar.opts);
 	if (m->focus == C && C->top == c)
-		cairo_set_source_rgba(C->bar.ctx,1,1,0,0.8);
-	else if (C->top == c)
-		cairo_set_source_rgba(C->bar.ctx,0,1,1,0.7);
-	else
-		cairo_set_source_rgba(C->bar.ctx,0,0,0.5,0.5);
-	cairo_rectangle(C->bar.ctx,tx+2,2,tw-4,th-4);
+	set_color(C->bar.ctx,&theme[tabRGBAFocus]);
+	else if (C->top == c) set_color(C->bar.ctx,&theme[tabRGBATop]);
+	else set_color(C->bar.ctx,&theme[tabRGBAOther]);
+	round_rect(C->bar.ctx,tx,0,tw,th,&theme[tabOffset]);
 	cairo_fill_preserve(C->bar.ctx);
 	cairo_set_source_rgba(C->bar.ctx,0,0,0,0.8);
 	cairo_stroke(C->bar.ctx);
@@ -123,6 +123,16 @@ int draw() {
 /*  LOCAL FUNCTIONS                                                 */
 /********************************************************************/
 
+void round_rect(cairo_t *ctx, int x, int y, int w, int h, const Theme *q) {
+	cairo_new_sub_path(ctx);
+	x += q->a; y += q->b; w += q->c; h += q->d;
+	cairo_arc(ctx, x + w - q->e, y + q->e, q->e, -0.5 * M_PI, 0);
+	cairo_arc(ctx, x + w - q->e, y + h - q->e, q->e, 0, 0.5 * M_PI);
+	cairo_arc(ctx, x + q->e, y + h - q->e, q->e, 0.5 * M_PI, M_PI);
+	cairo_arc(ctx, x + q->e, y + q->e, q->e, M_PI, 1.5 * M_PI);
+	cairo_close_path(ctx);
+}
+
 void sbar_clock(SBar *S, char ch) {
 	time_t raw = time(NULL);
 	struct tm *now = localtime(&raw);
@@ -169,3 +179,6 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 	}
 }
 
+void set_color(cairo_t *ctx, const Theme *q) {
+	cairo_set_source_rgba(ctx,q->a,q->b,q->c,q->d);
+}
