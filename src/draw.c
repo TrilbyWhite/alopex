@@ -21,9 +21,6 @@ static void sbar_text(SBar *, const char *);
 int draw_background(Container *C) {
 	XClearWindow(dpy,C->bar.win);
 	XCopyArea(dpy,C->bar.win,C->bar.buf,gc,0,0,C->w,BAR_HEIGHT(C->bar.opts),0,0);
-//	cairo_set_source_rgba(C->bar.ctx,0.5,0.5,0.5,1);
-//	cairo_rectangle(C->bar.ctx,0,0,C->w,BAR_HEIGHT(C->bar.opts));
-//	cairo_fill(C->bar.ctx);
 }
 
 int draw_tab(Container *C, int con, Client *c, int n, int count) {
@@ -67,11 +64,15 @@ void draw_status() {
 	for (M = mons; M; M = M->next)
 	for (c = status_fmt, i = 0; i < 2; c++, i++) {
 		S = &M->sbar[i];
-cairo_set_source_rgba(S->ctx,0.5,0.5,0.5,1);
-cairo_rectangle(S->ctx,0,0,S->width*2,S->height);
-cairo_fill_preserve(S->ctx);
-cairo_set_source_rgba(S->ctx,0.5,0.5,1,1);
-cairo_stroke(S->ctx);
+cairo_save(S->ctx);
+cairo_set_operator(S->ctx,CAIRO_OPERATOR_CLEAR);
+cairo_paint(S->ctx);
+cairo_restore(S->ctx);
+//cairo_set_source_rgba(S->ctx,0.5,0.5,0.5,0.2);
+//cairo_rectangle(S->ctx,0,0,S->width*2,S->height);
+//cairo_fill_preserve(S->ctx);
+//cairo_set_source_rgba(S->ctx,0.5,0.5,1,0.5);
+//cairo_stroke(S->ctx);
 		S->x = 0;
 		for (c; *c != '\n'; c++) {
 			if (*c == '%') {
@@ -123,7 +124,7 @@ void sbar_clock(SBar *S, char ch) {
 	char str[8];
 	if (ch == 'C') strftime(str,8,"%H:%M",now);
 	else if (ch == 'c') strftime(str,8,"%I:%M",now);
-	cairo_set_source_rgba(S->ctx,0,0,1,1);
+	cairo_set_source_rgba(S->ctx,1,1,0,1);
 	sbar_text(S,str);
 }
 

@@ -56,7 +56,7 @@ typedef struct Bar {
 } Bar;
 
 typedef struct SBar {
-	Pixmap buf;
+	cairo_surface_t *buf;
 	cairo_t *ctx;
 	int x, width, height;
 } SBar;

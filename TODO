@@ -2,10 +2,11 @@
 X Add status bar space to bars 1 and 2
 X Implement basic status bar drawing
 ? Finish implementing tags (done, but not tested)
-- Fix statusbar drawing to allow for psuedo transparency
+X Fix statusbar drawing to allow for psuedo transparency
 - Write status input reader
 - Get client window icons
 - Replace placeholder tabs with nicer looking tabs
+- Allow user customization of tabs and status bars
 - Add key_chain actions for adjusting parameters
 - Much much more ...
 

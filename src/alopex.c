@@ -197,6 +197,16 @@ int xerror(Display *d, XErrorEvent *e) {
 	fprintf(stderr,"[X11 %d:%d] %s\n",e->request_code,e->error_code,msg);
 }
 
+static cairo_t *X_init_cairo_img_create(cairo_surface_t **buf, int w, int h) {
+	*buf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,w,h);
+	cairo_t *ctx = cairo_create(*buf);
+	cairo_set_line_join(ctx,CAIRO_LINE_JOIN_ROUND);
+	cairo_set_line_width(ctx,1);
+	cairo_set_font_face(ctx,cfont);
+	cairo_set_font_size(ctx,font_size);
+	return ctx;
+}
+
 static cairo_t *X_init_cairo_create(Pixmap *buf, int w, int h) {
 	*buf = XCreatePixmap(dpy, root, w, h, DefaultDepth(dpy,scr));
 	cairo_surface_t *t;
@@ -206,8 +216,6 @@ static cairo_t *X_init_cairo_create(Pixmap *buf, int w, int h) {
 	cairo_set_line_join(ctx,CAIRO_LINE_JOIN_ROUND);
 	cairo_set_line_width(ctx,1);
 	cairo_set_font_face(ctx,cfont);
-	//cairo_select_font_face(ctx,"sans-serif",
-	//		CAIRO_FONT_SLANT_NORMAL,CAIRO_FONT_WEIGHT_NORMAL);
 	cairo_set_font_size(ctx,font_size);
 	return ctx;
 }
@@ -268,9 +276,9 @@ void X_init() {
 		M->sbar[1].width = M->w/2;
 		M->sbar[0].height = BAR_HEIGHT(M->container->bar.opts);
 		M->sbar[1].height = M->sbar[0].height;
-		M->sbar[0].ctx = X_init_cairo_create(&M->sbar[0].buf,
+		M->sbar[0].ctx = X_init_cairo_img_create(&M->sbar[0].buf,
 				M->sbar[0].width,M->sbar[0].height);
-		M->sbar[1].ctx = X_init_cairo_create(&M->sbar[1].buf,
+		M->sbar[1].ctx = X_init_cairo_img_create(&M->sbar[1].buf,
 				M->sbar[1].width,M->sbar[1].height);
 		//M->tags = 1;
 		M->mode = RSTACK;
@@ -303,10 +311,10 @@ void X_free() {
 	Monitor *M;
 	Container *C, *CC = NULL;
 	for (M = mons; M; M = M->next) {
+		cairo_surface_destroy(M->sbar[0].buf);
 		cairo_destroy(M->sbar[0].ctx);
-		XFreePixmap(dpy,M->sbar[0].buf);
+		cairo_surface_destroy(M->sbar[1].buf);
 		cairo_destroy(M->sbar[1].ctx);
-		XFreePixmap(dpy,M->sbar[1].buf);
 		for (C = M->container; C; CC = C, C = C->next) {
 			if (CC) free(CC);
 			cairo_destroy(C->bar.ctx);
