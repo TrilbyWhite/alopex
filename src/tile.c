@@ -14,11 +14,13 @@ static void tile_client(Client *, int, int, int, int);
 static void tile_container(Monitor *, Container *, int, int);
 static void tile_monocle(Monitor *, int);
 
+extern double round_rect(cairo_t *, int, int, int, int, int, int, int, int);
+
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
 /********************************************************************/
 
-void tile() {
+int tile() {
 	int n, nn, ncon, nlast;
 	Client *c;
 	Monitor *M;

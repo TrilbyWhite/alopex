@@ -119,6 +119,24 @@ FT_Library library;
 FT_Face face;
 Client *winmarks[10];
 
+
+extern int die(const char *);
+extern int purgatory(Window);
+
+extern int draw();
+extern int draw_background(Container *);
+extern int draw_status();
+extern int draw_tab(Container *, int, Client *, int, int);
+extern int icons_init(const char *, int);
+extern int icons_free();
+extern double round_rect(cairo_t *, int, int, int, int, int, int, int, int);
+
+extern int input(char *);
+
+extern int key_chain(const char *);
+
+extern int tile();
+
 extern const char *status_fmt;
 extern const char *string[];
 extern const char *tag_names[];

@@ -238,7 +238,6 @@ void X_init() {
 			FT_Set_Pixel_Sizes(face,0,font_size) )
 		die("unable to init freetype lib and load font");
 	cfont = cairo_ft_font_face_create_for_ft_face(face,0);
-	icons_init(icons_path);
 	/* monitors */
 	if (!(mons=calloc(1,sizeof(Monitor))))
 		die("unable to allocatememory");
@@ -247,6 +246,7 @@ void X_init() {
 	Container *C, *CC = NULL;
 	int i,j, bh = (BAR_HEIGHT(bar_opts) ? BAR_HEIGHT(bar_opts) :
 			font_size+4);
+	icons_init(icons_path,bh);
 	wa.override_redirect = True;
 	wa.event_mask = ExposureMask;
 	wa.background_pixmap = ParentRelative;

@@ -107,7 +107,7 @@ c->hints->icon_mask
 	cairo_stroke(C->bar.ctx);
 }
 
-void draw_status() {
+int draw_status() {
 	Monitor *M;
 	SBar *S;
 	int i; const char *c;
