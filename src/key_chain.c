@@ -69,12 +69,10 @@ const char *bar(const char *c) {return ++c;}
 
 const char *command(const char *ch) {
 	if (*(++ch)=='\0') return ch;
-	int i;
-	const char *arg[4];
-	arg[0] = "/bin/sh"; arg[1] = "-c"; arg[3] = NULL;
-	arg[2] = string[*ch];
+	int i; const char *s = string[*ch];
 	for (i = 0; i < rep; i++) {
-		if (fork() == 0) execv(arg[0],(char * const *)arg);
+		if (s[strlen(s)-1] == '&') system(string[*ch]);
+		// else run macro
 	}
 	return (++ch);
 }

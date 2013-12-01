@@ -36,6 +36,8 @@
 #define ATTACH_ABOVE			0x0003
 #define ATTACH_BELOW			0x0004
 
+#define CMD(x)	x " &"
+
 /* Theme elements */
 #define tabOffset				0x01
 #define tabRGBAFocus			0x02

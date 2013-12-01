@@ -74,9 +74,9 @@ const Theme theme[] = {
 const char *string[127] = {
 	[ 0 ] = "mm",
 	[ 1 ] = "mm",
-	['m'] = "interrobang",
-	['t'] = "urxvt",
-	['w'] = "firefox",
+	['m'] = CMD("interrobang"),
+	['t'] = CMD("urxvt"),
+	['w'] = CMD("firefox"),
 };
 
 
