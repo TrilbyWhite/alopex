@@ -150,13 +150,25 @@ int draw() {
 	draw_status();
 	tile();
 	if (!m->focus) m->focus = m->container;
-	if (m->focus->top) {
-		XSetInputFocus(dpy,m->focus->top->win,
-				RevertToPointerRoot,CurrentTime);
-		if (m->focus->top != winmarks[0]) {
+	Client *c;
+	if ( (c=m->focus->top) ) {
+		if (c->flags & WIN_FOCUS) {
+			XEvent ev;
+			ev.type = ClientMessage; ev.xclient.window = c->win;
+			ev.xclient.message_type = XInternAtom(dpy,"WM_PROTOCOLS",True);
+			ev.xclient.format = 32;
+			ev.xclient.data.l[0] = XInternAtom(dpy,"WM_TAKE_FOCUS",True);
+			ev.xclient.data.l[1] = CurrentTime;
+			XSendEvent(dpy,c->win,False,NoEventMask,&ev);
+		}
+		else {
+			XSetInputFocus(dpy,c->win, RevertToPointerRoot, CurrentTime);
+		}
+		if (c != winmarks[0]) {
 			winmarks[1] = winmarks[0];
 			winmarks[0] = m->focus->top;
 		}
+		c->flags &= ~WIN_URGENT;
 	}
 	XFlush(dpy);
 }

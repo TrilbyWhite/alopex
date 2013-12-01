@@ -1,8 +1,10 @@
 
 X Add status bar space to bars 1 and 2
 X Implement basic status bar drawing
-? Finish implementing tags (done, but not tested)
+X Finish implementing tags (done, but not tested)
 X Fix statusbar drawing to allow for psuedo transparency
+- Need floater container for stacking
+	- can also hold bar zero
 - Write status input reader
 - Get client window icons
 - Write configurenotify event handler for window title updates

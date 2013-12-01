@@ -28,8 +28,10 @@
 #include "alopex.h"
 #include "config.h"
 
+static void configurerequest(XEvent *);
 static void enternotify(XEvent *);
 static void expose(XEvent *);
+static void get_hints(Client *);
 static void keypress(XEvent *);
 static void keyrelease(XEvent *);
 static void maprequest(XEvent *);
@@ -39,8 +41,9 @@ static void X_init();
 static void X_free();
 static Client *wintoclient();
 static void (*handler[LASTEvent]) (XEvent *) = {
+	[ConfigureRequest]	= configurerequest,
 	[EnterNotify]	= enternotify,
-	[Expose]			= expose,
+	[Expose]		= expose,
 	[KeyPress]		= keypress,
 	[KeyRelease]	= keyrelease,
 	[MapRequest]	= maprequest,
@@ -78,6 +81,30 @@ int purgatory(Window win) {
 /*  LOCAL FUNCTIONS                                                 */
 /********************************************************************/
 
+void configurerequest(XEvent *ev) {
+// Not working ... at all.
+	XConfigureRequestEvent *e = &ev->xconfigurerequest;
+	Client *c;
+	if ( (c=wintoclient(e->window)) ) {
+		if ( (e->value_mask & CWWidth) || (e->value_mask & CWHeight) ) {
+			if ( (e->width == m->w) && (e->height == m->h) )
+				c->flags |= WIN_FULLSCREEN;
+			else
+				c->flags &= ~WIN_FULLSCREEN;
+			if (c->flags & WIN_FLOAT)
+				XMoveResizeWindow(dpy,c->win,e->x, e->y, e->width, e->height);
+		}
+		draw();
+		return;
+	}
+return;
+	XWindowChanges wc;
+	wc.x = e->x; wc.y = e->y; wc.width = e->width; wc.height = e->height;
+	wc.sibling = e->above; wc.stack_mode = e->detail;
+	XConfigureWindow(dpy,e->window,e->value_mask,&wc);
+	XFlush(dpy);
+}
+
 void enternotify(XEvent *ev) {
 	Client *c = wintoclient(ev->xcrossing.window);
 	if (c && focusfollowmouse) {
@@ -92,6 +119,20 @@ void enternotify(XEvent *ev) {
 
 void expose(XEvent *ev) {
 	draw();
+}
+
+
+void get_hints(Client *c) {
+	XWMHints *hint;
+	if ( !(hint=XGetWMHints(dpy,c->win)) ) return;
+	if (hint->flags & XUrgencyHint) c->flags |= WIN_URGENT;
+	if (hint->flags & InputHint && !hint->input) c->flags |= WIN_FOCUS;
+	// get icon
+	// if (hint->flags & IconThingy) {
+	//	if (c->icon) { cairo_surface_destroy(c->icon); c->icon = NULL; };
+	//	... cairo render to c->icon at size BAR_HEIGHT ...
+	// }
+	XFree(hint);
 }
 
 #define MOD(x)		((x->state&~Mod2Mask)&~LockMask)
@@ -128,8 +169,9 @@ void maprequest(XEvent *ev) {
 	if (!(c=calloc(1,sizeof(Client)))) die("unable to allocate memory");
 	c->win = e->window;
 	c->tags = m->tags;
-	c->hints = XGetWMHints(dpy,c->win);
-	// get transient hint ?
+	get_hints(c);
+	if (XGetTransientForHint(dpy,c->win,&c->parent)) c->flags |= WIN_TRANSIENT;
+	else c->parent = e->parent;
 	XTextProperty name; char **list = NULL; int n;
 	XGetTextProperty(dpy, c->win, &name, XA_WM_NAME);
 	XmbTextPropertyToTextList(dpy, &name, &list, &n);
@@ -138,9 +180,10 @@ void maprequest(XEvent *ev) {
 		XFreeStringList(list);
 	}
 	else {
-		/*if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
-		else */ c->title = strdup(noname_window);
+		if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
+		else c->title = strdup(noname_window);
 	}
+	if (wa.width == m->w && wa.height == m->h) c->flags |= WIN_FULLSCREEN;
 	// apply_rules
 	if (!(c->tags)) c->tags = m->tags;
 	if (!(c->tags)) c->tags = 1;
@@ -180,7 +223,7 @@ void unmapnotify(XEvent *ev) {
 		t->next = c->next;
 	}
 	XFree(c->title);
-	XFree(c->hints);
+	// if (c->icon) cairo_surface_destroy(c->icon);
 	free(c); c = NULL;
 	draw();
 }

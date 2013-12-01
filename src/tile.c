@@ -26,11 +26,12 @@ int tile() {
 	Monitor *M;
 	Container *C;
 	for (M = mons; M; M = M->next) {
+	// adjust M->tags for all previous M's
 		M->occ = 0;
 		for (n = 0, c = clients; c; c = c->next) {
 			M->occ |= c->tags;
-			if (c->tags & M->tags) n++;
-			else purgatory(c->win);
+			if (c->tags & M->tags && !(c->flags & WIN_FLOAT)) n++;
+			else if ( !(c->flags & WIN_FLOAT) ) purgatory(c->win);
 		}
 		ncon = 0;
 		Container *focus = NULL;
@@ -61,6 +62,13 @@ int tile() {
 				if (M->focus == C) M->focus = M->container;
 			}
 		}
+		// place floaters / fullscreen
+for (c = clients; c; c = c->next) {
+	if (c->tags & M->tags && c->flags & WIN_FLOAT) {
+		if (c->tags & M->tags) tile_client(c,M->x,M->y,M->w,M->h);
+		else purgatory(c->win);
+	}
+}
 	}
 }
 
@@ -106,15 +114,16 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 	for (n = 0, CC = M->container; CC != C; n += CC->n, CC = CC->next);
 	for (c = clients; c && n; c = c->next)
 		if (c->tags & M->tags) n--;
-	for (c; c; c = c->next) if (c->tags & M->tags) {
-		if (C->n > 0 && (++n) > C->n) break;
-		else if (C->n < 0) n++;
-		if (!top) { top = c; nx = n-1; }
-		if (C->top == c) top = c;
-		tile_client(c,x,y,w,h);
-		if (con < ncon - 1) draw_tab(C,con,c,n-1,C->n);
-		else draw_tab(C,con,c,n-1,nlast);
-	}
+	for (c; c; c = c->next)
+		if ( (c->tags & M->tags) && !(c->flags & WIN_FLOAT) ) {
+			if (C->n > 0 && (++n) > C->n) break;
+			else if (C->n < 0) n++;
+			if (!top) { top = c; nx = n-1; }
+			if (C->top == c) top = c;
+			tile_client(c,x,y,w,h);
+			if (con < ncon - 1) draw_tab(C,con,c,n-1,C->n);
+			else draw_tab(C,con,c,n-1,nlast);
+		}
 	if (C->top != top) {
 		C->top = top;
 		if (con < ncon - 1) draw_tab(C,con,top,nx,C->n);
@@ -164,7 +173,7 @@ void tile_monocle(Monitor *M,int n) {
 	Client *c, *top = NULL;
 	int i = 0;
 	for (c = clients; c; c = c->next)
-		if (c->tags & M->tags) {
+		if ( (c->tags & M->tags) && !(c->flags & WIN_FLOAT) ) {
 			if (!top) top = c;
 			if (M->container->top == c) top = c;
 			tile_client(c,x,y,w,h);

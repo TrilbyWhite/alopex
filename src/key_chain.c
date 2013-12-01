@@ -166,7 +166,16 @@ const char *tag(const char *ch) {
 	return ch;
 }
 
-const char *toggle(const char *c) {return ++c;}
+const char *toggle(const char *ch) {
+	// todo check for window specifier
+	// todo floating
+	Client *c;
+	if (!(c=winmarks[0])) return (++ch);
+	if (*ch == 'f') c->flags ^= WIN_FULLSCREEN;
+	trigger = 2;
+	return (++ch);
+}
+
 const char *toTag(const char *c) {return ++c;}
 const char *view(const char *c) {return ++c;}
 

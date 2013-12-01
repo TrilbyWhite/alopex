@@ -24,7 +24,6 @@
 #define BAR_TOP				0x0100
 #define BAR_BOTTOM			0x0200
 #define BAR_VISIBLE			0x0400
-
 #define BAR_HEIGHT(x)		(x & 0x00FF)
 #define SET_BAR_HEIGHT(x)	x
 
@@ -37,6 +36,12 @@
 #define ATTACH_BELOW			0x0004
 
 #define CMD(x)	x " &"
+
+#define WIN_FLOAT			0x10
+#define WIN_FULLSCREEN		0x11
+#define WIN_TRANSIENT		0x12
+#define WIN_URGENT			0x04
+#define WIN_FOCUS			0x08
 
 /* Theme elements */
 #define tabOffset				0x01
@@ -68,10 +73,10 @@ typedef struct Key {
 typedef struct Client Client;
 struct Client {
 	Client *next;
-	Window win;
+	Window win, parent;
 	char *title;
-	XWMHints *hints;
-	int tags;
+	cairo_surface_t *icon;
+	int tags, flags;
 };
 
 typedef struct Bar {
