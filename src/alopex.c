@@ -35,6 +35,7 @@ static void get_hints(Client *);
 static void keypress(XEvent *);
 static void keyrelease(XEvent *);
 static void maprequest(XEvent *);
+static void propertynotify(XEvent *);
 static void unmapnotify(XEvent *);
 static int  xerror(Display *, XErrorEvent *);
 static void X_init();
@@ -46,6 +47,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[Expose]		= expose,
 	[KeyPress]		= keypress,
 	[KeyRelease]	= keyrelease,
+	[PropertyNotify]	= propertynotify,
 	[MapRequest]	= maprequest,
 	[UnmapNotify]	= unmapnotify,
 };
@@ -77,6 +79,27 @@ int purgatory(Window win) {
 	XMoveWindow(dpy,win,purgX,purgY);
 }
 
+int set_focus(Client *c) {
+	if (c->flags & WIN_FOCUS) {
+		XEvent ev;
+		ev.type = ClientMessage; ev.xclient.window = c->win;
+		ev.xclient.message_type = XInternAtom(dpy,"WM_PROTOCOLS",True);
+		ev.xclient.format = 32;
+		ev.xclient.data.l[0] = XInternAtom(dpy,"WM_TAKE_FOCUS",True);
+		ev.xclient.data.l[1] = CurrentTime;
+		XSendEvent(dpy,c->win,False,NoEventMask,&ev);
+	}
+	else {
+		XSetInputFocus(dpy,c->win, RevertToPointerRoot, CurrentTime);
+	}
+	if (c != winmarks[0]) {
+		winmarks[1] = winmarks[0];
+		winmarks[0] = m->focus->top;
+	}
+	c->flags &= ~WIN_URGENT;
+}
+
+
 /********************************************************************/
 /*  LOCAL FUNCTIONS                                                 */
 /********************************************************************/
@@ -87,12 +110,9 @@ void configurerequest(XEvent *ev) {
 	Client *c;
 	if ( (c=wintoclient(e->window)) ) {
 		if ( (e->value_mask & CWWidth) || (e->value_mask & CWHeight) ) {
-			if ( (e->width == m->w) && (e->height == m->h) )
-				c->flags |= WIN_FULLSCREEN;
-			else
-				c->flags &= ~WIN_FULLSCREEN;
-			if (c->flags & WIN_FLOAT)
-				XMoveResizeWindow(dpy,c->win,e->x, e->y, e->width, e->height);
+			if ( (e->width == m->w) && (e->height == m->h) ) winmarks[2] = c;
+//			if (c->flags & WIN_FLOAT)
+//				XMoveResizeWindow(dpy,c->win,e->x, e->y, e->width, e->height);
 		}
 		draw();
 		return;
@@ -135,6 +155,22 @@ void get_hints(Client *c) {
 	XFree(hint);
 }
 
+void get_name(Client *c) {
+	Client *p;
+	XFree(c->title); c->title = NULL;
+	XTextProperty name; char **list = NULL; int n;
+	XGetTextProperty(dpy,c->win,&name,XA_WM_NAME);
+	XmbTextPropertyToTextList(dpy,&name,&list,&n);
+	if (n && *list) {
+		c->title = strdup(*list);
+		XFreeStringList(list);
+	}
+	else {
+		if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
+		else c->title = strdup(noname_window);
+	}
+}
+
 #define MOD(x)		((x->state&~Mod2Mask)&~LockMask)
 void keypress(XEvent *ev) {
 	int i, ret;
@@ -172,23 +208,13 @@ void maprequest(XEvent *ev) {
 	get_hints(c);
 	if (XGetTransientForHint(dpy,c->win,&c->parent)) c->flags |= WIN_TRANSIENT;
 	else c->parent = e->parent;
-	XTextProperty name; char **list = NULL; int n;
-	XGetTextProperty(dpy, c->win, &name, XA_WM_NAME);
-	XmbTextPropertyToTextList(dpy, &name, &list, &n);
-	if (n && *list) {
-		c->title = strdup(*list);
-		XFreeStringList(list);
-	}
-	else {
-		if ( (p=wintoclient(c->parent)) ) c->title = strdup(p->title);
-		else c->title = strdup(noname_window);
-	}
-	if (wa.width == m->w && wa.height == m->h) c->flags |= WIN_FULLSCREEN;
+	get_name(c);
+	if (wa.width == m->w && wa.height == m->h) winmarks[2] = c;
 	// apply_rules
 	if (!(c->tags)) c->tags = m->tags;
 	if (!(c->tags)) c->tags = 1;
 	if (!(m->tags & 0xFF)) m->tags = c->tags;
-	//XSelectInput(dpy, c->win, PropertyChangeMask | EnterWindowMask);
+	XSelectInput(dpy, c->win, PropertyChangeMask | EnterWindowMask);
 	if (clients) {
 		/*if (client_opts & ATTACH_ABOVE) {
 		}
@@ -208,6 +234,17 @@ void maprequest(XEvent *ev) {
 		clients = c;
 	}
 	XMapWindow(dpy,c->win);
+	draw();
+}
+
+void propertynotify(XEvent *ev) {
+	XPropertyEvent *e = &ev->xproperty;
+	Client *c;
+	if (!(c=wintoclient(e->window))) return;
+	if (e->atom == XA_WM_NAME) get_name(c);
+	else if (e->atom == XA_WM_HINTS) get_hints(c);
+	//else if (e->atom == XA_WM_CLASS) apply_rules(c);
+	else return;
 	draw();
 }
 
@@ -358,7 +395,7 @@ void X_free() {
 	Container *C, *CC = NULL;
 	for (c = clients; c; c = c->next) {
 		winmarks[0] = c;
-		key_chain("q0");
+		key_chain("0q");
 	}
 	XFlush(dpy);
 	for (M = mons; M; M = M->next) {

@@ -10,23 +10,22 @@
 
 #include "alopex.h"
 
-static const char *bar(const char *);
-static const char *command(const char *);
-static const char *focus_move(const char *);
-static const char *killclient(const char *);
-static const char *mode(const char *);
-static const char *nclients(const char *);
-static const char *other(const char *);
-static const char *quit(const char *);
-static const char *size(const char *);
-static const char *tag(const char *);
-static const char *toggle(const char *);
-static const char *toTag(const char *);
-static const char *view(const char *);
+static const char *bar(int, const char *);
+static const char *command(int, const char *);
+static const char *focus_move(int, const char *);
+static const char *killclient(int, const char *);
+static const char *mode(int, const char *);
+static const char *nclients(int, const char *);
+static const char *other(int, const char *);
+static const char *quit(int, const char *);
+static const char *size(int, const char *);
+static const char *tag(int, const char *);
+static const char *toTag(int, const char *);
+static const char *view(int, const char *);
 static void swap(Client *, Client *);
 
-static int rep;
 static int trigger;
+static Client *target;
 
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
@@ -34,27 +33,27 @@ static int trigger;
 
 int key_chain(const char *chain) {
 	trigger = 0;
-	const char *c = chain;
+	const char *c = chain; int n;
+	target = winmarks[0];
 	while (*c) {
-		if ( (rep=atoi(c)) ) for (c; *c && *c > '0' && *c < ':'; c++);
-		else rep = 1;
+		n = atoi(c);
+		for (c; *c && *c > '/' && *c < ':'; c++);
 		switch (*c) {
-			case 'b': c = bar(c); break;
-			case 'c': c = command(c); break;
-			case 't': case 's': case 'S': case 'x': case 'X':
-				c = tag(c); break;
-			case 'm': case 'a': case 'A': c = toTag(c); break;
-			case 'v': c = view(c); break;
 			case 'j': case 'k': case 'h': case 'l':
-			case 'J': case 'K': case 'H': case 'L':
-				c = focus_move(c); break;
-			case 'o': c = other(c); break;
-			case 'i': case 'd': c = size(c); break;
-			case '+': case '-': case '<': case '>': c = nclients(c); break;
-			case 'f': case 'F': c = toggle(c); break;
-			case 'T': c = mode(c); break;
-			case 'q': c = killclient(c); break;
-			case 'Q': c = quit(c); break;
+			case 'J': case 'K': case 'H': case 'L': case '@':
+				c = focus_move(n,c); break;
+			case 'o': c = other(n,c); break;
+			case 't': case 's': case 'S': case 'x': case 'X':
+				c = tag(n,c); break;
+			case 'T': case 'm': case 'a': case 'A': c = toTag(n,c); break;
+			case 'v': c = view(n,c); break;
+			case 'b': c = bar(n,c); break;
+			case 'i': case 'd': c = size(n,c); break;
+			case '+': case '-': case '<': case '>': c = nclients(n,c); break;
+			case 'M': case 'g': c = mode(n,c); break;
+			case ';': case ':': c = command(n,c); break;
+			case 'q': c = killclient(n,c); break;
+			case 'Q': c = quit(n,c); break;
 			default: break;
 		}
 	}
@@ -65,33 +64,34 @@ int key_chain(const char *chain) {
 /*  LOCAL FUNCTIONS                                                 */
 /********************************************************************/
 
-const char *bar(const char *c) {return ++c;}
+const char *bar(int n, const char *c) {return ++c;}
 
-const char *command(const char *ch) {
+const char *command(int n, const char *ch) {
 	if (*(++ch)=='\0') return ch;
 	int i; const char *s = string[*ch];
-	for (i = 0; i < rep; i++) {
+	if (!s) return (++ch);
+	for (i = 0; i < (n ? n : 1); i++) {
 		if (s[strlen(s)-1] == '&') system(string[*ch]);
-		// else run macro
+		else key_chain(s);
 	}
 	return (++ch);
 }
 
-const char *focus_move(const char *ch) {
+const char *focus_move(int n, const char *ch) {
 	int i;
-	for (i = 0; i < rep; i++) {
-		/* find next and previous containers (CN CP) */
+	for (i = 0; i < n; i++) {
 		Container *C, *CP = NULL, *CN = NULL, *CC;
-		for (C = m->container; C != m->focus; CP = C, C = C->next);
+		/* find next and previous containers (CN CP) */
+		for (C = m->container; C && C != m->focus; CP = C, C = C->next);
 		C = m->focus; CN = C->next;
 		if (CN && !CN->top) CN = NULL;
 		/* find next and previous clients (cn cp) */
 		Client *c, *cp = NULL, *cn = NULL;
 		int n = 0;
-			/* count up to container */
+		/* count up to container */
 		for (CC = m->container; CC != C; CC = CC->next) n += CC->n;
 		for (c = clients; n; c = c->next) if (c->tags & m->tags) n--;
-			/* get previous and next */
+		/* get previous and next */
 		for (c; c != C->top; c = c->next)
 			if (c->tags & m->tags) { cp = c; n++; }
 		for (c = c->next; c && !(c->tags & m->tags); c = c->next);
@@ -101,20 +101,18 @@ const char *focus_move(const char *ch) {
 		else if (*ch == 'k' && CP) m->focus = CP; 
 		else if (*ch == 'l' && cn) C->top = cn; 
 		else if (*ch == 'h' && cp) C->top = cp;
-		else if (*ch == 'J' && CN) swap(C->top,CN->top);
-		else if (*ch == 'K' && CP) swap(C->top,CP->top);
-		else if (*ch == 'L' && cn) swap(C->top,cn);
-		else if (*ch == 'H' && cp) swap(C->top,cp);
+		else if (*ch == 'J' && CN) swap(target,CN->top);
+		else if (*ch == 'K' && CP) swap(target,CP->top);
+		else if (*ch == 'L' && cn) swap(target,cn);
+		else if (*ch == 'H' && cp) swap(target,cp);
 	}
 	trigger = 2;
 	return (++ch);
 }
 
-const char *killclient(const char *ch) {
-	int t=atoi(ch+1);
-	for (ch++; *ch > 47 && *ch < 58; ch++);
-	Client *c = NULL;
-	if ( !(c=winmarks[t]) ) return;
+const char *killclient(int n, const char *ch) {
+	Client *c = target;
+	if (n && !(c=winmarks[n])) return (++ch);
 	XEvent ev;
 	ev.type = ClientMessage; ev.xclient.window = c->win;
 	ev.xclient.message_type = XInternAtom(dpy,"WM_PROTOCOLS",True);
@@ -122,62 +120,66 @@ const char *killclient(const char *ch) {
 	ev.xclient.data.l[0] = XInternAtom(dpy,"WM_DELETE_WINDOW",True);
 	ev.xclient.data.l[1] = CurrentTime;
 	XSendEvent(dpy,c->win,False,NoEventMask,&ev);
-	winmarks[t] = NULL;
-	return ch;
+	winmarks[n] = NULL;
+	trigger = 2;
+	return (++ch);
 }
 
-const char *mode(const char *c) {return ++c;}
-const char *move(const char *c) {return ++c;}
-const char *nclients(const char *c) {return ++c;}
+const char *mode(int n, const char *ch) {
+	if (*ch == 'M') m->mode = n;
+	else if (*ch == 'g') m->gap = n;
+	trigger = 2;
+	return (++ch);
+}
 
-const char *other(const char *ch) {
+const char *move(int n, const char *c) {return ++c;}
+const char *nclients(int n, const char *c) {return ++c;}
+
+const char *other(int n, const char *ch) {
 	int i;
 	if (m->focus == m->container) {
-		for (i = 0; i < (rep ? rep : 1); i++)
+		for (i = 0; i < (n ? n : 1); i++)
 			if (m->focus->next) m->focus = m->focus->next;
 	}
 	else {
 		m->focus = m->container;
 	}
 	trigger = 2;
-	return ++ch;
+	return (++ch);
 }
 
-const char *quit(const char *ch) {
+const char *quit(int n, const char *ch) {
 	running = False;
 	return (++ch);
 }
 
-const char *size(const char *c) {return ++c;}
+const char *size(int n, const char *c) {return ++c;}
 
-const char *tag(const char *ch) {
-	int t;
-	t = atoi(ch+1);
-	if (!t) return (++ch);
-	else if ((--t) > 15) t = 15;
-	else if (t < 0) t = 0;
-	if (*ch == 't') m->tags ^= (1<<t);
-	else if (*ch == 's') m->tags |= (1<<t);
-	else if (*ch == 'S') m->tags &= ~(1<<t);
-	else if (*ch == 'x') m->tags = (m->tags & 0xFF00) | (1<<t);
-	else if (*ch == 'X') m->tags &= ((1<<t) ^ 0x00FF);
-	for (ch++; *ch > 47 && *ch < 58; ch++);
-	trigger = 2;
-	return ch;
-}
-
-const char *toggle(const char *ch) {
-	// todo check for window specifier
-	// todo floating
-	Client *c;
-	if (!(c=winmarks[0])) return (++ch);
-	if (*ch == 'f') c->flags ^= WIN_FULLSCREEN;
+const char *tag(int n, const char *ch) {
+	if (!n) return (++ch);
+	else if ((--n) > 15) n = 15;
+	else if (n < 0) n = 0;
+	if (*ch == 't') m->tags ^= (1<<n);
+	else if (*ch == 's') m->tags |= (1<<n);
+	else if (*ch == 'S') m->tags &= ~(1<<n);
+	else if (*ch == 'x') m->tags = (m->tags & 0xFF00) | (1<<n);
+	else if (*ch == 'X') m->tags &= ((1<<n) ^ 0x00FF);
 	trigger = 2;
 	return (++ch);
 }
 
-const char *toTag(const char *c) {return ++c;}
-const char *view(const char *c) {return ++c;}
+const char *toTag(int n, const char *ch) {
+	if (!n || !target) return (++ch);
+	else if ((--n) > 15) n = 15;
+	else if (n < 0) n = 0;
+	if (*ch == 'T') target->tags ^= (1<<n);
+	if (*ch == 'm') target->tags = (1<<n);
+	if (*ch == 'a') target->tags |= (1<<n);
+	if (*ch == 'A') target->tags &= ~(1<<n);
+	return (++ch);
+}
+
+const char *view(int n, const char *c) {return ++c;}
 
 void swap(Client *a, Client *b) {
 	if (!a || !b) return;

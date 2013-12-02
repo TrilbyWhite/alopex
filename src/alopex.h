@@ -27,8 +27,9 @@
 #define BAR_HEIGHT(x)		(x & 0x00FF)
 #define SET_BAR_HEIGHT(x)	x
 
-#define RSTACK					0x1000
-#define BSTACK					0x2000
+#define RSTACK					0x01
+#define BSTACK					0x02
+#define MONOCLE					0x03
 
 #define ATTACH_TOP			0x0001
 #define ATTACH_BOTTOM		0x0002
@@ -37,11 +38,9 @@
 
 #define CMD(x)	x " &"
 
-#define WIN_FLOAT			0x10
-#define WIN_FULLSCREEN		0x11
-#define WIN_TRANSIENT		0x12
-#define WIN_URGENT			0x04
-#define WIN_FOCUS			0x08
+#define WIN_TRANSIENT		0x01
+#define WIN_URGENT			0x02
+#define WIN_FOCUS			0x04
 
 /* Theme elements */
 #define tabOffset				0x01
@@ -129,6 +128,7 @@ Client *winmarks[10];
 
 extern int die(const char *);
 extern int purgatory(Window);
+extern int set_focus(Client *);
 
 extern int draw();
 extern int draw_background(Container *);

@@ -30,8 +30,8 @@ int tile() {
 		M->occ = 0;
 		for (n = 0, c = clients; c; c = c->next) {
 			M->occ |= c->tags;
-			if (c->tags & M->tags && !(c->flags & WIN_FLOAT)) n++;
-			else if ( !(c->flags & WIN_FLOAT) ) purgatory(c->win);
+			if (c->tags & M->tags) n++;
+			else purgatory(c->win);
 		}
 		ncon = 0;
 		Container *focus = NULL;
@@ -43,9 +43,9 @@ int tile() {
 			if ( (n -= C->n) <= 0 || C->n < 0 ) break;
 		}
 		n = nn;
-		if (!focus) M->focus = M->container;
-		if (M->mode < 0 || !M->container->next || ncon == 1) {
-			M->focus = M->container;
+		//if (!focus) M->focus = M->container;
+		if (M->mode == MONOCLE || !M->container->next || ncon == 1) {
+			//if (M->focus != M->floaters) M->focus = M->container;
 			tile_monocle(M,n);
 			for (C = M->container->next; C; C = C->next) {
 				purgatory(C->bar.win);
@@ -62,13 +62,6 @@ int tile() {
 				if (M->focus == C) M->focus = M->container;
 			}
 		}
-		// place floaters / fullscreen
-for (c = clients; c; c = c->next) {
-	if (c->tags & M->tags && c->flags & WIN_FLOAT) {
-		if (c->tags & M->tags) tile_client(c,M->x,M->y,M->w,M->h);
-		else purgatory(c->win);
-	}
-}
 	}
 }
 
@@ -115,7 +108,7 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 	for (c = clients; c && n; c = c->next)
 		if (c->tags & M->tags) n--;
 	for (c; c; c = c->next)
-		if ( (c->tags & M->tags) && !(c->flags & WIN_FLOAT) ) {
+		if (c->tags & M->tags) {
 			if (C->n > 0 && (++n) > C->n) break;
 			else if (C->n < 0) n++;
 			if (!top) { top = c; nx = n-1; }
@@ -173,7 +166,7 @@ void tile_monocle(Monitor *M,int n) {
 	Client *c, *top = NULL;
 	int i = 0;
 	for (c = clients; c; c = c->next)
-		if ( (c->tags & M->tags) && !(c->flags & WIN_FLOAT) ) {
+		if (c->tags & M->tags) {
 			if (!top) top = c;
 			if (M->container->top == c) top = c;
 			tile_client(c,x,y,w,h);

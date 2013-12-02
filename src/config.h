@@ -72,8 +72,11 @@ const Theme theme[] = {
 
 
 const char *string[127] = {
-	[ 0 ] = "mm",
-	[ 1 ] = "mm",
+	[ 0 ] = "3M0g1bS",	// FULLSCREEN
+/* macro values 0 - 31 can only be accessed by key bindings as there
+   are no printable (typeable) characters for those values */
+	['f'] = "3M0g1bS",	// FULLSCREEN
+	['F'] = "1M4g1bs",	// UNFULLSCREEN
 	['m'] = CMD("interrobang"),
 	['t'] = CMD("urxvt"),
 	['w'] = CMD("firefox"),
@@ -95,26 +98,26 @@ const char *string[127] = {
 
 /* tag-like: */
 #define TagKey(KEY,TAG)	\
-	{ KEY1,			KEY,	"t" TAG }, \
-	{ KEY1|KEY2,	KEY,	"x" TAG }, \
-	{ KEY1|KEY3,	KEY,	"T" TAG }, \
-	{ KEY1|KEY4,	KEY,	"m" TAG }
+	{ KEY1,			KEY,	TAG "t"}, \
+	{ KEY1|KEY2,	KEY,	TAG "x"}, \
+	{ KEY1|KEY3,	KEY,	TAG "T"}, \
+	{ KEY1|KEY4,	KEY,	TAG "m"}
 
 /* more "desktop-like": */
 /*
 #define TagKey(KEY,TAG)	\
-	{ KEY1,			KEY,	"x" TAG }, \
-	{ KEY1|KEY2,	KEY,	"t" TAG }, \
-	{ KEY1|KEY3,	KEY,	"m" TAG }, \
-	{ KEY1|KEY4,	KEY,	"T" TAG }
+	{ KEY1,			KEY,	TAG "x"}, \
+	{ KEY1|KEY2,	KEY,	TAG "t"}, \
+	{ KEY1|KEY3,	KEY,	TAG "m"}, \
+	{ KEY1|KEY4,	KEY,	TAG "T"}
 */
 
 const Key key[] = {
-	{ KEY1,	XK_Return,	"ct"},
-	{ KEY1,	XK_p,			"cm"},
-	{ KEY1,	XK_w,			"cw"},
+	{ KEY1,	XK_Return,	";t"},
+	{ KEY1,	XK_p,			";m"},
+	{ KEY1,	XK_w,			";w"},
 	{ KEY1,	XK_q,			"Q"},
-	{ KEY2,	XK_F4,		"q0"},
+	{ KEY2,	XK_F4,		"0q"},
 	{ KEY1,	XK_Tab,		"o"},
 	{ KEY2,	XK_Tab,		"v"},
 	TagKey(	XK_1,			"1"),
@@ -130,27 +133,27 @@ const Key key[] = {
 
 
 /* keys  
-    e g      n pqr  u w yz
- BCDE G I    NOPQR  UVW YZ
+  c ef       n p r  uvw yz
+ BCDEFG I    NOP R  UVW YZ
 
 COMMAND MODE
-	b[#][sSxXtT]
+	[#]b(s|S|x|X|t|T)
 		# = bar number (default = 1)
 		s|S = show/hide
 		x|X = show exclusively (hide others) (default)
 		t|T = top/bottom
-	t#
+	#t
 		toggle visibility of tag # 
-	T#[WIN]
-		toggle window's presence on tag # (default = current win)
-	(s|S|x|X)#
+	#T
+		toggle window's presence on tag #
+	#(s|S|x|X)
 		show/hide exlusive/all-but tag #
-	(m|a|A)#
+	#(m|a|A)
 		move/add/remove focused window to tag #
 	v
 		toggle view
-	c[a-z]
-		launch command associated with a-z
+	[#](;|:)(a-z)
+		launch command/macro associated with string a-z # times
 			w = firefox
 			t = urxvt
 			m = interrobang
@@ -170,12 +173,14 @@ COMMAND MODE
 		increase/decrease nclients by #
 	>|<
 		nclients = 1/all
-	f
-		toggle fullscreen
-	F
-		toggle floating
-	M[rbm]
-		Tile mode: rstack, bstack, monocle (default = cycle)
+	[#]M
+		Tile mode: rstack (default), bstack 1, monocle 2
+	#(w|W)
+		target = winmarks # / set winmarks #
+	#g
+		set gap size
+	([#]q|Q)
+		kill client (mark #) / quit
 	ENTER | ESC
 		return to normal mode (execute string on ENTER, ignore on ESC)
 */

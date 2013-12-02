@@ -3,18 +3,16 @@ X Add status bar space to bars 1 and 2
 X Implement basic status bar drawing
 X Finish implementing tags (done, but not tested)
 X Fix statusbar drawing to allow for psuedo transparency
-- Need floater container for stacking
-	- can also hold bar zero
 - Write status input reader
 - Get client window icons
-- Write configurenotify event handler for window title updates
 X Replace placeholder tabs with nicer looking tabs
 X Allow user customization of tabs and status bars
 	X color
 	X shape
 	X transparency
 	X tab font alignment
-- Add key_chain actions for adjusting parameters
+> Add key_chain actions for adjusting parameters
+	(partway done)
 - Much much more ...
 
 
