@@ -75,7 +75,7 @@ const char *string[127] = {
 	[ 0 ] = "3M0g1bS",	// FULLSCREEN
 /* macro values 0 - 31 can only be accessed by key bindings as there
    are no printable (typeable) characters for those values */
-	['f'] = "3M0g1bS",	// FULLSCREEN
+	['f'] = "3M0g1bh",	// FULLSCREEN
 	['F'] = "1M4g1bs",	// UNFULLSCREEN
 	['m'] = CMD("interrobang"),
 	['t'] = CMD("urxvt"),
@@ -137,11 +137,11 @@ const Key key[] = {
  BCDEFG I    NOP R  UVW YZ
 
 COMMAND MODE
-	[#]b(s|S|x|X|t|T)
+	[#]b(s|h|t|b|x)
 		# = bar number (default = 1)
-		s|S = show/hide
-		x|X = show exclusively (hide others) (default)
-		t|T = top/bottom
+		s|h = show/hide
+		t|b = top/bottom
+		x   = toggle show/hide
 	#t
 		toggle visibility of tag # 
 	#T

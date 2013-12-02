@@ -21,9 +21,8 @@
 #include <cairo-xlib.h>
 #include <cairo-ft.h>
 
-#define BAR_TOP				0x0100
-#define BAR_BOTTOM			0x0200
-#define BAR_VISIBLE			0x0400
+#define BAR_VISIBLE			0x0100
+#define BAR_TOP				0x0200
 #define BAR_HEIGHT(x)		(x & 0x00FF)
 #define SET_BAR_HEIGHT(x)	x
 

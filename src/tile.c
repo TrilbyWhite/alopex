@@ -44,7 +44,7 @@ int tile() {
 		}
 		n = nn;
 		//if (!focus) M->focus = M->container;
-		if (M->mode == MONOCLE || !M->container->next || ncon == 1) {
+		if (M->mode < 0 || !M->container->next || ncon == 1) {
 			//if (M->focus != M->floaters) M->focus = M->container;
 			tile_monocle(M,n);
 			for (C = M->container->next; C; C = C->next) {
@@ -98,7 +98,7 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 			XMoveResizeWindow(dpy,C->bar.win,x,y,w,BAR_HEIGHT(C->bar.opts));
 			y += BAR_HEIGHT(C->bar.opts);
 		}
-		else if (C->bar.opts & BAR_BOTTOM) {
+		else {
 			XMoveResizeWindow(dpy,C->bar.win,x,y+h,w,BAR_HEIGHT(C->bar.opts));
 		}
 	}
@@ -159,20 +159,23 @@ void tile_monocle(Monitor *M,int n) {
 			XMoveResizeWindow(dpy,C->bar.win,x,y,w,BAR_HEIGHT(C->bar.opts));
 			y += BAR_HEIGHT(C->bar.opts);
 		}
-		else if (C->bar.opts & BAR_BOTTOM) {
+		else {
 			XMoveResizeWindow(dpy,C->bar.win,x,y+h,w,BAR_HEIGHT(C->bar.opts));
 		}
 	}
-	Client *c, *top = NULL;
+	Client *c, *top = NULL, *ftop = NULL;
 	int i = 0;
 	for (c = clients; c; c = c->next)
 		if (c->tags & M->tags) {
 			if (!top) top = c;
-			if (M->container->top == c) top = c;
+			if (C->top == c) top = c;
+			if (M->focus && M->focus->top && M->focus->top == c) ftop = c;
 			tile_client(c,x,y,w,h);
 			draw_tab(C,0,c,i++,n);
 		}
-	M->container->top = top;
+	if (ftop) top = ftop;
+	C->top = top;
+	if (C->top) XRaiseWindow(dpy,C->top->win);
 	if (M->occ || M->tags) round_rect(C->bar.ctx, 0, 0, M->sbar[0].width,
 			BAR_HEIGHT(C->bar.opts), statOffset, statRGBA,
 			statRGBABrd, statRGBAText);

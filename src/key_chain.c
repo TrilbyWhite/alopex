@@ -64,7 +64,21 @@ int key_chain(const char *chain) {
 /*  LOCAL FUNCTIONS                                                 */
 /********************************************************************/
 
-const char *bar(int n, const char *c) {return ++c;}
+const char *bar(int n, const char *ch) {
+	Bar *b;
+	/*if (n) {
+	}
+	else */if (m->focus) b = &m->focus->bar;
+	else b = &m->container->bar;
+	if (!b) return (++ch);
+	if (*(++ch) == 's') b->opts |= BAR_VISIBLE;
+	else if (*ch == 'h') b->opts &= ~BAR_VISIBLE;
+	else if (*ch == 't') b->opts |= BAR_TOP;
+	else if (*ch == 'b') b->opts &= ~BAR_TOP;
+	else if (*ch == 'x') b->opts ^= BAR_VISIBLE;
+	trigger = 2;
+	return (++ch);
+}
 
 const char *command(int n, const char *ch) {
 	if (*(++ch)=='\0') return ch;
@@ -126,13 +140,21 @@ const char *killclient(int n, const char *ch) {
 }
 
 const char *mode(int n, const char *ch) {
-	if (*ch == 'M') m->mode = n;
+	if (*ch == 'M') {
+		if (n == MONOCLE) {
+			m->mode = -1 * m->container->n;
+			m->container->n = -1;
+		}
+		else {
+			if (m->mode < 0) m->container->n = -1 * m->mode;
+			m->mode = n;
+		}
+	}
 	else if (*ch == 'g') m->gap = n;
 	trigger = 2;
 	return (++ch);
 }
 
-const char *move(int n, const char *c) {return ++c;}
 const char *nclients(int n, const char *c) {return ++c;}
 
 const char *other(int n, const char *ch) {
