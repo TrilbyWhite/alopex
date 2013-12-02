@@ -141,6 +141,7 @@ const char *killclient(int n, const char *ch) {
 
 const char *mode(int n, const char *ch) {
 	if (*ch == 'M') {
+		if (n == m->mode || (n == MONOCLE && m->mode < 0)) return (++ch);
 		if (n == MONOCLE) {
 			m->mode = -1 * m->container->n;
 			m->container->n = -1;

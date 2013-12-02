@@ -24,7 +24,7 @@ const int font_size = 14;
 const Bool focusfollowmouse = False;
 const int containers[]	= { 1, 3, 3, -1 };
 //const int container_pad	= 4;
-const int container_pad	= 2;
+const int container_pad	= 4;
 const int client_opts	= ATTACH_TOP;
 //const int bar_opts		= BAR_VISIBLE | BAR_TOP | SET_BAR_HEIGHT(18);
 const int bar_opts		= BAR_VISIBLE | BAR_TOP;
@@ -76,7 +76,7 @@ const char *string[127] = {
 /* macro values 0 - 31 can only be accessed by key bindings as there
    are no printable (typeable) characters for those values */
 	['f'] = "3M0g1bh",	// FULLSCREEN
-	['F'] = "1M4g1bs",	// UNFULLSCREEN
+	['F'] = "1M4g1bs",	// UNFULLSCREEN change "4" in 3rd place to your gap size
 	['m'] = CMD("interrobang"),
 	['t'] = CMD("urxvt"),
 	['w'] = CMD("firefox"),
