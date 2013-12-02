@@ -40,7 +40,7 @@ int key_chain(const char *chain) {
 		for (c; *c && *c > '/' && *c < ':'; c++);
 		switch (*c) {
 			case 'j': case 'k': case 'h': case 'l':
-			case 'J': case 'K': case 'H': case 'L': case '@':
+			case 'J': case 'K': case 'H': case 'L':
 				c = focus_move(n,c); break;
 			case 'o': c = other(n,c); break;
 			case 't': case 's': case 'S': case 'x': case 'X':
@@ -79,7 +79,7 @@ const char *command(int n, const char *ch) {
 
 const char *focus_move(int n, const char *ch) {
 	int i;
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < (n ? n : 1); i++) {
 		Container *C, *CP = NULL, *CN = NULL, *CC;
 		/* find next and previous containers (CN CP) */
 		for (C = m->container; C && C != m->focus; CP = C, C = C->next);

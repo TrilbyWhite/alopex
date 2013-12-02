@@ -5,6 +5,7 @@ X Finish implementing tags (done, but not tested)
 X Fix statusbar drawing to allow for psuedo transparency
 - Ensure top window is maintained in layout switch
 	(currently, it can be burried when switching from stacking to monocle)
+	- Related to no window raising in monocle??
 - Write status input reader
 - Get client window icons
 X Replace placeholder tabs with nicer looking tabs
