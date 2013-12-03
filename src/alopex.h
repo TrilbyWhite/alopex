@@ -147,7 +147,7 @@ extern int key_chain(const char *);
 extern int tile();
 
 char *status_fmt, *font_path, *icons_path, *ibar_text;
-char **tag_names, **string,
+char **tag_names, **string;
 int font_size, container_pad, tag_pad, *containers, ncontainers;
 int client_opts, bar_opts, ntags, nkeys;
 Bool focusfollowmouse;

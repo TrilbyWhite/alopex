@@ -46,7 +46,7 @@ void input_init() {
 	XIM xim = XOpenIM(dpy,NULL,NULL,NULL);
 	if (!xim) die("No X input method could be opened\n");
 	xic = XCreateIC(xim, XNInputStyle, XIMPreeditNothing|XIMStatusNothing,
-			XNClientWindow, ibar, XNFocusWindow, ibar, NULL);
+			XNClientWindow, root, XNFocusWindow, root, NULL);
 }
 
 void input_free() {

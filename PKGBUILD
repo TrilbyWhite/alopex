@@ -1,13 +1,14 @@
-# Maintainer: Jesse McClure AKA "Trilby" <jmcclure [at] cns [dot] umass [dot] edu>
+# Maintainer: Jesse AKA "Trilby" <jesse [at] mcclurek9 [dot] com>
 _gitname="alopex"
 pkgname="${_gitname}-git"
 pkgver=3.291.1763f16
 pkgrel=1
-pkgdesc='A Tiny, Tabbed, Tiling Window Manager with Fur'
-url='http://trilbywhite.github.io/alopex/'
+pkgdesc='A Tabbed Tiling Window Manager with Fur'
+#url='http://trilbywhite.github.io/alopex/'
+url='http://github.com/TrilbyWhite/alopex.git'
 arch=('any')
 license=('GPLv3')
-depends=('libx11' 'libxrandr')
+depends=('libx11' 'libxrandr' 'cairo' 'freetype2')
 makedepends=('git')
 source=("${_gitname}::git://github.com/TrilbyWhite/alopex.git")
 sha256sums=('SKIP')
@@ -17,19 +18,6 @@ pkgver() {
 	echo "3.$(git rev-list --count HEAD).$(git describe --always )"
 }
 
-prepare() {
-   _dir="${XDG_CONFIG_HOME:-$HOME/.config}/alopex"
-	if [[ -d "$_dir" ]]; then
-		for _file in {config,icons,theme}.h; do
-			if [[ -a "${_dir}/${_file}" ]]; then
-				cp "${_dir}/${_file}" "${srcdir}/${_gitname}/${_file}"
-				msg2 "Using ${_file%.h} from $_dir/$_file"
-				msg2 "Check the default $_file for changes"
-			fi
-		done
-	fi
-}
-
 build() {
 	cd "${_gitname}"
 	make
@@ -37,5 +25,5 @@ build() {
 
 package() {
 	cd "${_gitname}"
-	make PREFIX=/usr DESTDIR="${pkgdir}" install
+	make DESTDIR="${pkgdir}" install
 }
