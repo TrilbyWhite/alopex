@@ -5,8 +5,8 @@ CC       ?= gcc
 CFLAGS   += `pkg-config --cflags x11 cairo freetype2`
 LDFLAGS  += `pkg-config --libs x11 cairo freetype2`
 PREFIX   ?= /usr
-MODULES  =  alopex draw input key_chain tile
-HEADERS  =  alopex.h config.h
+MODULES  =  alopex draw input key_chain tile config
+HEADERS  =  alopex.h
 MANPAGES =  alopex.1
 VPATH    =  src:doc
 

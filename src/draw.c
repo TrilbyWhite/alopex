@@ -121,7 +121,7 @@ int draw_status() {
 		cairo_paint(S->ctx);
 		cairo_restore(S->ctx);
 		S->x = 0;
-		for (c; *c != '\n'; c++) {
+		for (c; *c != '&' && *c != '\0'; c++) {
 			if (*c == '%') {
 				c++;
 				switch (*c) {
@@ -185,13 +185,14 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 	int i;
 	const char *tag;
 	S->x += tag_pad;
-	for (i = 0; (tag=tag_names[i]); i++) {
+	for (i = 0; i < ntags && (tag=tag_names[i]); i++) {
 		if ( (M->tags & (1<<i)) && (M->tags & (1<<(i+16))) ) 
 			set_color(S->ctx,tagRGBABoth);
+		else if (M->focus && M->focus->top &&
+				(M->focus->top->tags & (1<<i)))
+			set_color(S->ctx,tagRGBAFoc);
 		else if (M->tags & (1<<i))
 			set_color(S->ctx,tagRGBASel);
-		else if (M->focus && M->focus->top && (M->focus->top->tags & (1<<i)))
-			set_color(S->ctx,tagRGBAFoc);
 		else if (M->tags & (1<<(i+16)))
 			set_color(S->ctx,tagRGBAAlt);
 		else if (M->occ & (1<<i))
@@ -212,6 +213,9 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 }
 
 void set_color(cairo_t *ctx, int q) {
+//fprintf(stderr,"%X: %f %f %f %f\n",
+//q,theme[q].a,theme[q].b,theme[q].c,theme[q].d);
 	cairo_set_source_rgba(ctx, theme[q].a, theme[q].b,
 			theme[q].c, theme[q].d);
+	//cairo_set_source_rgba(ctx,1.0,1.0,0.0,1.0);
 }

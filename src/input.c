@@ -15,7 +15,6 @@ static void input_init();
 static void input_free();
 static int  loop(char *);
 
-static Window ibar;
 static XIC xic;
 
 /********************************************************************/
@@ -43,7 +42,6 @@ void input_init() {
 				CurrentTime) == GrabSuccess) break;
 		usleep(1000);
 	}
-	// create window ibar
 	if (i == 1000) return;
 	XIM xim = XOpenIM(dpy,NULL,NULL,NULL);
 	if (!xim) die("No X input method could be opened\n");
@@ -52,7 +50,7 @@ void input_init() {
 }
 
 void input_free() {
-	// destroy window ibar
+	ibar_text = NULL;
 	XDestroyIC(xic);
 }
 
@@ -61,6 +59,7 @@ int loop(char *str) {
 	char txt[32]; int del = 0;
 	Status stat;
 	str[0] = '\0';
+	ibar_text = str;
 	while (True) {
 		if (!XCheckMaskEvent(dpy,KeyPressMask,&ev)) {
 			usleep(10000);
@@ -76,7 +75,7 @@ int loop(char *str) {
 		else if (!iscntrl(*txt)) {
 			// allow insertion
 			strcat(str,txt);
-			ibar_draw();
+			// draw();
 		}
 	}
 	XUngrabKeyboard(dpy,CurrentTime);

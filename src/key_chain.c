@@ -53,7 +53,7 @@ int key_chain(const char *chain) {
 			case 'M': case 'g': c = mode(n,c); break;
 			case ';': case ':': c = command(n,c); break;
 			case 'q': c = killclient(n,c); break;
-			case 'Q': c = quit(n,c); break;
+			case 'Q': case 'R': c = quit(n,c); break;
 			default: break;
 		}
 	}
@@ -172,7 +172,10 @@ const char *other(int n, const char *ch) {
 }
 
 const char *quit(int n, const char *ch) {
-	running = False;
+	if (*ch == 'Q') running = False;
+	else if (*ch == 'R')
+		reconfig();
+	trigger = 2;
 	return (++ch);
 }
 
@@ -180,7 +183,7 @@ const char *size(int n, const char *c) {return ++c;}
 
 const char *tag(int n, const char *ch) {
 	if (!n) return (++ch);
-	else if ((--n) > 15) n = 15;
+	else if ((--n) >= ntags) return (++ch);
 	else if (n < 0) n = 0;
 	if (*ch == 't') m->tags ^= (1<<n);
 	else if (*ch == 's') m->tags |= (1<<n);
@@ -193,7 +196,7 @@ const char *tag(int n, const char *ch) {
 
 const char *toTag(int n, const char *ch) {
 	if (!n || !target) return (++ch);
-	else if ((--n) > 15) n = 15;
+	else if ((--n) >= ntags) return (++ch);
 	else if (n < 0) n = 0;
 	if (*ch == 'T') target->tags ^= (1<<n);
 	if (*ch == 'm') target->tags = (1<<n);

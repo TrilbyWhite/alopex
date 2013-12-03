@@ -7,6 +7,7 @@ X Ensure top window is maintained in layout switch
 - Write status input reader
 - Get client window icons
 - Track down bottom-bar bug
+- Add ibar_text to draw (and to config)
 X Replace placeholder tabs with nicer looking tabs
 X Allow user customization of tabs and status bars
 	X color
@@ -15,6 +16,8 @@ X Allow user customization of tabs and status bars
 	X tab font alignment
 > Add key_chain actions for adjusting parameters
 	(partway done)
+- Add window marking to key_chain.c
+- Add conditionals and loops to macro language in key_chain.c
 - Much much more ...
 
 

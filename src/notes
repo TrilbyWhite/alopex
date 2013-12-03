@@ -1,0 +1,96 @@
+
+
+/* STATUS FORMAT STRING
+	%T	tags (icon + name)
+	%t tags (name + icon)
+	%n tags (name)
+	%i tags (icon)
+	%C clock (24 hour)
+	%c clock (12 hour)
+STATUS INPUT NOT IMPLEMENTED JUST YET
+	%1 first line of status input
+	%2 second (or previous) line of status input
+	%3 ...
+	...
+*/
+
+/***  THEME NOTES:
+[1]: Offset values are added to the calculated space for the
+     item.  Y and H values are inverted for bottom bars.
+
+[2]: The last values of tabRGBAFocus and statGRBA are used for
+     to set the line width for all tab or status borders.
+
+[3]: positive alignment numbers are a fraction tab space.
+     0.0 is left aligned,
+     0.5 is centered,
+     1.0 is right aligned.
+     Negative alignment numbers are used for a number of 
+     pixels to offset from the start of the tab.
+****/
+
+
+/* clients:
+	0	currently focused
+	1	last focused
+	2	conditional target
+	3	user marks
+	4  ''
+	...
+*/
+
+
+/* keys  
+  c ef       n p r  uvw yz
+ BCDEFG I    NOP    UVW YZ
+
+COMMAND MODE
+	[#]b(s|h|t|b|x)
+		# = bar number (default = 1)
+		s|h = show/hide
+		t|b = top/bottom
+		x   = toggle show/hide
+	#t
+		toggle visibility of tag # 
+	#T
+		toggle window's presence on tag #
+	#(s|S|x|X)
+		show/hide exlusive/all-but tag #
+	#(m|a|A)
+		move/add/remove focused window to tag #
+	v
+		toggle view
+	[#](;|:)(a-z)
+		launch command/macro associated with string a-z # times
+			w = firefox
+			t = urxvt
+			m = interrobang
+	[#]j|k
+		move focus up/down in stack # times
+	h|l
+		move focus to top/bottom of stack
+	o
+		foccus "other"
+	[#]J|K
+		move window up/down in stack # times
+	H|L
+		move window to top/bottom of stack
+	[#]i|d
+		increase/decrease master size by # steps
+	[#]+|-
+		increase/decrease nclients by #
+	>|<
+		nclients = 1/all
+	[#]M
+		Tile mode: rstack (default), bstack 1, monocle 2
+	#(w|W)
+		target = winmarks # / set winmarks #
+	#g
+		set gap size
+	([#]q|Q)
+		kill client (mark #) / quit
+	R
+		reconfigure
+	ENTER | ESC
+		return to normal mode (execute string on ENTER, ignore on ESC)
+*/

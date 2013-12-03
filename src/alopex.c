@@ -26,7 +26,9 @@
 /********************************************************************/
 
 #include "alopex.h"
-#include "config.h"
+
+extern int config();
+extern int deconfig();
 
 static void configurerequest(XEvent *);
 static void enternotify(XEvent *);
@@ -65,8 +67,9 @@ int main(int argc, const char **argv) {
 	X_init();
 	XEvent ev;
 	draw();
-	while (running && !XNextEvent(dpy,&ev))
-		if (ev.type < 33 && handler[ev.type]) handler[ev.type](&ev);
+	while (running && !XNextEvent(dpy,&ev)) 
+		if (ev.type < 33 && handler[ev.type])
+			handler[ev.type](&ev);
 	X_free();
 }
 
@@ -177,7 +180,7 @@ void keypress(XEvent *ev) {
 	XKeyEvent *e = &ev->xkey;
 	KeySym sym = XkbKeycodeToKeysym(dpy,(KeyCode)e->keycode,0,0);
 	if (sym == XK_Super_L) mod_down = True;
-	for (i = 0; i < sizeof(key)/sizeof(key[0]); i++)
+	for (i = 0; i < nkeys; i++)
 		if ( (sym==key[i].keysym) && key[i].arg && key[i].mod==MOD(e) ) {
 			ret = key_chain(key[i].arg);
 			mod_down = False;
@@ -313,6 +316,7 @@ void X_init() {
 	XDefineCursor(dpy,root,XCreateFontCursor(dpy,68));
 	XSetWindowAttributes wa;
 	gc = DefaultGC(dpy,scr);
+	config();
 	if (FT_Init_FreeType(&library) |
 			FT_New_Face(library,font_path,0,&face) |
 			FT_Set_Pixel_Sizes(face,0,font_size) )
@@ -337,7 +341,7 @@ void X_init() {
 		M->h = DisplayHeight(dpy,scr);
 		//
 		M->gap = container_pad;
-		for (i = 0; i < sizeof(containers)/sizeof(containers[0]); i++) {
+		for (i = 0; i < ncontainers; i++) {
 			C = calloc(1,sizeof(Container));
 			C->n = containers[i];
 			C->bar.opts = bar_opts | bh;
@@ -377,7 +381,7 @@ void X_init() {
 	unsigned int mod[] = {0, LockMask, Mod2Mask, LockMask|Mod2Mask};
 	KeyCode code;
 	XUngrabKey(dpy,AnyKey,AnyModifier,root);
-	for (i = 0; i < sizeof(key)/sizeof(key[0]); i++)
+	for (i = 0; i < nkeys; i++)
 		if ( (code=XKeysymToKeycode(dpy,key[i].keysym)) )
 			for (j = 0; j < 4; j++)
 				XGrabKey(dpy,code,key[i].mod|mod[j],root,True,
@@ -390,6 +394,7 @@ void X_init() {
 }
 
 void X_free() {
+	deconfig();
 	Client *c;
 	Monitor *M;
 	Container *C, *CC = NULL;

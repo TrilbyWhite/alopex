@@ -42,25 +42,26 @@
 #define WIN_FOCUS			0x04
 
 /* Theme elements */
-#define tabOffset				0x01
-#define tabRGBAFocus			0x02
-#define tabRGBATop			0x03
-#define tabRGBAOther			0x04
-#define tabRGBAFocusBrd		0x05
-#define tabRGBATopBrd		0x06
-#define tabRGBAOtherBrd		0x07
-#define tabRGBAFocusText	0x08
-#define tabRGBATopText		0x09
-#define tabRGBAOtherText	0x0a
-#define statOffset			0x0b
-#define statRGBA				0x0c
-#define statRGBABrd			0x0d
-#define statRGBAText			0x0e
-#define tagRGBAOcc			0x10
-#define tagRGBASel			0x11
-#define tagRGBAFoc			0x12
-#define tagRGBAAlt			0x13
-#define tagRGBABoth			0x14
+#define tabOffset				0x00
+#define tabRGBAFocus			0x01
+#define tabRGBAFocusBrd		0x02
+#define tabRGBAFocusText	0x03
+#define tabRGBATop			0x04
+#define tabRGBATopBrd		0x05
+#define tabRGBATopText		0x06
+#define tabRGBAOther			0x07
+#define tabRGBAOtherBrd		0x08
+#define tabRGBAOtherText	0x09
+#define statOffset			0x0a
+#define statRGBA				0x0b
+#define statRGBABrd			0x0c
+#define statRGBAText			0x0d
+#define tagRGBAOcc			0x0e
+#define tagRGBAFoc			0x0f
+#define tagRGBASel			0x10
+#define tagRGBAAlt			0x11
+#define tagRGBABoth			0x12
+#define themeEND				0x13
 
 typedef struct Key {
 	unsigned short int mod;
@@ -129,6 +130,8 @@ extern int die(const char *);
 extern int purgatory(Window);
 extern int set_focus(Client *);
 
+extern int reconfig();
+
 extern int draw();
 extern int draw_background(Container *);
 extern int draw_status();
@@ -143,11 +146,13 @@ extern int key_chain(const char *);
 
 extern int tile();
 
-extern const char *status_fmt;
-extern const char *string[];
-extern const char *tag_names[];
-extern const int tag_pad;
-extern const Theme theme[];
+char *status_fmt, *font_path, *icons_path, *ibar_text;
+char **tag_names, **string,
+int font_size, container_pad, tag_pad, *containers, ncontainers;
+int client_opts, bar_opts, ntags, nkeys;
+Bool focusfollowmouse;
+Theme *theme;
+Key *key;
 
 #endif /* __ALOPEX_H__ */
 
