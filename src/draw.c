@@ -45,22 +45,28 @@ return 0;
 	return 0;
 }
 
-double round_rect(cairo_t *ctx, int x, int y, int w, int h,
+double round_rect(Bar *bar, int x, int y, int w, int h,
 		int off, int bg, int brd, int txt) {
 	const Theme *q = &theme[off];
-	cairo_new_sub_path(ctx);
+	cairo_new_sub_path(bar->ctx);
+if (!(bar->opts & BAR_TOP)) {
+cairo_save(bar->ctx);
+cairo_scale(bar->ctx,1,-1);
+cairo_translate(bar->ctx,0,-1 * BAR_HEIGHT(bar->opts));
+}
 	x += q->a; y += q->b; w += q->c; h += q->d;
-	cairo_arc(ctx, x + w - q->e, y + q->e, q->e, -0.5 * M_PI, 0);
-	cairo_arc(ctx, x + w - q->e, y + h - q->e, q->e, 0, 0.5 * M_PI);
-	cairo_arc(ctx, x + q->e, y + h - q->e, q->e, 0.5 * M_PI, M_PI);
-	cairo_arc(ctx, x + q->e, y + q->e, q->e, M_PI, 1.5 * M_PI);
-	cairo_close_path(ctx);
-
-	set_color(ctx,bg);
-	cairo_fill_preserve(ctx);
-	set_color(ctx,brd);
-	cairo_stroke(ctx);
-	set_color(ctx,txt);
+	cairo_arc(bar->ctx, x + w - q->e, y + q->e, q->e, -0.5 * M_PI, 0);
+	cairo_arc(bar->ctx, x + w - q->e, y + h - q->e, q->e, 0, 0.5 * M_PI);
+	cairo_arc(bar->ctx, x + q->e, y + h - q->e, q->e, 0.5 * M_PI, M_PI);
+	cairo_arc(bar->ctx, x + q->e, y + q->e, q->e, M_PI, 1.5 * M_PI);
+	cairo_close_path(bar->ctx);
+	set_color(bar->ctx,bg);
+	cairo_fill_preserve(bar->ctx);
+	set_color(bar->ctx,brd);
+	cairo_stroke(bar->ctx);
+if (!(bar->opts & BAR_TOP))
+cairo_restore(bar->ctx);
+	set_color(bar->ctx,txt);
 	return theme[txt].e;
 }
 
@@ -92,13 +98,13 @@ c->hints->icon_mask
 */
 	//TODO need to trim long titles:
 	if (m->focus == C && C->top == c)
-		off = round_rect(C->bar.ctx, tx, 0, tw, th,
+		off = round_rect(&C->bar, tx, 0, tw, th,
 				tabOffset, tabRGBAFocus, tabRGBAFocusBrd, tabRGBAFocusText);
 	else if (C->top == c)
-		off = round_rect(C->bar.ctx, tx, 0, tw, th,
+		off = round_rect(&C->bar, tx, 0, tw, th,
 				tabOffset, tabRGBATop, tabRGBATopBrd, tabRGBATopText);
 	else
-		off = round_rect(C->bar.ctx, tx, 0, tw, th,
+		off = round_rect(&C->bar, tx, 0, tw, th,
 				tabOffset, tabRGBAOther, tabRGBAOtherBrd, tabRGBAOtherText);
 	if (off < 0) off *= -1;
 	else off *= tw - ext.x_advance;

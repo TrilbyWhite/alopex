@@ -14,7 +14,7 @@ static void tile_client(Client *, int, int, int, int);
 static void tile_container(Monitor *, Container *, int, int);
 static void tile_monocle(Monitor *, int);
 
-extern double round_rect(cairo_t *, int, int, int, int, int, int, int, int);
+extern double round_rect(Bar *, int, int, int, int, int, int, int, int);
 
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
@@ -91,7 +91,7 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 	C->w = w;
 	draw_background(C);
 	/* adjust for container bar */
-	XMoveResizeWindow(dpy,C->bar.win,x,y,w,BAR_HEIGHT(C->bar.opts));
+	//XMoveResizeWindow(dpy,C->bar.win,x,y,w,BAR_HEIGHT(C->bar.opts));
 	if (C->bar.opts & BAR_VISIBLE) {
 		h -= BAR_HEIGHT(C->bar.opts);
 		if (C->bar.opts & BAR_TOP) {
@@ -124,18 +124,16 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 	}
 	XRaiseWindow(dpy,C->top->win);
 	if (con == 0) {
-		round_rect(C->bar.ctx, 0, 0, M->sbar[0].width,
-				BAR_HEIGHT(C->bar.opts), statOffset, statRGBA,
-				statRGBABrd, statRGBAText);
+		round_rect(&C->bar, 0, 0, M->sbar[0].width, BAR_HEIGHT(C->bar.opts),
+				statOffset, statRGBA, statRGBABrd, statRGBAText);
 		cairo_set_source_surface(C->bar.ctx,M->sbar[0].buf,0,0);
 		cairo_paint(C->bar.ctx);
 	}
 	else if (con == 1) {
 		cairo_save(C->bar.ctx);
 		cairo_translate(C->bar.ctx,C->w - M->sbar[1].width,0);
-		round_rect(C->bar.ctx, 0, 0, M->sbar[1].width,
-				BAR_HEIGHT(C->bar.opts), statOffset, statRGBA,
-				statRGBABrd, statRGBAText);
+		round_rect(&C->bar, 0, 0, M->sbar[1].width, BAR_HEIGHT(C->bar.opts),
+				statOffset, statRGBA, statRGBABrd, statRGBAText);
 		cairo_set_source_surface(C->bar.ctx,M->sbar[1].buf,0,0);
 		cairo_paint(C->bar.ctx);
 		cairo_restore(C->bar.ctx);
@@ -152,7 +150,7 @@ void tile_monocle(Monitor *M,int n) {
 	/* adjust for container bar */
 	C->w = w;
 	draw_background(C);
-	XMoveResizeWindow(dpy,C->bar.win,x,y,w,BAR_HEIGHT(C->bar.opts));
+	//XMoveResizeWindow(dpy,C->bar.win,x,y,w,BAR_HEIGHT(C->bar.opts));
 	if (C->bar.opts & BAR_VISIBLE) {
 		h -= BAR_HEIGHT(C->bar.opts);
 		if (C->bar.opts & BAR_TOP) {
@@ -176,16 +174,15 @@ void tile_monocle(Monitor *M,int n) {
 	if (ftop) top = ftop;
 	C->top = top;
 	if (C->top) XRaiseWindow(dpy,C->top->win);
-	if (M->occ || M->tags) round_rect(C->bar.ctx, 0, 0, M->sbar[0].width,
-			BAR_HEIGHT(C->bar.opts), statOffset, statRGBA,
-			statRGBABrd, statRGBAText);
+	if (M->occ || M->tags) round_rect(&C->bar, 0, 0, M->sbar[0].width,
+			BAR_HEIGHT(C->bar.opts), statOffset,
+			statRGBA, statRGBABrd, statRGBAText);
 	cairo_set_source_surface(C->bar.ctx,M->sbar[0].buf,0,0);
 	cairo_paint(C->bar.ctx);
 	cairo_save(C->bar.ctx);
 	cairo_translate(C->bar.ctx,C->w - M->sbar[1].width,0);
-	round_rect(C->bar.ctx, 0, 0, M->sbar[1].width,
-			BAR_HEIGHT(C->bar.opts), statOffset, statRGBA,
-			statRGBABrd, statRGBAText);
+	round_rect(&C->bar, 0, 0, M->sbar[1].width, BAR_HEIGHT(C->bar.opts),
+			statOffset, statRGBA, statRGBABrd, statRGBAText);
 	cairo_set_source_surface(C->bar.ctx,M->sbar[1].buf,0,0);
 	cairo_paint(C->bar.ctx);
 	cairo_restore(C->bar.ctx);

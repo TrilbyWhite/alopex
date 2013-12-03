@@ -138,7 +138,7 @@ extern int draw_status();
 extern int draw_tab(Container *, int, Client *, int, int);
 extern int icons_init(const char *, int);
 extern int icons_free();
-extern double round_rect(cairo_t *, int, int, int, int, int, int, int, int);
+//extern double round_rect(cairo_t *, int, int, int, int, Bool, int, int, int, int);
 
 extern int input(char *);
 

@@ -6,8 +6,8 @@ X Fix statusbar drawing to allow for psuedo transparency
 X Ensure top window is maintained in layout switch
 - Write status input reader
 - Get client window icons
-- Track down bottom-bar bug
-- Add ibar_text to draw (and to config)
+X Track down bottom-bar bug
+- Add ibar_text to draw (and option to config)
 X Replace placeholder tabs with nicer looking tabs
 X Allow user customization of tabs and status bars
 	X color
