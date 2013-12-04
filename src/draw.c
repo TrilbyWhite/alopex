@@ -176,6 +176,33 @@ void sbar_clock(SBar *S, char ch) {
 }
 
 void sbar_parse(SBar *S, int n) {
+	char *c, *t1, *t2, *str;
+	double r,g,b,a;
+	for (c = instring; n; n --) {
+		if ( !(c=strchr(c,'&')) ) return;
+		c++;
+	}
+	for (c; c && *c != '&' && *c != '\0' && *c != '\n'; c++) {
+		if (*c == '{') {
+			if (*(++c) == 'i') {
+				// icon
+			}
+			else if (sscanf(c,"%lf %lf %lf %lf",&r,&g,&b,&a) == 4)
+				cairo_set_source_rgba(S->ctx,r,g,b,a);
+			c = strchr(c,'}');
+		}
+		else {
+			str = strdup(c);
+			t1 = strchr(str,'{');
+			t2 = strchr(str,'&');
+			if (t1 && t2 && t1 > t2) t1 = t2;
+			if (!t1) t1 = strchr(str,'\n');
+			*t1 = '\0';
+			c += t1 - str - 1;
+			sbar_text(S,str);
+			free(str);
+		}
+	}
 }
 
 void sbar_text(SBar *S, const char *str) {

@@ -64,12 +64,43 @@ static cairo_font_face_t *cfont;
 /********************************************************************/
 
 int main(int argc, const char **argv) {
+	statfd = 0;
 	X_init();
 	XEvent ev;
 	draw();
-	while (running && !XNextEvent(dpy,&ev)) 
-		if (ev.type < 33 && handler[ev.type])
-			handler[ev.type](&ev);
+	int xfd;
+	struct timeval timeout;
+	fd_set fds;
+	xfd = ConnectionNumber(dpy);
+	Bool trigger;
+	while (running) {
+		FD_ZERO(&fds);
+		memset(&timeout,0,sizeof(struct timeval));
+		trigger = False;
+		timeout.tv_sec = 60;
+		FD_SET(xfd,&fds);
+		if (statfd) {
+			FD_SET(statfd,&fds);
+			select((statfd > xfd ? statfd : xfd) + 1,&fds,0,0,NULL);
+		}
+		else {
+			memset(&timeout,0,sizeof(struct timeval));
+			timeout.tv_sec = 60;
+			select(xfd + 1,&fds,0,0,&timeout);
+		}
+		if (statfd && FD_ISSET(statfd,&fds)) {
+	//		fgets(instring,sizeof(instring),inpipe);
+			read(statfd,instring,sizeof(instring));
+			trigger = True;
+		}
+		if (FD_ISSET(xfd,&fds)) while(XPending(dpy)) {
+			XNextEvent(dpy,&ev);
+			if (ev.type < 33 && handler[ev.type])
+				handler[ev.type](&ev);
+		}
+		else if (!statfd) trigger = True;
+		if (trigger) draw();
+	}
 	X_free();
 }
 

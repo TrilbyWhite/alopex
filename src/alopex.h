@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <signal.h>
 #include <locale.h>
 #include <math.h>
 #include <X11/Xlib.h>
@@ -146,10 +147,13 @@ extern int key_chain(const char *);
 
 extern int tile();
 
+FILE *inpipe;
 char *status_fmt, *font_path, *icons_path, *ibar_text;
 char **tag_names, **string;
+char instring[256];
 int font_size, container_pad, tag_pad, *containers, ncontainers;
 int client_opts, bar_opts, ntags, nkeys;
+int statfd;
 Bool focusfollowmouse;
 Theme *theme;
 Key *key;

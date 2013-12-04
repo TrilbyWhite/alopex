@@ -17,6 +17,9 @@ static void conf_clients(FILE *);
 static void conf_containers(FILE *);
 static void conf_strings(FILE *);
 static void conf_theme(FILE *);
+static pid_t stat_open(const char *);
+
+static pid_t pid;
 
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
@@ -50,6 +53,12 @@ int config() {
 
 int deconfig() {
 	int i;
+	if (statfd) {
+		fclose(inpipe); statfd = 0;
+		kill(pid,SIGKILL);
+		wait(pid);
+		instring[0] = '\0';
+	}
 	if (tag_names) {
 		for (i = 0; i < ntags; i++) free(tag_names[i]);
 		free(tag_names); tag_names = NULL;
@@ -94,6 +103,8 @@ void conf_bars(FILE *rc) {
 		if (line[0] != '\t') break;
 		else if (sscanf(line," status format = \"%[^\"]\"\n",str) == 1)
 			safe_dup(str,&status_fmt);
+		else if (sscanf(line," status input = \"%[^\"]\"\n",str) == 1)
+			pid = stat_open(str);
 		else if (sscanf(line," font path = %[^\n]\n",str) == 1)
 			safe_dup(str,&font_path);
 		else if (sscanf(line," icons path = %[^\n]\n",str) == 1)
@@ -217,3 +228,21 @@ void conf_theme(FILE *rc) {
 		if (i == themeEND) break;
 	}
 }
+
+pid_t stat_open(const char *cmd) {
+	int fd[2];
+	pipe(fd);
+	pid_t in;
+	if ( (in=fork()) ) {
+		statfd = fd[0];
+		inpipe = fdopen(fd[0],"r");
+		close(fd[1]);
+		return in;
+	}
+	else {
+		close(fd[0]); dup2(fd[1],1); close(fd[1]);
+		const char *arg[2]; arg[0] = cmd; arg[1] = NULL;
+		execv(arg[0],(char * const *)arg);
+	}
+}
+
