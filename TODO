@@ -30,6 +30,7 @@ X Add key_chain actions for adjusting parameters
 - Fix aesthetic bug: single window on tag one looses 'focus'
 - Implement window rules (and add them to config)
 - Allow editting of input line (maybe)
+- Reconfig with change in gap or line width ...
 - Much much more ...
 
 
