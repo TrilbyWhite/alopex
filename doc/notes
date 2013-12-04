@@ -1,6 +1,8 @@
+TAGS != WORKSPACES != VIEWS
 
+CONTAINER CONCEPT ("overflow" filling)
 
-/* STATUS FORMAT STRING
+STATUS FORMAT STRINGS
 	%T	tags (icon + name)
 	%t tags (name + icon)
 	%n tags (name)
@@ -11,47 +13,47 @@
 	%1 first element of status input (delineated by '&')
 	%2 second elements of status input 
 	%3 ...
-	...
-*/
 
-/***  THEME NOTES:
-[1]: Offset values are added to the calculated space for the
-     item.  Y and H values are inverted for bottom bars.
-
-[2]: The last values of tabRGBAFocus and statGRBA are used for
-     to set the line width for all tab or status borders.
-
-[3]: positive alignment numbers are a fraction tab space.
-     0.0 is left aligned,
-     0.5 is centered,
-     1.0 is right aligned.
-     Negative alignment numbers are used for a number of 
-     pixels to offset from the start of the tab.
-****/
+STATUS INPUT
+	- Read one line at a time, but line is divided by '&'s into segments
 
 
-/* clients:
-	0	currently focused
-	1	last focused
-	2	conditional target
-	3	user marks
-	4  ''
-	...
-*/
+THEMES
+	- Each entry takes five floating point values
+	- Entries are one of the following:
+		- RGBA color plus one option (usually ignored)
+		- X Y W H size offset values plus one option (eg Radius)
+	- Offset values are added to the calculated space for the
+		item.  Y and H values are inverted for bottom bars.
+	- The last values of tab offset is the radius for the rounded
+	  rectangle
+	- The last value of tab focus background and stat background are used
+	  to set the border width for all tabs and status bars
+	- The last value of tab text entries are for text alignment:
+		- Negative values are left aligned but padded by their value
+		- 0.0-1.0 is a proporton of the space covered so 0.0 is left
+		  aligned, 1.0 is right aligned, 0.5 is centered, etc.
 
+WINDOW MARKS
+	- 10 windows can be asigned to 'marks' 0-9.
+	- Users should *not* assign windows to marks 0 or 1
+		- 0 is the currently focused window
+		- 1 is the previously focused window
+		- 2 is used for all window based conditional tests in the macro
+		  language
+		- 3-9 are exclusively for user assignment
 
-/* keys  
-  c ef       n p r  uvw yz
- BCDEFG I    NOP    UVW YZ
+KEY CHAINING
+	<concept ...>
 
-COMMAND MODE
+KEYS
 	[#]b(s|h|t|b|x)
-		# = bar number (default = 1)
+		# = bar number (default = currently focused)
 		s|h = show/hide
 		t|b = top/bottom
 		x   = toggle show/hide
 	#t
-		toggle visibility of tag # 
+		toggle visibility of tag #
 	#T
 		toggle window's presence on tag #
 	#(s|S|x|X)
@@ -93,4 +95,16 @@ COMMAND MODE
 		reconfigure
 	ENTER | ESC
 		return to normal mode (execute string on ENTER, ignore on ESC)
-*/
+
+MACRO "LANGUAGE"
+	- Macros, conditionals, and loops
+
+STRINGS:
+	- There are 127 user-definable strings (though the first 20 can't be
+	  currently used).  These are represented by the associated
+	  ascii-value character.  These are distinct from the bindings above.
+	- Each string can hold a 'macro' or sequence of chain keys.
+
+AUTHOR NOTE: CHAIN KEYS STILL FREE FOR USE:
+  c ef       n p r  uvw yz !@#$%^*[]|\/~`,.?'"
+ BCDEFG I    NOP    UVW YZ
