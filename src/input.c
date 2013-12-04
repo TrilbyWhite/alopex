@@ -62,11 +62,12 @@ int loop(char *str) {
 	str[0] = '\0';
 	ibar_text = str;
 	while (True) {
-		if (!XCheckMaskEvent(dpy,KeyPressMask,&ev)) {
-			usleep(10000);
-			if ( (++del) > 50 ) break;
+		if (chain_delay && !XCheckMaskEvent(dpy,KeyPressMask,&ev)) {
+			usleep(1000);
+			if ( (++del) > chain_delay ) break;
 			continue;
 		}
+		if (!chain_delay) XMaskEvent(dpy,KeyPressMask,&ev);
 		del = 0; e = &ev.xkey;
 		XmbLookupString(xic,e,txt,sizeof(txt),&sym,&stat);
 		if (stat == XBufferOverflow) continue;

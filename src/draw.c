@@ -139,6 +139,7 @@ int draw_status() {
 						if (ibar_text) {
 							set_color(S->ctx,statRGBAInput);
 							sbar_text(S,ibar_text);
+							sbar_text(S," ");
 						}
 						break;
 					case '1': case '2': case '3': case '4': case '5':

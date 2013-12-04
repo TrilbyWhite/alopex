@@ -1,3 +1,6 @@
+X = done
+> = mostly done, or I think it's done but needs testing
+- = to do
 
 X Add status bar space to bars 1 and 2
 X Implement basic status bar drawing
@@ -25,6 +28,8 @@ X Add key_chain actions for adjusting parameters
 	X ternary operator
 	- loops
 - Fix aesthetic bug: single window on tag one looses 'focus'
+- Implement window rules (and add them to config)
+- Allow editting of input line (maybe)
 - Much much more ...
 
 

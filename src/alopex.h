@@ -156,7 +156,7 @@ int font_size, container_pad, tag_pad, *containers, ncontainers;
 int container_split;
 unsigned short int tag_icon[16];
 int client_opts, bar_opts, ntags, nkeys;
-int statfd;
+int statfd, chain_delay;
 Bool focusfollowmouse;
 Theme *theme;
 Key *key;

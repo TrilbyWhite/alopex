@@ -121,6 +121,8 @@ void conf_bars(FILE *rc) {
 			font_size = n;
 		else if (sscanf(line," tag padding = %d",&n) == 1)
 			tag_pad = n;
+		else if (sscanf(line," chain delay = %d",&n) == 1)
+			chain_delay = n;
 		else if (sscanf(line," tag names = %[^\n]\n",str) == 1 ) {
 			tok = strtok(str," ");
 			while (tok) {

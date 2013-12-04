@@ -13,6 +13,7 @@ bars:
 	tag icons        = 1 2 3 4 5
 	tag padding      = 5
 	options          = visible top
+	chain delay      = 500
 
 containers:
 	split            = 0
