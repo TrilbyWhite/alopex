@@ -100,9 +100,12 @@ static Bool condition(const char *exp) {
 
 const char *bar(int n, const char *ch) {
 	Bar *b;
-	/*if (n) {
+	if (n) {
+		b = m->container;
+		int i;
+		for (i = 1; i < n && b->next; i++, b = b->next);
 	}
-	else */if (m->focus) b = &m->focus->bar;
+	else if (m->focus) b = &m->focus->bar;
 	else b = &m->container->bar;
 	if (!b) return (++ch);
 	if (*(++ch) == 's') b->opts |= BAR_VISIBLE;
