@@ -78,6 +78,7 @@ bindings:
 	Alt   F4        = 0q
 	Super Tab       = o
 	Alt   Tab       = v
+	Super f         = ;f
 	Super         1     = 1t
 	Alt,Super     1     = 1x
 	Shift,Super   1     = 1T
