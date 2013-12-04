@@ -9,18 +9,22 @@ X Ensure top window is maintained in layout switch
 - Get client window icons
 - Finish icon drawing functions
 X Track down bottom-bar bug
-- Add ibar_text to draw (and option to config)
+X Add ibar_text to draw (and option to config)
 X Replace placeholder tabs with nicer looking tabs
 X Allow user customization of tabs and status bars
 	X color
 	X shape
 	X transparency
 	X tab font alignment
-> Add key_chain actions for adjusting parameters
-	(partway done)
+X Add key_chain actions for adjusting parameters
+- Don't let windows be "disowned", the must have at least one tag
 - Add window marking to key_chain.c
-- Add conditionals and loops to macro language in key_chain.c
-- Fix bug: single window on tag one looses focus
+> Add conditionals and loops to macro language in key_chain.c
+	> conditionals
+		(some done, more to be added)
+	X ternary operator
+	- loops
+- Fix aesthetic bug: single window on tag one looses 'focus'
 - Much much more ...
 
 

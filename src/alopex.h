@@ -57,12 +57,13 @@
 #define statRGBA				0x0b
 #define statRGBABrd			0x0c
 #define statRGBAText			0x0d
-#define tagRGBAOcc			0x0e
-#define tagRGBAFoc			0x0f
-#define tagRGBASel			0x10
-#define tagRGBAAlt			0x11
-#define tagRGBABoth			0x12
-#define themeEND				0x13
+#define statRGBAInput		0x0e
+#define tagRGBAOcc			0x0f
+#define tagRGBAFoc			0x10
+#define tagRGBASel			0x11
+#define tagRGBAAlt			0x12
+#define tagRGBABoth			0x13
+#define themeEND				0x14
 
 typedef struct Key {
 	unsigned short int mod;
@@ -147,11 +148,13 @@ extern int key_chain(const char *);
 
 extern int tile();
 
-FILE *inpipe;
-char *status_fmt, *font_path, *icons_path, *ibar_text;
+//FILE *inpipe;
 char **tag_names, **string;
+char *status_fmt, *font_path, *icons_path, *ibar_text;
 char instring[256];
 int font_size, container_pad, tag_pad, *containers, ncontainers;
+int container_split;
+unsigned short int tag_icon[16];
 int client_opts, bar_opts, ntags, nkeys;
 int statfd;
 Bool focusfollowmouse;

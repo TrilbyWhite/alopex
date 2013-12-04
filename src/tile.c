@@ -80,9 +80,11 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 	int ms = ((M->mode == RSTACK ? M->w : M->h) - 3 * M->gap)/2;
 	int mss = ((M->mode == RSTACK ? M->h : M->w) - 2 * M->gap);
 	int ss = ((M->mode == RSTACK ? M->h : M->w) - M->gap)/(ncon-1) - M->gap;
-	int x = M->x + M->gap + (M->mode == RSTACK ? (con ? ms + M->gap: 0) :
+	int x = M->x + M->gap + (M->mode == RSTACK ?
+			(con ? ms + M->gap + M->split : 0) :
 			(con > 1 ? ss * (con - 1) + M->gap: 0));
-	int y = M->y + M->gap + (M->mode == BSTACK ? (con ? ms + M->gap: 0) :
+	int y = M->y + M->gap + (M->mode ==  BSTACK ?
+			(con ? ms + M->gap + M->split : 0) :
 			(con > 1 ? ss * (con - 1) + M->gap: 0));
 	int w = (M->mode == RSTACK ? (con ? ms - M->split : ms + M->split) :
 			(con ? ss : mss));

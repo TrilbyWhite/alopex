@@ -5,7 +5,7 @@ CC       ?= gcc
 CFLAGS   += `pkg-config --cflags x11 cairo freetype2`
 LDFLAGS  += `pkg-config --libs x11 cairo freetype2`
 PREFIX   ?= /usr
-MODULES  =  alopex draw input key_chain tile config
+MODULES  =  alopex config draw input key_chain tile
 HEADERS  =  alopex.h
 MANPAGES =  alopex.1
 VPATH    =  src:doc
@@ -17,7 +17,8 @@ ${PROG}: ${MODULES:%=%.o}
 	@${CC} -c -o src/$@ $< ${CFLAGS} ${OPTS}
 
 install: ${PROG}
-	@echo Not yet
+	@install -Dm755 ${PROG} ${DESTDIR}${PREFIX}/bin/${PROG}
+	@install -Dm644 share/config ${DESTDIR}${PREFIX}/share/${PROG}/config
 
 ${MANPAGES}: alopex.%: alopex-%.tex
 	@latex2man $< $@

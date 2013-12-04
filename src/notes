@@ -7,9 +7,9 @@
 	%i tags (icon)
 	%C clock (24 hour)
 	%c clock (12 hour)
-STATUS INPUT NOT IMPLEMENTED JUST YET
-	%1 first line of status input
-	%2 second (or previous) line of status input
+	%I key-chain input
+	%1 first element of status input (delineated by '&')
+	%2 second elements of status input 
 	%3 ...
 	...
 */

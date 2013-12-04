@@ -14,11 +14,13 @@ static const char *bar(int, const char *);
 static const char *command(int, const char *);
 static const char *focus_move(int, const char *);
 static const char *killclient(int, const char *);
+static const char *loop(int, const char *);
 static const char *mode(int, const char *);
 static const char *nclients(int, const char *);
 static const char *other(int, const char *);
 static const char *quit(int, const char *);
 static const char *size(int, const char *);
+static const char *ternary(int, const char *);
 static const char *tag(int, const char *);
 static const char *toTag(int, const char *);
 static const char *view(int, const char *);
@@ -32,6 +34,7 @@ static Client *target;
 /********************************************************************/
 
 int key_chain(const char *chain) {
+fprintf(stderr,":: %s\n",chain);
 	trigger = 0;
 	const char *c = chain; int n;
 	target = winmarks[0];
@@ -54,6 +57,8 @@ int key_chain(const char *chain) {
 			case ';': case ':': c = command(n,c); break;
 			case 'q': c = killclient(n,c); break;
 			case 'Q': case 'R': c = quit(n,c); break;
+			case '(': c = ternary(n,c); break;
+			case '{': c = loop(n,c); break;
 			default: break;
 		}
 	}
@@ -63,6 +68,35 @@ int key_chain(const char *chain) {
 /********************************************************************/
 /*  LOCAL FUNCTIONS                                                 */
 /********************************************************************/
+
+#define OP_EQUALS		0x03
+#define OP_GREATER	0x02
+#define OP_LESS		0x01
+
+static Bool condition(const char *exp) {
+	int op = OP_EQUALS;
+	switch (*exp) {
+		case '<': op--; case '>': op--;
+		case '=': exp++; default: break;
+	}
+	int n;
+	n = atoi(exp);
+	for (exp; *exp && *exp > '/' && *exp < ':'; exp++);
+	switch (*exp) {
+		case 'w':
+			return winmarks[n] == winmarks[2];
+			break;
+		case 'g':
+			if (op == OP_EQUALS) return m && m->gap == n;
+			if (op == OP_GREATER) return m && m->gap > n;
+			if (op == OP_LESS) return m && m->gap < n;
+			break;
+		case 'M':
+			return m && m->mode == n;
+			break;
+		default: return False;
+	}
+}
 
 const char *bar(int n, const char *ch) {
 	Bar *b;
@@ -86,7 +120,7 @@ const char *command(int n, const char *ch) {
 	if (!s) return (++ch);
 	for (i = 0; i < (n ? n : 1); i++) {
 		if (s[strlen(s)-1] == '&') system(string[*ch]);
-		else key_chain(s);
+		else trigger = key_chain(s);
 	}
 	return (++ch);
 }
@@ -139,6 +173,10 @@ const char *killclient(int n, const char *ch) {
 	return (++ch);
 }
 
+const char *loop(int n, const char *ch) {
+	return (++ch);
+}
+
 const char *mode(int n, const char *ch) {
 	if (*ch == 'M') {
 		if (n == m->mode || (n == MONOCLE && m->mode < 0)) return (++ch);
@@ -156,7 +194,16 @@ const char *mode(int n, const char *ch) {
 	return (++ch);
 }
 
-const char *nclients(int n, const char *c) {return ++c;}
+const char *nclients(int n, const char *ch) {
+	if (!m->focus || !m->focus->next) return;
+	if (*ch == '+') m->focus->n += (n ? n : 1);
+	if (*ch == '-') m->focus->n -= (n ? n : 1);
+	if (*ch == '<') m->focus->n = -1;
+	if (*ch == '>') m->focus->n = 1;
+	if (m->focus->n == 0) m->focus->n = 1;
+	trigger = 2;
+	return (++ch);
+}
 
 const char *other(int n, const char *ch) {
 	int i;
@@ -179,7 +226,12 @@ const char *quit(int n, const char *ch) {
 	return (++ch);
 }
 
-const char *size(int n, const char *c) {return ++c;}
+const char *size(int n, const char *ch) {
+	if (*ch == 'i') m->split += (n ? n : 1);
+	else if (*ch == 'd') m->split -= (n ? n : 1);
+	trigger = 2;
+	return (++ch);
+}
 
 const char *tag(int n, const char *ch) {
 	if (!n) return (++ch);
@@ -194,6 +246,20 @@ const char *tag(int n, const char *ch) {
 	return (++ch);
 }
 
+const char *ternary(int n, const char *ch) {
+	char *str, *t, start, end;
+	ch++;
+	if (condition(ch)) { start = '?'; end = ':'; }
+	else { start = ':'; end = ')'; }
+	for (ch; *ch && *ch != start; ch++);
+	str = strdup( (++ch) );
+	if ( (t=strchr(str,end)) ) *t = '\0';
+	key_chain(str);
+	free(str);
+	t = strchr(ch,')');
+	return (++t);
+}
+
 const char *toTag(int n, const char *ch) {
 	if (!n || !target) return (++ch);
 	else if ((--n) >= ntags) return (++ch);
@@ -202,10 +268,18 @@ const char *toTag(int n, const char *ch) {
 	if (*ch == 'm') target->tags = (1<<n);
 	if (*ch == 'a') target->tags |= (1<<n);
 	if (*ch == 'A') target->tags &= ~(1<<n);
+	trigger = 2;
 	return (++ch);
 }
 
-const char *view(int n, const char *c) {return ++c;}
+const char *view(int n, const char *ch) {
+fprintf(stderr,"TAGS=%X\n",m->tags);
+	int alt = (m->tags>>16) & 0xFF;
+	m->tags = (m->tags<<16) | alt;
+fprintf(stderr,"  TAGS=%X\n",m->tags);
+	trigger = 2;
+	return (++ch);
+}
 
 void swap(Client *a, Client *b) {
 	if (!a || !b) return;

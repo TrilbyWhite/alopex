@@ -370,6 +370,7 @@ void X_init() {
 		M->x = 0; M->y = 0;
 		M->w = DisplayWidth(dpy,scr);
 		M->h = DisplayHeight(dpy,scr);
+		M->split = container_split;
 		//
 		M->gap = container_pad;
 		for (i = 0; i < ncontainers; i++) {

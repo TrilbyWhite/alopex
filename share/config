@@ -2,16 +2,20 @@
 ## by Jesse McClure (c) 2013
 ##  license: CC-BY-SA
 
+## add the following line to the section below for status input:
+#	status input     = /path/to/your/script
 bars:
-	status format    = "%T& %C "
+	status format    = "%T%I& %1%C "
 	font path        = /usr/share/fonts/TTF/DroidSansMono.ttf
 	font size        = 14
 	icons path       = /usr/share/alopex/icons.png
 	tag names        = one two three four five
+	tag icons        = 1 2 3 4 5
 	tag padding      = 5
 	options          = visible top
 
 containers:
+	split            = 0
 	counts           = 1 3 3
 	padding          = 4
 
@@ -34,9 +38,10 @@ theme:
 	status background      =  0.14 0.14 0.14 0.40 1.0 
 	status border          =  1.00 1.00 1.00 0.60 0.0 
 	status text            =  0.80 0.80 0.80 1.00 0.0 
+	status input           =  0.00 0.75 0.00 1.00 1.0 
 	tag occupied           =  0.00 0.00 1.00 1.00 0.0 
-	tag focus              =  1.00 1.00 1.00 1.00 0.0 
-	tag view               =  0.60 0.90 1.00 1.00 0.0 
+	tag focus              =  0.60 0.90 1.00 1.00 0.0 
+	tag view               =  1.00 1.00 1.00 1.00 0.0 
 	tag alt view           =  0.80 0.00 0.00 1.00 0.0 
 	tag both view          =  0.80 0.00 0.80 1.00 0.0 
 

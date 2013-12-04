@@ -53,8 +53,10 @@ int config() {
 
 int deconfig() {
 	int i;
+	memset(tag_icon,0,16 * sizeof(unsigned short int));
 	if (statfd) {
-		fclose(inpipe); statfd = 0;
+		//fclose(inpipe);
+		statfd = 0;
 		kill(pid,SIGKILL);
 		wait(pid);
 		instring[0] = '\0';
@@ -81,6 +83,7 @@ int deconfig() {
 
 int reconfig() {
 // TODO: detect bar height change and get_monitors() if needed
+// detect split changes and reset every M->split
 	deconfig();
 	config();
 }
@@ -103,7 +106,7 @@ void conf_bars(FILE *rc) {
 		if (line[0] != '\t') break;
 		else if (sscanf(line," status format = \"%[^\"]\"\n",str) == 1)
 			safe_dup(str,&status_fmt);
-		else if (sscanf(line," status input = \"%[^\"]\"\n",str) == 1)
+		else if (sscanf(line," status input = %[^\n]\n",str) == 1)
 			pid = stat_open(str);
 		else if (sscanf(line," font path = %[^\n]\n",str) == 1)
 			safe_dup(str,&font_path);
@@ -126,6 +129,12 @@ void conf_bars(FILE *rc) {
 				tok = strtok(NULL," ");
 			}
 		}
+		else if (sscanf(line," tag icons = "
+		"%hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu",
+		&tag_icon[0], &tag_icon[1], &tag_icon[2], &tag_icon[3],
+		&tag_icon[4], &tag_icon[5], &tag_icon[6], &tag_icon[7],
+		&tag_icon[8], &tag_icon[9], &tag_icon[10], &tag_icon[11],
+		&tag_icon[12], &tag_icon[13], &tag_icon[14], &tag_icon[15]));
 		else fprintf(stderr,"ALOPEX: unrecognized configuration entry: "
 				"%s\n",line);
 	}
@@ -193,6 +202,8 @@ void conf_containers(FILE *rc) {
 		}
 		else if (sscanf(line," padding = %d", &n))
 			container_pad = n; 
+		else if (sscanf(line," split = %d", &n))
+			container_split = n; 
 		else fprintf(stderr,"ALOPEX: unrecognized configuration entry: "
 				"%s\n",line);
 
@@ -235,7 +246,7 @@ pid_t stat_open(const char *cmd) {
 	pid_t in;
 	if ( (in=fork()) ) {
 		statfd = fd[0];
-		inpipe = fdopen(fd[0],"r");
+		//inpipe = fdopen(fd[0],"r");
 		close(fd[1]);
 		return in;
 	}

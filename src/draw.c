@@ -135,6 +135,12 @@ int draw_status() {
 						sbar_tags(M,S,*c); break;
 					case 'C': case 'c': 
 						sbar_clock(S,*c); break;
+					case 'I':
+						if (ibar_text) {
+							set_color(S->ctx,statRGBAInput);
+							sbar_text(S,ibar_text);
+						}
+						break;
 					case '1': case '2': case '3': case '4': case '5':
 					case '6': case '7': case '8': case '9':
 						sbar_parse(S,*c - 49); break;
