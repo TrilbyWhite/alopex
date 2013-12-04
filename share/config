@@ -45,9 +45,27 @@ theme:
 	tag alt view           =  0.80 0.00 0.00 1.00 0.0 
 	tag both view          =  0.80 0.00 0.80 1.00 0.0 
 
+#FULLSCREEN    3M0g1bh
+#	3M = third mode = monocle
+#	0g = set gap to zero
+#	1bh = hide the first bar
+#UNFULLSCREEN	1M4g1bs
+#	1M = first mode = rstack
+#	4g = set gap to 4
+#	1bs = show the first bar
+#TOGGLE FULLSCREEN	(=0g?1M4g1bs:3M0g1bh)
+#	(<exp>?<cmd>:<cmd>) = ternary operator
+#	EXP: [<op>]<num><compare>
+#		op: operator = < > (default is =)
+#		num: number for comparison
+#		compare:
+#			g, compare current monitor gap to numerical value
+#			M, compare window mode/layout to number (equal only)
+#			w, compare window at mark 2 to window at mark num (equal only)
+#			NOTE: window mark 2 is one target for all window conditionals
+#			NOTE: more conditionals are coming
 strings:
-	f    3M0g1bh
-	F    1M4g1bs
+	f    (=0g?1M4g1bs:3M0g1bh)
 	m!   interrobang
 	t!   urxvt
 	w!   firefox
