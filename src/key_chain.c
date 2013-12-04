@@ -101,9 +101,11 @@ static Bool condition(const char *exp) {
 const char *bar(int n, const char *ch) {
 	Bar *b;
 	if (n) {
-		b = m->container;
+		Container *C;
+		C = m->container;
 		int i;
-		for (i = 1; i < n && b->next; i++, b = b->next);
+		for (i = 1; i < n && C->next; i++, C = C->next);
+		b = &C->bar;
 	}
 	else if (m->focus) b = &m->focus->bar;
 	else b = &m->container->bar;
