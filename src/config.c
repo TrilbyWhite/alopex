@@ -82,10 +82,21 @@ int deconfig() {
 }
 
 int reconfig() {
-// TODO: detect bar height change and get_monitors() if needed
-// detect split changes and reset every M->split
+// TODO: deal with barheight and font changes.
 	deconfig();
 	config();
+	Monitor *M; Container *C;
+	for (M = mons; M; M = M->next) {
+		M->split = container_split;
+		M->gap = container_pad;
+		//cairo_set_line_width(M->sbar[0].ctx,theme[statRGBA].e);
+		//cairo_set_line_width(M->sbar[1].ctx,theme[statRGBA].e);
+		cairo_set_line_width(M->sbar[0].ctx,1);
+		cairo_set_line_width(M->sbar[1].ctx,4);
+		for (C = M->container; C; C = C->next)
+			cairo_set_line_width(C->bar.ctx,theme[tabRGBAFocus].e);
+fprintf(stderr,"%lf %lf",theme[statRGBA].e,theme[tabRGBAFocus].e);
+	}
 }
 
 /********************************************************************/
@@ -115,7 +126,7 @@ void conf_bars(FILE *rc) {
 		else if (sscanf(line," options = %[^\n]\n",str) == 1) {
 			if (strstr(str,"visible")) bar_opts |= BAR_VISIBLE;
 			if (strstr(str,"top")) bar_opts |= BAR_TOP;
-			if ( (tok=strstr(str,"height=")) ) SET_BAR_HEIGHT(atoi(tok+7));
+			if ( (tok=strstr(str,"height=")) ) bar_opts |= atoi(tok+7);
 		}
 		else if (sscanf(line," font size = %d",&n) == 1)
 			font_size = n;

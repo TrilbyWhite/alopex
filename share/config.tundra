@@ -2,9 +2,6 @@
 ## by Jesse McClure (c) 2013
 ##  license: CC-BY-SA
 
-# TUNDRA IS A WORK IN PROGRESS AND CURRENTLY FAIRLY UGLY
-#   TUNDRA IS A FLAT THEME WITH COLORS MUCH LIKE V2'S SUMMER COAT
-
 ## add the following line to the section below for status input:
 #	status input     = /path/to/your/script
 bars:
@@ -28,26 +25,26 @@ clients:
 	attach           = top
 
 theme:
-	tab offset             =  0.00 0.00 0.00 0.00 0.0 
-	tab focus background   =  0.14 0.14 0.14 1.00 1.0 
-	tab focus border       =  1.00 0.80 0.40 1.00 0.0 
-	tab focus text         =  1.00 0.80 0.40 0.90 -10 
+	tab offset             =  1.00 1.00 -2.0 2.00 3.0
+	tab focus background   =  0.14 0.14 0.14 1.00 2.0 
+	tab focus border       =  0.82 0.68 0.44 1.00 0.0 
+	tab focus text         =  0.94 0.80 0.68 1.00 -10 
 	tab top backgorund     =  0.14 0.14 0.14 1.00 0.0 
-	tab top border         =  1.00 0.80 0.40 0.50 0.0 
-	tab top text           =  1.00 0.80 0.40 0.50 0.5 
-	tab other background   =  0.04 0.04 0.04 1.00 0.0 
-	tab other border       =  0.40 0.20 0.00 1.00 0.0 
-	tab other text         =  0.40 0.20 0.00 1.00 0.5 
+	tab top border         =  0.80 0.53 0.28 1.00 0.0 
+	tab top text           =  0.40 0.40 0.34 1.00 0.5 
+	tab other background   =  0.08 0.08 0.08 1.00 0.0 
+	tab other border       =  0.40 0.40 0.34 1.00 0.0 
+	tab other text         =  0.40 0.40 0.34 1.00 0.5 
 	status offset          =  0.00 0.00 0.00 0.00 0.0 
-	status background      =  0.14 0.14 0.14 1.00 0.0 
-	status border          =  1.00 1.00 1.00 0.60 0.0 
-	status text            =  1.00 0.80 0.20 1.00 0.0 
-	status input           =  0.00 0.75 0.00 1.00 1.0 
-	tag occupied           =  1.00 0.40 0.00 1.00 0.0 
-	tag focus              =  1.00 0.90 0.00 1.00 0.0 
-	tag view               =  1.00 1.00 1.00 1.00 0.0 
-	tag alt view           =  1.00 0.00 0.00 1.00 0.0 
-	tag both view          =  1.00 0.00 0.40 1.00 0.0 
+	status background      =  0.12 0.10 0.08 1.00 0.0 
+	status border          =  0.12 0.10 0.08 1.00 0.0 
+	status text            =  0.94 0.80 0.68 1.00 0.0 
+	status input           =  0.25 0.75 0.00 1.00 0.0 
+	tag occupied           =  0.40 0.40 0.34 1.00 0.0 
+	tag focus              =  0.86 0.80 0.50 1.00 0.0 
+	tag view               =  0.94 0.50 0.25 1.00 0.0 
+	tag alt view           =  1.00 0.15 0.00 1.00 0.0 
+	tag both view          =  1.00 0.55 0.25 1.00 0.0 
 
 #FULLSCREEN    3M0g1bh
 #	3M = third mode = monocle

@@ -34,7 +34,6 @@ static Client *target;
 /********************************************************************/
 
 int key_chain(const char *chain) {
-fprintf(stderr,":: %s\n",chain);
 	trigger = 0;
 	const char *c = chain; int n;
 	target = winmarks[0];
