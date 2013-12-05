@@ -161,12 +161,15 @@ return;
 
 void enternotify(XEvent *ev) {
 	Client *c = wintoclient(ev->xcrossing.window);
-	if (c && focusfollowmouse) {
-		// TODO
-	}
 	if (mons->next) {
 		// root_x root_y, which monitor
 		// m = mons[i]
+	}
+	if (c && focusfollowmouse) {
+		Container *C;
+		for (C = m->container; C; C = C->next)
+			if (C->top && C->top == c)
+				m->focus = C;
 	}
 	if ((c && focusfollowmouse) || mons->next) draw();
 }
