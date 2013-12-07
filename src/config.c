@@ -48,6 +48,13 @@ int config() {
 	}
 	fclose(rc);
 	if (pwd) chdir(pwd);
+	if (FT_New_Face(library,font_path,0,&face) | FT_Set_Pixel_Sizes(face,0,font_size))
+		die("unable to load free type font");
+	if (font_path2 && (FT_New_Face(library,font_path2,0,&face2) |
+			FT_Set_Pixel_Sizes(face2,0,font_size)))
+		die("unable to load free type font");
+	cfont = cairo_ft_font_face_create_for_ft_face(face,0);
+	if (font_path2) cfont2 = cairo_ft_font_face_create_for_ft_face(face2,0);
 	return 0;
 }
 
@@ -79,6 +86,22 @@ int deconfig() {
 	if (theme) {
 		free(theme); theme = NULL;
 	}
+	if (font_path) {
+		cairo_font_face_destroy(cfont);
+		FT_Done_Face(face);
+		free(font_path); font_path = NULL;
+	}
+	if (font_path2) {
+		cairo_font_face_destroy(cfont2);
+		FT_Done_Face(face2);
+		free(font_path2); font_path2 = NULL;
+	}
+	if (status_fmt) {
+		free(status_fmt); status_fmt = NULL;
+	}
+	if (icons_path) {
+		free(icons_path); icons_path = NULL;
+	}
 }
 
 int reconfig() {
@@ -95,7 +118,6 @@ int reconfig() {
 		cairo_set_line_width(M->sbar[1].ctx,4);
 		for (C = M->container; C; C = C->next)
 			cairo_set_line_width(C->bar.ctx,theme[tabRGBAFocus].e);
-fprintf(stderr,"%lf %lf",theme[statRGBA].e,theme[tabRGBAFocus].e);
 	}
 }
 
@@ -121,6 +143,8 @@ void conf_bars(FILE *rc) {
 			pid = stat_open(str);
 		else if (sscanf(line," font path = %[^\n]\n",str) == 1)
 			safe_dup(str,&font_path);
+		else if (sscanf(line," alt font path = %[^\n]\n",str) == 1)
+			safe_dup(str,&font_path2);
 		else if (sscanf(line," icons path = %[^\n]\n",str) == 1)
 			safe_dup(str,&icons_path);
 		else if (sscanf(line," options = %[^\n]\n",str) == 1) {

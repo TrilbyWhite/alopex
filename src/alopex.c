@@ -57,7 +57,6 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 static int default_cursor = 64, purgX = 0, purgY = 0;
 static Bool mod_down = False;
 static const char *noname_window = "(WINDOW)";
-static cairo_font_face_t *cfont;
 
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
@@ -350,12 +349,9 @@ void X_init() {
 	XDefineCursor(dpy,root,XCreateFontCursor(dpy,68));
 	XSetWindowAttributes wa;
 	gc = DefaultGC(dpy,scr);
-	config();
-	if (FT_Init_FreeType(&library) |
-			FT_New_Face(library,font_path,0,&face) |
-			FT_Set_Pixel_Sizes(face,0,font_size) )
+	if (FT_Init_FreeType(&library))
 		die("unable to init freetype lib and load font");
-	cfont = cairo_ft_font_face_create_for_ft_face(face,0);
+	config();
 	/* monitors */
 	if (!(mons=calloc(1,sizeof(Monitor))))
 		die("unable to allocatememory");
@@ -449,11 +445,9 @@ void X_free() {
 			XFreePixmap(dpy,C->bar.buf);
 			XDestroyWindow(dpy,C->bar.win);
 		}
+		free(C);
 	}
 	icons_free();
-	cairo_font_face_destroy(cfont);
-	FT_Done_Face(face);
-	free(C);
 	free(mons);
 	XCloseDisplay(dpy);
 }

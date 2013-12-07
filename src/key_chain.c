@@ -244,8 +244,8 @@ const char *tag(int n, const char *ch) {
 	if (*ch == 't') m->tags ^= (1<<n);
 	else if (*ch == 's') m->tags |= (1<<n);
 	else if (*ch == 'S') m->tags &= ~(1<<n);
-	else if (*ch == 'x') m->tags = (m->tags & 0xFF00) | (1<<n);
-	else if (*ch == 'X') m->tags &= ((1<<n) ^ 0x00FF);
+	else if (*ch == 'x') m->tags = (m->tags & 0xFFFF0000) | (1<<n);
+	else if (*ch == 'X') m->tags &= ((1<<n) ^ 0x0000FFFF);
 	trigger = 2;
 	return (++ch);
 }
@@ -277,10 +277,8 @@ const char *toTag(int n, const char *ch) {
 }
 
 const char *view(int n, const char *ch) {
-fprintf(stderr,"TAGS=%X\n",m->tags);
 	int alt = (m->tags>>16) & 0xFF;
 	m->tags = (m->tags<<16) | alt;
-fprintf(stderr,"  TAGS=%X\n",m->tags);
 	trigger = 2;
 	return (++ch);
 }

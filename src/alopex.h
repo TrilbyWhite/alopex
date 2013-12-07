@@ -59,11 +59,10 @@
 #define statRGBAText			0x0d
 #define statRGBAInput		0x0e
 #define tagRGBAOcc			0x0f
-#define tagRGBAFoc			0x10
-#define tagRGBASel			0x11
-#define tagRGBAAlt			0x12
-#define tagRGBABoth			0x13
-#define themeEND				0x14
+#define tagRGBASel			0x10
+#define tagRGBAAlt			0x11
+#define tagRGBABoth			0x12
+#define themeEND				0x13
 
 typedef struct Key {
 	unsigned short int mod;
@@ -124,9 +123,9 @@ Window root;
 Bool running;
 GC gc;
 FT_Library library;
-FT_Face face;
+FT_Face face, face2;
 Client *winmarks[10];
-
+cairo_font_face_t *cfont, *cfont2;
 
 extern int die(const char *);
 extern int purgatory(Window);
@@ -150,7 +149,7 @@ extern int tile();
 
 //FILE *inpipe;
 char **tag_names, **string;
-char *status_fmt, *font_path, *icons_path, *ibar_text;
+char *status_fmt, *font_path, *font_path2, *icons_path, *ibar_text;
 char instring[256];
 int font_size, container_pad, tag_pad, *containers, ncontainers;
 int container_split;

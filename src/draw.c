@@ -19,9 +19,19 @@ static void set_color(cairo_t *, int);
 static cairo_surface_t *icon_img;
 static int icon_size;
 
+
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
 /********************************************************************/
+
+int draw() {
+	draw_status();
+	tile();
+	if (!m->focus || !m->focus->top) m->focus = m->container;
+	Client *c;
+	if ( (c=m->focus->top) ) set_focus(c);
+	XFlush(dpy);
+}
 
 int icons_init(const char *fname, int size) {
 return 0;
@@ -49,11 +59,11 @@ double round_rect(Bar *bar, int x, int y, int w, int h,
 		int off, int bg, int brd, int txt) {
 	const Theme *q = &theme[off];
 	cairo_new_sub_path(bar->ctx);
-if (!(bar->opts & BAR_TOP)) {
-cairo_save(bar->ctx);
-cairo_scale(bar->ctx,1,-1);
-cairo_translate(bar->ctx,0,-1 * BAR_HEIGHT(bar->opts));
-}
+	if (!(bar->opts & BAR_TOP)) {
+		cairo_save(bar->ctx);
+		cairo_scale(bar->ctx,1,-1);
+		cairo_translate(bar->ctx,0,-1 * BAR_HEIGHT(bar->opts));
+	}
 	x += q->a; y += q->b; w += q->c; h += q->d;
 	cairo_arc(bar->ctx, x + w - q->e, y + q->e, q->e, -0.5 * M_PI, 0);
 	cairo_arc(bar->ctx, x + w - q->e, y + h - q->e, q->e, 0, 0.5 * M_PI);
@@ -64,8 +74,7 @@ cairo_translate(bar->ctx,0,-1 * BAR_HEIGHT(bar->opts));
 	cairo_fill_preserve(bar->ctx);
 	set_color(bar->ctx,brd);
 	cairo_stroke(bar->ctx);
-if (!(bar->opts & BAR_TOP))
-cairo_restore(bar->ctx);
+	if (!(bar->opts & BAR_TOP)) cairo_restore(bar->ctx);
 	set_color(bar->ctx,txt);
 	return theme[txt].e;
 }
@@ -159,15 +168,6 @@ int draw_status() {
 	}
 }
 
-int draw() {
-	draw_status();
-	tile();
-	if (!m->focus || !m->focus->top) m->focus = m->container;
-	Client *c;
-	if ( (c=m->focus->top) ) set_focus(c);
-	XFlush(dpy);
-}
-
 /********************************************************************/
 /*  LOCAL FUNCTIONS                                                 */
 /********************************************************************/
@@ -194,6 +194,8 @@ void sbar_parse(SBar *S, int n) {
 			if (*(++c) == 'i') {
 				// icon
 			}
+			else if (*c == 'f') cairo_set_font_face(S->ctx,cfont);
+			else if (*c == 'F') cairo_set_font_face(S->ctx,cfont2);
 			else if (sscanf(c,"%lf %lf %lf %lf",&r,&g,&b,&a) == 4)
 				cairo_set_source_rgba(S->ctx,r,g,b,a);
 			c = strchr(c,'}');
@@ -226,11 +228,12 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 	const char *tag;
 	S->x += tag_pad;
 	for (i = 0; i < ntags && (tag=tag_names[i]); i++) {
+		if (M->focus && M->focus->top && M->focus->top->tags & (1<<i))
+			cairo_set_font_face(S->ctx,cfont2);
+		else
+			cairo_set_font_face(S->ctx,cfont);
 		if ( (M->tags & (1<<i)) && (M->tags & (1<<(i+16))) ) 
 			set_color(S->ctx,tagRGBABoth);
-		else if (M->focus && M->focus->top &&
-				(M->focus->top->tags & (1<<i)))
-			set_color(S->ctx,tagRGBAFoc);
 		else if (M->tags & (1<<i))
 			set_color(S->ctx,tagRGBASel);
 		else if (M->tags & (1<<(i+16)))
@@ -253,9 +256,6 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 }
 
 void set_color(cairo_t *ctx, int q) {
-//fprintf(stderr,"%X: %f %f %f %f\n",
-//q,theme[q].a,theme[q].b,theme[q].c,theme[q].d);
 	cairo_set_source_rgba(ctx, theme[q].a, theme[q].b,
 			theme[q].c, theme[q].d);
-	//cairo_set_source_rgba(ctx,1.0,1.0,0.0,1.0);
 }
