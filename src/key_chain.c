@@ -109,8 +109,8 @@ const char *bar(int n, const char *ch) {
 	else if (m->focus) b = &m->focus->bar;
 	else b = &m->container->bar;
 	if (!b) return (++ch);
-	if (*(++ch) == 's') b->opts |= BAR_VISIBLE;
-	else if (*ch == 'h') b->opts &= ~BAR_VISIBLE;
+	if (*(++ch) == 's') b->opts |= AR_VISIBLE;
+	lse if (*ch == 'h') b->opts &= ~BAR_VISIBLE;
 	else if (*ch == 't') b->opts |= BAR_TOP;
 	else if (*ch == 'b') b->opts &= ~BAR_TOP;
 	else if (*ch == 'x') b->opts ^= BAR_VISIBLE;

@@ -104,6 +104,7 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 			XMoveResizeWindow(dpy,C->bar.win,x,y+h,w,BAR_HEIGHT(C->bar.opts));
 		}
 	}
+	else purgatory(C->bar.win);
 	Client *c, *top = NULL;
 	int nx;
 	for (n = 0, CC = M->container; CC != C; n += CC->n, CC = CC->next);
@@ -166,6 +167,7 @@ void tile_monocle(Monitor *M,int n) {
 			XMoveResizeWindow(dpy,C->bar.win,x,y+h,w,BAR_HEIGHT(C->bar.opts));
 		}
 	}
+	else purgatory(C->bar.win);
 	Client *c, *top = NULL, *ftop = NULL;
 	int i = 0;
 	for (c = clients; c; c = c->next)
