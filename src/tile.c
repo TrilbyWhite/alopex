@@ -124,7 +124,10 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 		if (con < ncon - 1) draw_tab(C,con,top,nx,C->n);
 		else draw_tab(C,con,top,nx,nlast);
 	}
-	XRaiseWindow(dpy,C->top->win);
+	XWindowChanges wc;
+	wc.sibling = C->bar.win;
+	wc.stack_mode = Below;
+	XConfigureWindow(dpy, C->top->win, CWSibling | CWStackMode, &wc);
 	if (con == 0) {
 		round_rect(&C->bar, 0, 0, M->sbar[0].width, BAR_HEIGHT(C->bar.opts),
 				statOffset, statRGBA, statRGBABrd, statRGBAText);
@@ -175,7 +178,12 @@ void tile_monocle(Monitor *M,int n) {
 		}
 	if (ftop) top = ftop;
 	C->top = top;
-	if (C->top) XRaiseWindow(dpy,C->top->win);
+	if (C->top) {
+		XWindowChanges wc;
+		wc.sibling = C->bar.win;
+		wc.stack_mode = Below;
+		XConfigureWindow(dpy, C->top->win, CWSibling | CWStackMode, &wc);
+	}
 	if (M->occ || M->tags) round_rect(&C->bar, 0, 0, M->sbar[0].width,
 			BAR_HEIGHT(C->bar.opts), statOffset,
 			statRGBA, statRGBABrd, statRGBAText);

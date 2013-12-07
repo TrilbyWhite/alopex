@@ -7,8 +7,7 @@ X Implement basic status bar drawing
 X Finish implementing tags (done, but not tested)
 X Fix statusbar drawing to allow for psuedo transparency
 X Ensure top window is maintained in layout switch
-> Write status input reader
-	- done but needs testing
+X Write status input reader
 - Get client window icons
 - Finish icon drawing functions
 X Track down bottom-bar bug
