@@ -18,7 +18,8 @@ ${PROG}: ${MODULES:%=%.o}
 
 install: ${PROG}
 	@install -Dm755 ${PROG} ${DESTDIR}${PREFIX}/bin/${PROG}
-	@install -Dm644 share/* ${DESTDIR}${PREFIX}/share/${PROG}/
+	@install -Dm644 share/config.icecap ${DESTDIR}${PREFIX}/share/${PROG}/config.icecap
+	@install -Dm644 share/config.tundra ${DESTDIR}${PREFIX}/share/${PROG}/config.tundra
 
 ${MANPAGES}: alopex.%: alopex-%.tex
 	@latex2man $< $@
