@@ -30,8 +30,21 @@ int tile() {
 		M->occ = 0;
 		for (n = 0, c = clients; c; c = c->next) {
 			M->occ |= c->tags;
-			if (c->tags & M->tags) n++;
-			else purgatory(c->win);
+			if (c->tags & M->tags && !(c->flags & WIN_FLOAT) ) n++;
+			else if (c->tags & M->tags) {
+				if (c->x || c->y) {
+					XMoveWindow(dpy,c->win,c->x,c->y);
+					c->x = c->y = 0;
+				}
+				XRaiseWindow(dpy,c->win);
+			}
+			else {
+				if (c->flags & WIN_FLOAT && !c->x && !c->y) {
+					Window w; int ig;
+					XGetGeometry(dpy,c->win,&w,&c->x,&c->y,&ig,&ig,&ig,&ig);
+				}
+				purgatory(c->win);
+			}
 		}
 		ncon = 0;
 		Container *focus = NULL;
@@ -116,7 +129,7 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 	for (c = clients; c && n; c = c->next)
 		if (c->tags & M->tags) n--;
 	for (c; c; c = c->next)
-		if (c->tags & M->tags) {
+		if (c->tags & M->tags && !(c->flags & WIN_FLOAT)) {
 			if (C->n > 0 && (++n) > C->n) break;
 			else if (C->n < 0) n++;
 			if (!top) { top = c; nx = n-1; }
@@ -184,7 +197,7 @@ void tile_monocle(Monitor *M,int n) {
 	Client *c, *top = NULL, *ftop = NULL;
 	int i = 0;
 	for (c = clients; c; c = c->next)
-		if (c->tags & M->tags) {
+		if (c->tags & M->tags && !(c->flags & WIN_FLOAT)) {
 			if (!top) top = c;
 			if (C->top == c) top = c;
 			if (M->focus && M->focus->top && M->focus->top == c) ftop = c;

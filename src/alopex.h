@@ -38,7 +38,8 @@
 
 #define CMD(x)	x " &"
 
-#define WIN_TRANSIENT		0x01
+#define WIN_FLOAT			0x01
+#define WIN_TRANSIENT		0x11
 #define WIN_URGENT			0x02
 #define WIN_FOCUS			0x04
 
@@ -76,7 +77,7 @@ struct Client {
 	Window win, parent;
 	char *title;
 	cairo_surface_t *icon;
-	int tags, flags;
+	int tags, flags, x, y;
 };
 
 typedef struct Bar {

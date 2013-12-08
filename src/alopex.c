@@ -27,6 +27,7 @@
 
 #include "alopex.h"
 
+static void buttonpress(XEvent *);
 static void configurerequest(XEvent *);
 static void enternotify(XEvent *);
 static void expose(XEvent *);
@@ -41,6 +42,7 @@ static void X_init();
 static void X_free();
 static Client *wintoclient();
 static void (*handler[LASTEvent]) (XEvent *) = {
+	[ButtonPress]	= buttonpress,
 	[ConfigureRequest]	= configurerequest,
 	[EnterNotify]	= enternotify,
 	[Expose]		= expose,
@@ -109,6 +111,11 @@ int purgatory(Window win) {
 }
 
 int set_focus(Client *c) {
+	Window win; int rev;
+	XGetInputFocus(dpy,&win,&rev);
+	Client *cc;
+	if ( (cc=wintoclient(win)) && (cc->flags & WIN_FLOAT) &&
+			(m->focus && m->focus->top == c) ) return;
 	if (c->flags & WIN_FOCUS) {
 		XEvent ev;
 		ev.type = ClientMessage; ev.xclient.window = c->win;
@@ -133,20 +140,54 @@ int set_focus(Client *c) {
 /*  LOCAL FUNCTIONS                                                 */
 /********************************************************************/
 
+void buttonpress(XEvent *ev) {
+	XButtonEvent *e = &ev->xbutton;
+	Client *c;
+	if ( !(c=wintoclient(e->subwindow)) ) return;
+	XRaiseWindow(dpy,c->win);
+	set_focus(c);
+	int b = e->button;
+	if (b == 2) {
+		c->flags &= ~WIN_FLOAT;
+		draw(2);
+		return;
+	}
+	XGrabPointer(dpy,root,True,PointerMotionMask | ButtonReleaseMask,
+		GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+	XEvent ee;
+	int dx, dy;
+	int xx = e->x_root, yy = e->y_root;
+	int wx, wy, ww, wh, ig;
+	Window w;
+	XGetGeometry(dpy,c->win,&w,&wx,&wy,&ww,&wh,&ig,&ig);
+	while (True) {
+		XMaskEvent(dpy,PointerMotionMask | ButtonReleaseMask,&ee);
+		if (ee.type == MotionNotify) {
+			c->flags |= WIN_FLOAT;
+			dx = ee.xbutton.x_root - xx;
+			dy = ee.xbutton.y_root - yy;
+			if (b == 1) XMoveWindow(dpy,c->win,wx+dx,wy+dy);
+			else if (b == 3) XResizeWindow(dpy,c->win,ww+dx,wh+dy);
+		}
+		else if (ee.type == ButtonRelease) break;
+		draw(1);
+	}
+	XUngrabPointer(dpy, CurrentTime);
+	draw(2);
+}
+
 void configurerequest(XEvent *ev) {
-// Not working ... at all.
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	Client *c;
 	if ( (c=wintoclient(e->window)) ) {
 		if ( (e->value_mask & CWWidth) || (e->value_mask & CWHeight) ) {
 			if ( (e->width == m->w) && (e->height == m->h) ) winmarks[2] = c;
-//			if (c->flags & WIN_FLOAT)
-//				XMoveResizeWindow(dpy,c->win,e->x, e->y, e->width, e->height);
+	//		if (c->flags & WIN_FLOAT)
+	//			XMoveResizeWindow(dpy,c->win,e->x, e->y, e->width, e->height);
 		}
 		draw(2);
 		return;
 	}
-return;
 	XWindowChanges wc;
 	wc.x = e->x; wc.y = e->y; wc.width = e->width; wc.height = e->height;
 	wc.sibling = e->above; wc.stack_mode = e->detail;
@@ -344,8 +385,15 @@ void X_init() {
 				XGrabKey(dpy,code,key[i].mod|mod[j],root,True,
 						GrabModeAsync,GrabModeAsync);
 	code=XKeysymToKeycode(dpy,XK_Super_L);
-	for (j = 0; j < 4; j++)
+	for (j = 0; j < 4; j++) {
 		XGrabKey(dpy,code,mod[j],root,True,GrabModeAsync,GrabModeAsync);
+		XGrabButton(dpy,1,Mod4Mask | mod[j], root, True,
+				ButtonPressMask,GrabModeAsync,GrabModeAsync,None,None);
+		XGrabButton(dpy,2,Mod4Mask | mod[j], root, True,
+				ButtonPressMask,GrabModeAsync,GrabModeAsync,None,None);
+		XGrabButton(dpy,3,Mod4Mask | mod[j], root, True,
+				ButtonPressMask,GrabModeAsync,GrabModeAsync,None,None);
+	}
 	memset(winmarks,0,10*sizeof(Client *));
 	running = True;
 }
