@@ -27,9 +27,6 @@
 
 #include "alopex.h"
 
-extern int config();
-extern int deconfig();
-
 static void configurerequest(XEvent *);
 static void enternotify(XEvent *);
 static void expose(XEvent *);
@@ -57,21 +54,21 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 static int default_cursor = 64, purgX = 0, purgY = 0;
 static Bool mod_down = False;
 static const char *noname_window = "(WINDOW)";
+static const char *def_theme_name = "icecap";
 
 /********************************************************************/
 /*  GLOBAL FUNCTIONS                                                */
 /********************************************************************/
 
 int main(int argc, const char **argv) {
+	if (argc > 1) theme_name = argv[1];
+	else theme_name = def_theme_name;
 	statfd = 0;
 	X_init();
-	XEvent ev;
-	draw();
-	int xfd;
-	struct timeval timeout;
-	fd_set fds;
-	xfd = ConnectionNumber(dpy);
-	Bool trigger;
+	draw(1);
+	fd_set fds; struct timeval timeout;
+	int xfd = ConnectionNumber(dpy);
+	XEvent ev; int trigger;
 	while (running) {
 		FD_ZERO(&fds);
 		memset(&timeout,0,sizeof(struct timeval));
@@ -88,17 +85,16 @@ int main(int argc, const char **argv) {
 			select(xfd + 1,&fds,0,0,&timeout);
 		}
 		if (statfd && FD_ISSET(statfd,&fds)) {
-	//		fgets(instring,sizeof(instring),inpipe);
 			read(statfd,instring,sizeof(instring));
-			trigger = True;
+			trigger = 1;
 		}
 		if (FD_ISSET(xfd,&fds)) while(XPending(dpy)) {
 			XNextEvent(dpy,&ev);
 			if (ev.type < 33 && handler[ev.type])
 				handler[ev.type](&ev);
 		}
-		else if (!statfd) trigger = True;
-		if (trigger) draw();
+		else if (!statfd) trigger = 2;
+		if (trigger) draw(trigger);
 	}
 	X_free();
 }
@@ -130,6 +126,7 @@ int set_focus(Client *c) {
 		winmarks[0] = m->focus->top;
 	}
 	c->flags &= ~WIN_URGENT;
+	XWindowChanges wc;
 }
 
 
@@ -147,7 +144,7 @@ void configurerequest(XEvent *ev) {
 //			if (c->flags & WIN_FLOAT)
 //				XMoveResizeWindow(dpy,c->win,e->x, e->y, e->width, e->height);
 		}
-		draw();
+		draw(2);
 		return;
 	}
 return;
@@ -170,11 +167,11 @@ void enternotify(XEvent *ev) {
 			if (C->top && C->top == c)
 				m->focus = C;
 	}
-	if ((c && focusfollowmouse) || mons->next) draw();
+	if ((c && focusfollowmouse) || mons->next) draw(1);
 }
 
 void expose(XEvent *ev) {
-	draw();
+	draw(1);
 }
 
 
@@ -218,7 +215,7 @@ void keypress(XEvent *ev) {
 			ret = key_chain(key[i].arg);
 			mod_down = False;
 		}
-	if (ret) draw();
+	draw(ret);
 }
 
 void keyrelease(XEvent *ev) {
@@ -228,7 +225,7 @@ void keyrelease(XEvent *ev) {
 	mod_down = False;
 	char str[256]; int ret = 0;
 	if (input(str)) ret = key_chain(str);
-	if (ret) draw();
+	draw(ret);
 }
 
 void maprequest(XEvent *ev) {
@@ -270,7 +267,7 @@ void maprequest(XEvent *ev) {
 		clients = c;
 	}
 	XMapWindow(dpy,c->win);
-	draw();
+	draw(2);
 }
 
 void propertynotify(XEvent *ev) {
@@ -281,7 +278,7 @@ void propertynotify(XEvent *ev) {
 	else if (e->atom == XA_WM_HINTS) get_hints(c);
 	//else if (e->atom == XA_WM_CLASS) apply_rules(c);
 	else return;
-	draw();
+	draw(2);
 }
 
 void unmapnotify(XEvent *ev) {
@@ -298,7 +295,7 @@ void unmapnotify(XEvent *ev) {
 	XFree(c->title);
 	// if (c->icon) cairo_surface_destroy(c->icon);
 	free(c); c = NULL;
-	draw();
+	draw(2);
 }
 
 Client *wintoclient(Window w) {
@@ -314,104 +311,34 @@ int xerror(Display *d, XErrorEvent *e) {
 	fprintf(stderr,"[X11 %d:%d] %s\n",e->request_code,e->error_code,msg);
 }
 
-static cairo_t *X_init_cairo_img_create(cairo_surface_t **buf, int w, int h) {
-	*buf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,w,h);
-	cairo_t *ctx = cairo_create(*buf);
-	cairo_set_line_join(ctx,CAIRO_LINE_JOIN_ROUND);
-	cairo_set_line_width(ctx,theme[statRGBA].e);
-	cairo_set_font_face(ctx,cfont);
-	cairo_set_font_size(ctx,font_size);
-	return ctx;
-}
-
-static cairo_t *X_init_cairo_create(Pixmap *buf, int w, int h) {
-	*buf = XCreatePixmap(dpy, root, w, h, DefaultDepth(dpy,scr));
-	cairo_surface_t *t;
-	t = cairo_xlib_surface_create(dpy, *buf, DefaultVisual(dpy,scr),w,h);
-	cairo_t *ctx = cairo_create(t);
-	cairo_surface_destroy(t);
-	cairo_set_line_join(ctx,CAIRO_LINE_JOIN_ROUND);
-	cairo_set_line_width(ctx,theme[tabRGBAFocus].e);
-	cairo_set_font_face(ctx,cfont);
-	cairo_set_font_size(ctx,font_size);
-	return ctx;
-}
-
 void X_init() {
 	if (!setlocale(LC_CTYPE,"")) die("unable to set locale");
 	if (!XSupportsLocale()) die("unsupported locale");
 	if (!XSetLocaleModifiers("")) die("unable to set locale modifiers");
 	if (!(dpy=XOpenDisplay(0x0))) die("unable to open X display");
-	// query xrandr
+	if (FT_Init_FreeType(&library)) die("unable to init freetype");
 	scr = DefaultScreen(dpy);
 	root = DefaultRootWindow(dpy);
 	XSetErrorHandler(xerror);
 	XDefineCursor(dpy,root,XCreateFontCursor(dpy,68));
-	XSetWindowAttributes wa;
 	gc = DefaultGC(dpy,scr);
-	if (FT_Init_FreeType(&library))
-		die("unable to init freetype lib and load font");
+
 	config();
-	/* monitors */
-	if (!(mons=calloc(1,sizeof(Monitor))))
-		die("unable to allocatememory");
-	m = mons;
+	icons_init(icons_path,BAR_HEIGHT(mons->container->bar.opts)-2);
 	Monitor *M;
-	Container *C, *CC = NULL;
-	int i,j, bh = (BAR_HEIGHT(bar_opts) ? BAR_HEIGHT(bar_opts) :
-			font_size+4);
-	icons_init(icons_path,bh);
-	wa.override_redirect = True;
-	wa.event_mask = ExposureMask;
-	wa.background_pixmap = ParentRelative;
 	for (M = mons; M; M = M->next) {
-		// TODO monitor checks ?
-		M->x = 0; M->y = 0;
-		M->w = DisplayWidth(dpy,scr);
-		M->h = DisplayHeight(dpy,scr);
-		M->split = container_split;
-		//
-		M->gap = container_pad;
-		for (i = 0; i < ncontainers; i++) {
-			C = calloc(1,sizeof(Container));
-			C->n = containers[i];
-			C->bar.opts = bar_opts | bh;
-			// TODO replace "12" with font height
-			C->bar.win = XCreateSimpleWindow(dpy, root, M->x,
-					(bar_opts & BAR_TOP ? M->y : M->y + M->h - bh),
-					M->w, bh, 0, 0, 0);
-			XChangeWindowAttributes(dpy,C->bar.win,CWOverrideRedirect |
-					CWEventMask | CWBackPixmap, &wa);
-			C->bar.ctx = X_init_cairo_create(&C->bar.buf,M->w,bh);
-			XMapWindow(dpy,C->bar.win);
-			if (!M->container) M->container = C;
-			if (CC) CC->next = C;
-			CC = C;
-		}
-		M->sbar[0].width = M->w/2;
-		M->sbar[1].width = M->w/2;
-		M->sbar[0].height = BAR_HEIGHT(M->container->bar.opts);
-		M->sbar[1].height = M->sbar[0].height;
-		M->sbar[0].ctx = X_init_cairo_img_create(&M->sbar[0].buf,
-				M->sbar[0].width,M->sbar[0].height);
-		M->sbar[1].ctx = X_init_cairo_img_create(&M->sbar[1].buf,
-				M->sbar[1].width,M->sbar[1].height);
-		//M->tags = 1;
-		M->mode = RSTACK;
-		M->focus = M->container;
 		if (M->x + M->w > purgX) purgX = M->x + M->w + 10;
 		if (M->y + M->h > purgX) purgY = M->y + M->h + 10;
 	}
-	/* configure root window */
-	wa.event_mask = ExposureMask | FocusChangeMask | ButtonReleaseMask |
+	XSelectInput(dpy,root, ExposureMask | FocusChangeMask | ButtonReleaseMask |
 			SubstructureNotifyMask | SubstructureRedirectMask |
-			StructureNotifyMask | PropertyChangeMask;
-	XChangeWindowAttributes(dpy,root,CWEventMask,&wa);
-	XSelectInput(dpy,root,wa.event_mask);
+			StructureNotifyMask | PropertyChangeMask);
+	XClearWindow(dpy,root);
 	/* key and mouse binding */
 	unsigned int mod[] = {0, LockMask, Mod2Mask, LockMask|Mod2Mask};
 	KeyCode code;
 	XUngrabKey(dpy,AnyKey,AnyModifier,root);
+	int i, j;
 	for (i = 0; i < nkeys; i++)
 		if ( (code=XKeysymToKeycode(dpy,key[i].keysym)) )
 			for (j = 0; j < 4; j++)
@@ -425,30 +352,14 @@ void X_init() {
 }
 
 void X_free() {
-	deconfig();
 	Client *c;
-	Monitor *M;
-	Container *C, *CC = NULL;
 	for (c = clients; c; c = c->next) {
 		winmarks[0] = c;
 		key_chain("0q");
 	}
 	XFlush(dpy);
-	for (M = mons; M; M = M->next) {
-		cairo_surface_destroy(M->sbar[0].buf);
-		cairo_destroy(M->sbar[0].ctx);
-		cairo_surface_destroy(M->sbar[1].buf);
-		cairo_destroy(M->sbar[1].ctx);
-		for (C = M->container; C; CC = C, C = C->next) {
-			if (CC) free(CC);
-			cairo_destroy(C->bar.ctx);
-			XFreePixmap(dpy,C->bar.buf);
-			XDestroyWindow(dpy,C->bar.win);
-		}
-		free(C);
-	}
 	icons_free();
-	free(mons);
+	deconfig();
 	XCloseDisplay(dpy);
 }
 

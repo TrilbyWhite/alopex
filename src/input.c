@@ -52,7 +52,7 @@ void input_init() {
 void input_free() {
 	ibar_text = NULL;
 	XDestroyIC(xic);
-	if (theme[statRGBAInput].e) draw();
+	if (theme[statRGBAInput].e) draw(1);
 }
 
 int loop(char *str) {
@@ -77,7 +77,7 @@ int loop(char *str) {
 		else if (!iscntrl(*txt)) {
 			// allow insertion
 			strcat(str,txt);
-			if (theme[statRGBAInput].e) draw();
+			if (theme[statRGBAInput].e) draw(1);
 		}
 	}
 	XUngrabKeyboard(dpy,CurrentTime);

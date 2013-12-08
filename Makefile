@@ -18,7 +18,7 @@ ${PROG}: ${MODULES:%=%.o}
 
 install: ${PROG}
 	@install -Dm755 ${PROG} ${DESTDIR}${PREFIX}/bin/${PROG}
-	@install -Dm644 share/config ${DESTDIR}${PREFIX}/share/${PROG}/config
+	@install -Dm644 share/* ${DESTDIR}${PREFIX}/share/${PROG}/
 
 ${MANPAGES}: alopex.%: alopex-%.tex
 	@latex2man $< $@

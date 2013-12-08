@@ -108,6 +108,7 @@ struct Monitor {
 	Container *container;
 	Container *focus;
 	SBar sbar[2];
+	cairo_surface_t *bg;
 };
 
 typedef struct Theme {
@@ -133,7 +134,7 @@ extern int set_focus(Client *);
 
 extern int reconfig();
 
-extern int draw();
+extern int draw(int);
 extern int draw_background(Container *);
 extern int draw_status();
 extern int draw_tab(Container *, int, Client *, int, int);
@@ -147,9 +148,9 @@ extern int key_chain(const char *);
 
 extern int tile();
 
-//FILE *inpipe;
 char **tag_names, **string;
-char *status_fmt, *font_path, *font_path2, *icons_path, *ibar_text;
+char *status_fmt, *font_path, *font_path2, *icons_path, *ibar_text, *bg_path;
+const char *theme_name;
 char instring[256];
 int font_size, container_pad, tag_pad, *containers, ncontainers;
 int container_split;

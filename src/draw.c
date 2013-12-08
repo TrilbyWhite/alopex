@@ -11,12 +11,13 @@
 #include "alopex.h"
 
 static void sbar_clock(SBar *, char);
+static void sbar_icon(SBar *, int);
 static void sbar_parse(SBar *, int);
 static void sbar_tags(Monitor *, SBar *, char);
 static void sbar_text(SBar *, const char *);
 static void set_color(cairo_t *, int);
 
-static cairo_surface_t *icon_img;
+static cairo_surface_t *icon_img[100];
 static int icon_size;
 
 
@@ -24,7 +25,9 @@ static int icon_size;
 /*  GLOBAL FUNCTIONS                                                */
 /********************************************************************/
 
-int draw() {
+int draw(int depth) {
+	if (!depth) return 0;
+	if (depth > 1) tile();
 	draw_status();
 	tile();
 	if (!m->focus || !m->focus->top) m->focus = m->container;
@@ -33,25 +36,62 @@ int draw() {
 	XFlush(dpy);
 }
 
+int bg_init(Monitor *M) {
+	Pixmap bg_pix = XCreatePixmap(dpy,root,M->w,M->h,DefaultDepth(dpy,scr));
+	M->bg = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,M->w,M->h);
+	cairo_t *bg_ctx = cairo_create(M->bg);
+	cairo_surface_t *bg_img;
+	if (bg_path) {
+		bg_img = cairo_image_surface_create_from_png(bg_path);
+		int ww = cairo_image_surface_get_width(bg_img);
+		int hh = cairo_image_surface_get_height(bg_img);
+		cairo_scale(bg_ctx,M->w/(float)ww,M->h/(float)hh);
+		cairo_set_source_surface(bg_ctx,bg_img,0,0);
+	}
+	else {
+		cairo_set_source_rgba(bg_ctx, theme[statRGBA].a,
+				theme[statRGBA].b, theme[statRGBA].c, 1.0);
+	}
+	cairo_paint(bg_ctx);
+	cairo_destroy(bg_ctx);
+	if (bg_path) cairo_surface_destroy(bg_img);
+	bg_img = cairo_xlib_surface_create(dpy,bg_pix,DefaultVisual(dpy,scr),M->w,M->h);
+	bg_ctx = cairo_create(bg_img);
+	cairo_set_source_surface(bg_ctx,M->bg,0,0);
+	cairo_paint(bg_ctx);
+	cairo_destroy(bg_ctx);
+	cairo_surface_destroy(bg_img);
+	XSetWindowBackgroundPixmap(dpy,root,bg_pix);
+	XFreePixmap(dpy,bg_pix);
+}
+
+int bg_free(Monitor *M) {
+	cairo_surface_destroy(M->bg);
+}
+
 int icons_init(const char *fname, int size) {
-return 0;
 	cairo_surface_t *img = cairo_image_surface_create_from_png(fname);
-	int w = cairo_image_surface_get_width(img);
-	int h = cairo_image_surface_get_height(img);
-	icon_img = cairo_image_surface_create(0, size * 10, size * 10);
-	cairo_t *ctx = cairo_create(icon_img);
-	cairo_scale(ctx, size * 10 / w, size * 10 / h);
-	cairo_set_source_surface(ctx, img, 0, 0);
-	cairo_paint(ctx);
+	double scw = (10.0 * size) / cairo_image_surface_get_width(img);
+	double sch = (10.0 * size) / cairo_image_surface_get_height(img);
+	int i,j;
+	cairo_t *ctx;
+	for (j = 0; j < 10; j++) for (i = 0; i < 10; i++) {
+		icon_img[j*10+i] = cairo_image_surface_create(0, size, size);
+		ctx = cairo_create(icon_img[j*10+i]);
+		cairo_scale(ctx, scw, sch);
+		cairo_set_source_surface(ctx, img, -1 * i * size / scw, -1 * j * size / sch);
+		cairo_paint(ctx);
+		cairo_destroy(ctx);
+	}
 	cairo_surface_destroy(img);
-	cairo_destroy(ctx);
 	icon_size = size;
 	return 0;
 }
 
 int icons_free() {
-return 0;
-	cairo_surface_destroy(icon_img);
+	int i;
+	for (i = 0; i < 100; i++)
+		cairo_surface_destroy(icon_img[i]);
 	return 0;
 }
 
@@ -77,12 +117,6 @@ double round_rect(Bar *bar, int x, int y, int w, int h,
 	if (!(bar->opts & BAR_TOP)) cairo_restore(bar->ctx);
 	set_color(bar->ctx,txt);
 	return theme[txt].e;
-}
-
-int draw_background(Container *C) {
-	XClearWindow(dpy,C->bar.win);
-	XCopyArea(dpy,C->bar.win, C->bar.buf, gc, 0, 0,
-			C->w, BAR_HEIGHT(C->bar.opts), 0, 0);
 }
 
 int draw_tab(Container *C, int con, Client *c, int n, int count) {
@@ -143,7 +177,8 @@ int draw_status() {
 					case 'T': case 't': case 'n': case 'i':
 						sbar_tags(M,S,*c); break;
 					case 'C': case 'c': 
-						sbar_clock(S,*c); break;
+						sbar_clock(S,*c);
+						break;
 					case 'I':
 						if (ibar_text) {
 							set_color(S->ctx,statRGBAInput);
@@ -182,6 +217,14 @@ void sbar_clock(SBar *S, char ch) {
 	sbar_text(S,str);
 }
 
+void sbar_icon(SBar *S, int n) {
+	n--;
+	cairo_set_source_surface(S->ctx,icon_img[n],S->x,2);
+	cairo_paint(S->ctx);
+	S->x += icon_size;
+	set_color(S->ctx,statRGBAText);
+}
+
 void sbar_parse(SBar *S, int n) {
 	char *c, *t1, *t2, *str;
 	double r,g,b,a;
@@ -192,7 +235,7 @@ void sbar_parse(SBar *S, int n) {
 	for (c; c && *c != '&' && *c != '\0' && *c != '\n'; c++) {
 		if (*c == '{') {
 			if (*(++c) == 'i') {
-				// icon
+				sbar_icon(S,atoi((++c)));
 			}
 			else if (*c == 'f') cairo_set_font_face(S->ctx,cfont);
 			else if (*c == 'F') cairo_set_font_face(S->ctx,cfont2);

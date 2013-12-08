@@ -2,14 +2,15 @@
 ## by Jesse McClure (c) 2013
 ##  license: CC-BY-SA
 
-## add the following line to the section below for status input:
+## edit and add the following lines to the section below:
 #	status input     = /path/to/your/script
+#	background       = /path/to/wallpaper
+#	icons path       = /path/to/icons
 bars:
 	status format    = "%T%I& %1%C "
 	font path        = /usr/share/fonts/TTF/DroidSansMono.ttf
 	alt font path    = /usr/share/fonts/TTF/DroidSans-Bold.ttf
 	font size        = 14
-	icons path       = /usr/share/alopex/icons.png
 	tag names        = one two three four five
 	tag icons        = 1 2 3 4 5
 	tag padding      = 5
@@ -18,7 +19,7 @@ bars:
 
 containers:
 	split            = 0
-	counts           = 2 3 3
+	counts           = 1 3 3
 	padding          = 0
 
 clients:
@@ -27,8 +28,8 @@ clients:
 
 theme:
 	tab offset             =  1.00 1.00 -2.0 2.00 3.0
-	tab focus background   =  0.14 0.14 0.14 1.00 2.0 
-	tab focus border       =  0.82 0.68 0.44 1.00 0.0 
+	tab focus background   =  0.14 0.14 0.14 1.00 0.0 
+	tab focus border       =  0.82 0.68 0.44 1.00 2.0 
 	tab focus text         =  0.94 0.80 0.68 1.00 -10 
 	tab top backgorund     =  0.14 0.14 0.14 1.00 0.0 
 	tab top border         =  0.80 0.53 0.28 1.00 0.0 
@@ -66,7 +67,6 @@ theme:
 #			NOTE: window mark 2 is one target for all window conditionals
 #			NOTE: more conditionals are coming
 strings:
-	f    (=1bv?3M1bh:1M1bs)
 	m!   interrobang
 	t!   urxvt
 	w!   firefox
@@ -79,7 +79,7 @@ bindings:
 	Alt   F4        = 0q
 	Super Tab       = o
 	Alt   Tab       = v
-	Super f         = ;f
+	Super f         = (=1bv?3M1bh:1M1bs)
 	Super         1     = 1x
 	Alt,Super     1     = 1t
 	Shift,Super   1     = 1T

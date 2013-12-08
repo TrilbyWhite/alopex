@@ -91,18 +91,23 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 	int h = (M->mode == BSTACK ? (con ? ms - M->split : ms + M->split) : 
 			(con ? ss : mss));
 	C->w = w;
-	draw_background(C);
+//	draw_background(C);
+
+
 	/* adjust for container bar */
 	//XMoveResizeWindow(dpy,C->bar.win,x,y,w,BAR_HEIGHT(C->bar.opts));
 	if (C->bar.opts & BAR_VISIBLE) {
 		h -= BAR_HEIGHT(C->bar.opts);
 		if (C->bar.opts & BAR_TOP) {
 			XMoveResizeWindow(dpy,C->bar.win,x,y,w,BAR_HEIGHT(C->bar.opts));
+			cairo_set_source_surface(C->bar.ctx,M->bg,-1 * x,-1 * y);
 			y += BAR_HEIGHT(C->bar.opts);
 		}
 		else {
 			XMoveResizeWindow(dpy,C->bar.win,x,y+h,w,BAR_HEIGHT(C->bar.opts));
+			cairo_set_source_surface(C->bar.ctx,M->bg,-1 * x,-1 * (y+h));
 		}
+		cairo_paint(C->bar.ctx);
 	}
 	else purgatory(C->bar.win);
 	Client *c, *top = NULL;
@@ -130,14 +135,18 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 	wc.stack_mode = Below;
 	XConfigureWindow(dpy, C->top->win, CWSibling | CWStackMode, &wc);
 	if (con == 0) {
+		cairo_save(C->bar.ctx);
+		cairo_set_line_width(C->bar.ctx,theme[statRGBABrd].e);
 		round_rect(&C->bar, 0, 0, M->sbar[0].width, BAR_HEIGHT(C->bar.opts),
 				statOffset, statRGBA, statRGBABrd, statRGBAText);
 		cairo_set_source_surface(C->bar.ctx,M->sbar[0].buf,0,0);
 		cairo_paint(C->bar.ctx);
+		cairo_restore(C->bar.ctx);
 	}
 	else if (con == 1) {
 		cairo_save(C->bar.ctx);
 		cairo_translate(C->bar.ctx,C->w - M->sbar[1].width,0);
+		cairo_set_line_width(C->bar.ctx,theme[statRGBABrd].e);
 		round_rect(&C->bar, 0, 0, M->sbar[1].width, BAR_HEIGHT(C->bar.opts),
 				statOffset, statRGBA, statRGBABrd, statRGBAText);
 		cairo_set_source_surface(C->bar.ctx,M->sbar[1].buf,0,0);
@@ -155,17 +164,20 @@ void tile_monocle(Monitor *M,int n) {
 	int w = M->w - 2 * M->gap, h = M->h - 2 * M->gap;
 	/* adjust for container bar */
 	C->w = w;
-	draw_background(C);
+	//draw_background(C);
 	//XMoveResizeWindow(dpy,C->bar.win,x,y,w,BAR_HEIGHT(C->bar.opts));
 	if (C->bar.opts & BAR_VISIBLE) {
 		h -= BAR_HEIGHT(C->bar.opts);
 		if (C->bar.opts & BAR_TOP) {
 			XMoveResizeWindow(dpy,C->bar.win,x,y,w,BAR_HEIGHT(C->bar.opts));
+			cairo_set_source_surface(C->bar.ctx,M->bg,-1 * x,-1 * y);
 			y += BAR_HEIGHT(C->bar.opts);
 		}
 		else {
 			XMoveResizeWindow(dpy,C->bar.win,x,y+h,w,BAR_HEIGHT(C->bar.opts));
+			cairo_set_source_surface(C->bar.ctx,M->bg,-1 * x,-1 * (y+h));
 		}
+		cairo_paint(C->bar.ctx);
 	}
 	else purgatory(C->bar.win);
 	Client *c, *top = NULL, *ftop = NULL;
@@ -186,18 +198,20 @@ void tile_monocle(Monitor *M,int n) {
 		wc.stack_mode = Below;
 		XConfigureWindow(dpy, C->top->win, CWSibling | CWStackMode, &wc);
 	}
+	cairo_save(C->bar.ctx);
+	cairo_set_line_width(C->bar.ctx,theme[statRGBABrd].e);
 	if (M->occ || M->tags) round_rect(&C->bar, 0, 0, M->sbar[0].width,
 			BAR_HEIGHT(C->bar.opts), statOffset,
 			statRGBA, statRGBABrd, statRGBAText);
 	cairo_set_source_surface(C->bar.ctx,M->sbar[0].buf,0,0);
 	cairo_paint(C->bar.ctx);
-	cairo_save(C->bar.ctx);
 	cairo_translate(C->bar.ctx,C->w - M->sbar[1].width,0);
 	round_rect(&C->bar, 0, 0, M->sbar[1].width, BAR_HEIGHT(C->bar.opts),
 			statOffset, statRGBA, statRGBABrd, statRGBAText);
 	cairo_set_source_surface(C->bar.ctx,M->sbar[1].buf,0,0);
 	cairo_paint(C->bar.ctx);
 	cairo_restore(C->bar.ctx);
+	//blit(&C->bar);
 	XCopyArea(dpy, C->bar.buf, C->bar.win, gc, 0, 0, C->w,
 			BAR_HEIGHT(C->bar.opts), 0, 0);
 }
