@@ -124,6 +124,7 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 			tile_client(c,x,y,w,h);
 			if (con < ncon - 1) draw_tab(C,con,c,n-1,C->n);
 			else draw_tab(C,con,c,n-1,nlast);
+			XLowerWindow(dpy,c->win);
 		}
 	if (C->top != top) {
 		C->top = top;
@@ -189,6 +190,7 @@ void tile_monocle(Monitor *M,int n) {
 			if (M->focus && M->focus->top && M->focus->top == c) ftop = c;
 			tile_client(c,x,y,w,h);
 			draw_tab(C,0,c,i++,n);
+			XLowerWindow(dpy,c->win);
 		}
 	if (ftop) top = ftop;
 	C->top = top;

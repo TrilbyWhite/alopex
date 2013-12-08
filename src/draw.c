@@ -32,7 +32,8 @@ int draw(int depth) {
 	tile();
 	if (!m->focus || !m->focus->top) m->focus = m->container;
 	Client *c;
-	if ( (c=m->focus->top) ) set_focus(c);
+	if ( (c=m->focus->top) )
+		set_focus(c);
 	XFlush(dpy);
 }
 

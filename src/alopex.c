@@ -126,7 +126,6 @@ int set_focus(Client *c) {
 		winmarks[0] = m->focus->top;
 	}
 	c->flags &= ~WIN_URGENT;
-	XWindowChanges wc;
 }
 
 
