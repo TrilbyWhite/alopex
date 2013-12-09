@@ -31,6 +31,11 @@ X Add key_chain actions for adjusting parameters
 > Fix aesthetic bug: single window on tag one looses 'focus'
 - Implement window rules (and add them to config)
 - Allow editting of input line (maybe)
+- Trim titles to fit tabs
+- Bug: some transient windows change window tiling (?)
+- Bug: incomplete or malformed key chains crash alopex
+	- Add "syntax checking" to key_chain.c
+- Bug: odd font problems after reconfig
 X Reconfig with change in gap or line width ...
 - Much much more ...
 
