@@ -1,0 +1,80 @@
+
+<g transform="translate(0,0)">
+	<path d="M120,35 A62,62 90 0 1 120,125" stroke="#FF0000" stroke-width="10" fill="none"/>
+	<path d="M40,35 A62,62 -90 0 0 40,125" stroke="#FF0000" stroke-width="10" fill="none"/>
+	<path d="M105,50 A38,38 90 0 1 105,110" stroke="#FF2200" stroke-width="10" fill="none"/>
+	<path d="M55,50 A38,38 -90 0 0 55,110" stroke="#FF2200" stroke-width="10" fill="none"/>
+	<circle cx="80" cy="80" r="24" fill="#FF4400"/>
+</g>
+
+<g transform="translate(160,0)">
+	<path d="M120,35 A62,62 90 0 1 120,125" stroke="#FF2200" stroke-width="10" fill="none"/>
+	<path d="M40,35 A62,62 -90 0 0 40,125" stroke="#FF2200" stroke-width="10" fill="none"/>
+	<path d="M105,50 A38,38 90 0 1 105,110" stroke="#FF4400" stroke-width="10" fill="none"/>
+	<path d="M55,50 A38,38 -90 0 0 55,110" stroke="#FF4400" stroke-width="10" fill="none"/>
+	<circle cx="80" cy="80" r="24" fill="#FF8800"/>
+</g>
+
+<g transform="translate(320,0)">
+	<path d="M120,35 A62,62 90 0 1 120,125" stroke="#FF2200" stroke-width="10" fill="none"/>
+	<path d="M40,35 A62,62 -90 0 0 40,125" stroke="#FF2200" stroke-width="10" fill="none"/>
+	<path d="M105,50 A38,38 90 0 1 105,110" stroke="#FF8800" stroke-width="10" fill="none"/>
+	<path d="M55,50 A38,38 -90 0 0 55,110" stroke="#FF8800" stroke-width="10" fill="none"/>
+	<circle cx="80" cy="80" r="24" fill="#FFFF00"/>
+</g>
+
+<g transform="translate(480,0)">
+	<path d="M120,35 A62,62 90 0 1 120,125" stroke="#FF8800" stroke-width="10" fill="none"/>
+	<path d="M40,35 A62,62 -90 0 0 40,125" stroke="#FF8800" stroke-width="10" fill="none"/>
+	<path d="M105,50 A38,38 90 0 1 105,110" stroke="#FFFF00" stroke-width="10" fill="none"/>
+	<path d="M55,50 A38,38 -90 0 0 55,110" stroke="#FFFF00" stroke-width="10" fill="none"/>
+	<circle cx="80" cy="80" r="24" fill="#88FF00"/>
+</g>
+
+<g transform="translate(640,0)">
+	<path d="M120,35 A62,62 90 0 1 120,125" stroke="#FFFF00" stroke-width="10" fill="none"/>
+	<path d="M40,35 A62,62 -90 0 0 40,125" stroke="#FFFF00" stroke-width="10" fill="none"/>
+	<path d="M105,50 A38,38 90 0 1 105,110" stroke="#88FF00" stroke-width="10" fill="none"/>
+	<path d="M55,50 A38,38 -90 0 0 55,110" stroke="#88FF00" stroke-width="10" fill="none"/>
+	<circle cx="80" cy="80" r="24" fill="#00FF00"/>
+</g>
+
+<g transform="translate(800,0)">
+	<path d="M120,35 A62,62 90 0 1 120,125" stroke="#88FF00" stroke-width="10" fill="none"/>
+	<path d="M40,35 A62,62 -90 0 0 40,125" stroke="#88FF00" stroke-width="10" fill="none"/>
+	<path d="M105,50 A38,38 90 0 1 105,110" stroke="#00FF00" stroke-width="10" fill="none"/>
+	<path d="M55,50 A38,38 -90 0 0 55,110" stroke="#00FF00" stroke-width="10" fill="none"/>
+	<circle cx="80" cy="80" r="24" fill="#00FF88"/>
+</g>
+
+<g transform="translate(960,0)">
+	<path d="M120,35 A62,62 90 0 1 120,125" stroke="#00FF00" stroke-width="10" fill="none"/>
+	<path d="M40,35 A62,62 -90 0 0 40,125" stroke="#00FF00" stroke-width="10" fill="none"/>
+	<path d="M105,50 A38,38 90 0 1 105,110" stroke="#00FF88" stroke-width="10" fill="none"/>
+	<path d="M55,50 A38,38 -90 0 0 55,110" stroke="#00FF88" stroke-width="10" fill="none"/>
+	<circle cx="80" cy="80" r="24" fill="#00FFFF"/>
+</g>
+
+<g transform="translate(1120,0)">
+	<path d="M120,35 A62,62 90 0 1 120,125" stroke="#00FF88" stroke-width="10" fill="none"/>
+	<path d="M40,35 A62,62 -90 0 0 40,125" stroke="#00FF88" stroke-width="10" fill="none"/>
+	<path d="M105,50 A38,38 90 0 1 105,110" stroke="#00FFFF" stroke-width="10" fill="none"/>
+	<path d="M55,50 A38,38 -90 0 0 55,110" stroke="#00FFFF" stroke-width="10" fill="none"/>
+	<circle cx="80" cy="80" r="24" fill="#0088FF"/>
+</g>
+
+<g transform="translate(1280,0)">
+	<path d="M120,35 A62,62 90 0 1 120,125" stroke="#00FFFF" stroke-width="10" fill="none"/>
+	<path d="M40,35 A62,62 -90 0 0 40,125" stroke="#00FFFF" stroke-width="10" fill="none"/>
+	<path d="M105,50 A38,38 90 0 1 105,110" stroke="#0088FF" stroke-width="10" fill="none"/>
+	<path d="M55,50 A38,38 -90 0 0 55,110" stroke="#0088FF" stroke-width="10" fill="none"/>
+	<circle cx="80" cy="80" r="24" fill="#0000FF"/>
+</g>
+
+<g transform="translate(1440,0)">
+	<path d="M120,35 A62,62 90 0 1 120,125" stroke="#0088FF" stroke-width="10" fill="none"/>
+	<path d="M40,35 A62,62 -90 0 0 40,125" stroke="#0088FF" stroke-width="10" fill="none"/>
+	<path d="M105,50 A38,38 90 0 1 105,110" stroke="#0044FF" stroke-width="10" fill="none"/>
+	<path d="M55,50 A38,38 -90 0 0 55,110" stroke="#0044FF" stroke-width="10" fill="none"/>
+	<circle cx="80" cy="80" r="24" fill="#0000FF"/>
+</g>

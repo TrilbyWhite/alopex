@@ -9,7 +9,7 @@ url='http://github.com/TrilbyWhite/alopex.git'
 arch=('any')
 license=('GPLv3')
 depends=('libx11' 'libxrandr' 'cairo' 'freetype2')
-makedepends=('git')
+makedepends=('git' 'imagemagick')
 source=("${_gitname}::git://github.com/TrilbyWhite/alopex.git")
 sha256sums=('SKIP')
 

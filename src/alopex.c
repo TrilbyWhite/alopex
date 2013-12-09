@@ -71,6 +71,7 @@ int main(int argc, const char **argv) {
 	fd_set fds; struct timeval timeout;
 	int xfd = ConnectionNumber(dpy);
 	XEvent ev; int trigger;
+	char *nl = NULL;
 	while (running) {
 		FD_ZERO(&fds);
 		memset(&timeout,0,sizeof(struct timeval));
@@ -88,6 +89,7 @@ int main(int argc, const char **argv) {
 		}
 		if (statfd && FD_ISSET(statfd,&fds)) {
 			read(statfd,instring,sizeof(instring));
+			if ( (nl=strchr(instring,'\n')) ) *(nl+1) = '\0';
 			trigger = 1;
 		}
 		if (FD_ISSET(xfd,&fds)) while(XPending(dpy)) {

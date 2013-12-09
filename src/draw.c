@@ -175,7 +175,7 @@ Bool draw_status() {
 		cairo_paint(S->ctx);
 		cairo_restore(S->ctx);
 		S->x = 0;
-		for (c; *c != '&' && *c != '\0'; c++) {
+		for (c; *c != '&' && *c != '\0' && *c != '\n'; c++) {
 			if (*c == '%') {
 				c++;
 				switch (*c) {
@@ -261,10 +261,12 @@ void sbar_clock(SBar *S, char ch) {
 
 void sbar_icon(SBar *S, int n) {
 	n--;
+	if (n < 0 || n > 99) return;
+	cairo_save(S->ctx);
 	cairo_set_source_surface(S->ctx,icon_img[n],S->x,2);
 	cairo_paint(S->ctx);
 	S->x += icon_size;
-	set_color(S->ctx,statRGBAText);
+	cairo_restore(S->ctx);
 }
 
 void sbar_parse(SBar *S, int n) {
@@ -328,13 +330,13 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 		else
 			continue;
 		if (ch == 'T' || ch == 'i') {
-			// draw icon
+				sbar_icon(S,tag_icon[i]);
 		}
 		if (ch == 'T' || ch == 'n' || ch == 't') {
 			sbar_text(S,tag);
 		}
 		if (ch == 't') {
-			// draw icon
+				sbar_icon(S,tag_icon[i]);
 		}
 		S->x += tag_pad;
 	}
