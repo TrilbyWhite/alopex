@@ -10,6 +10,7 @@
 
 #include "alopex.h"
 
+static void blit_status();
 static void sbar_clock(SBar *, char);
 static void sbar_icon(SBar *, int);
 static void sbar_parse(SBar *, int);
@@ -26,15 +27,17 @@ static int icon_size;
 /********************************************************************/
 
 int draw(int depth) {
-	if (!depth) return 0;
+	if (!depth || depth > 2) return 0;
 	if (depth > 1) tile();
-	draw_status();
-	tile();
-	if (!m->focus || !m->focus->top) m->focus = m->container;
-	Client *c;
-	if ( (c=m->focus->top) )
-		set_focus(c);
+	if (draw_status() || depth > 1) {
+		tile();
+		if (!m->focus || !m->focus->top) m->focus = m->container;
+		Client *c;
+		if ( (c=m->focus->top) ) set_focus(c);
+	}
+	blit_status();
 	XFlush(dpy);
+	return 0;
 }
 
 int bg_init(Monitor *M) {
@@ -157,7 +160,8 @@ c->hints->icon_mask
 	cairo_stroke(C->bar.ctx);
 }
 
-int draw_status() {
+
+Bool draw_status() {
 	Monitor *M;
 	SBar *S;
 	int i; const char *c;
@@ -200,13 +204,50 @@ int draw_status() {
 				sbar_text(S,str);
 			}
 		}
+		if (S->width != S->x) trigger = True;
 		S->width = S->x;
 	}
+	return trigger;
 }
 
 /********************************************************************/
 /*  LOCAL FUNCTIONS                                                 */
 /********************************************************************/
+
+void blit_status() {
+	Monitor *M; Container *C;
+	for (M = mons; M; M = M->next) {
+		C = M->container;
+		if (!(C->bar.opts & BAR_VISIBLE)) continue;
+		cairo_save(C->bar.ctx);
+		cairo_rectangle(C->bar.ctx,0,0,M->sbar[0].width,M->sbar[0].height);
+		cairo_clip(C->bar.ctx);
+		cairo_set_source_surface(C->bar.ctx,M->bg,-1 * C->bar.x, -1 * C->bar.y);
+		cairo_paint(C->bar.ctx);
+		cairo_set_line_width(C->bar.ctx,theme[statRGBABrd].e);
+		round_rect(&C->bar,0,0,M->sbar[0].width,M->sbar[0].height,
+				statOffset, statRGBA, statRGBABrd, statRGBAText);
+		cairo_set_source_surface(C->bar.ctx,M->sbar[0].buf,0,0);
+		cairo_paint(C->bar.ctx);
+		cairo_restore(C->bar.ctx);
+		XCopyArea(dpy,C->bar.buf,C->bar.win,gc,0,0,C->w,M->sbar[0].height,0,0);
+		if (C->next && C->next->top && M->mode != MONOCLE) C = C->next;
+		cairo_save(C->bar.ctx);
+		cairo_rectangle(C->bar.ctx,C->w - M->sbar[1].width, 0,
+				M->sbar[1].width,M->sbar[1].height);
+		cairo_clip(C->bar.ctx);
+		cairo_set_source_surface(C->bar.ctx,M->bg,-1 * C->bar.x, -1 * C->bar.y);
+		cairo_paint(C->bar.ctx);
+		cairo_set_line_width(C->bar.ctx,theme[statRGBABrd].e);
+		round_rect(&C->bar,C->w - M->sbar[1].width,0,M->sbar[1].width,
+				M->sbar[1].height, statOffset, statRGBA, statRGBABrd,
+				statRGBAText);
+		cairo_set_source_surface(C->bar.ctx,M->sbar[1].buf,C->w - M->sbar[1].width,0);
+		cairo_paint(C->bar.ctx);
+		cairo_restore(C->bar.ctx);
+		XCopyArea(dpy,C->bar.buf,C->bar.win,gc,0,0,C->w,M->sbar[1].height,0,0);
+	}
+}
 
 void sbar_clock(SBar *S, char ch) {
 	time_t raw = time(NULL);
@@ -297,6 +338,7 @@ void sbar_tags(Monitor *M, SBar *S, char ch) {
 		}
 		S->x += tag_pad;
 	}
+	if (S->x == tag_pad) S->x = 0;
 }
 
 void set_color(cairo_t *ctx, int q) {

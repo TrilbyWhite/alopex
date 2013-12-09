@@ -67,7 +67,7 @@ int main(int argc, const char **argv) {
 	else theme_name = def_theme_name;
 	statfd = 0;
 	X_init();
-	draw(1);
+	draw(2);
 	fd_set fds; struct timeval timeout;
 	int xfd = ConnectionNumber(dpy);
 	XEvent ev; int trigger;
@@ -95,7 +95,7 @@ int main(int argc, const char **argv) {
 			if (ev.type < 33 && handler[ev.type])
 				handler[ev.type](&ev);
 		}
-		else if (!statfd) trigger = 2;
+		else if (!statfd) trigger = 1;
 		if (trigger) draw(trigger);
 	}
 	X_free();

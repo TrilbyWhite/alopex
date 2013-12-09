@@ -84,7 +84,7 @@ typedef struct Bar {
 	Window win;
 	Pixmap buf;
 	cairo_t *ctx;
-	int opts;
+	int opts, x, y;
 } Bar;
 
 typedef struct SBar {
