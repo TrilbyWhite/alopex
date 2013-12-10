@@ -15,11 +15,11 @@ ${PROG}: ${MODULES:%=%.o} icons.png
 	@cd src && ${CC} -o ../${PROG} ${MODULES:%=%.o} ${LDFLAGS}
 
 icons.png: ${ICONS:%=%.svg}
-	@echo -e "\033[1;34m  -->\033[0m Building icons.png"
+	@echo -e "\033[1;34m  ->\033[0m Building icons.png"
 	@cd icons && ./makeicons
 
 %.o: %.c ${HEADERS}
-	@echo -e "\033[1;34m  -->\033[0m Building $<"
+	@echo -e "\033[1;34m  ->\033[0m Building $<"
 	@${CC} -c -o src/$@ $< ${CFLAGS} ${OPTS}
 
 install: ${PROG}
