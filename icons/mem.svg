@@ -44,112 +44,82 @@
 </defs>
 
 <g transform="translate(0,0)">
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="130" y2="130"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="130" y2="130"/>
-	<rect fill="#484848" stroke="0px" x="40" y="10" width="80" height="140"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="40" y2="40"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="80" y2="80"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="120" y2="120"/>
+	<rect fill="#484848" stroke="0px" x="45" y="25" width="70" height="110"/>
 	<rect fill="url(#memgrad0)" stroke="0px" x="50" y="30" width="60" height="100"/>
 </g>
 
 <g transform="translate(160,0)">
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="130" y2="130"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="130" y2="130"/>
-	<rect fill="#484848" stroke="0px" x="40" y="10" width="80" height="140"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="40" y2="40"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="80" y2="80"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="120" y2="120"/>
+	<rect fill="#484848" stroke="0px" x="45" y="25" width="70" height="110"/>
 	<rect fill="url(#memgrad1)" stroke="0px" x="50" y="30" width="60" height="100"/>
 </g>
 
 <g transform="translate(320,0)">
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="130" y2="130"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="130" y2="130"/>
-	<rect fill="#484848" stroke="0px" x="40" y="10" width="80" height="140"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="40" y2="40"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="80" y2="80"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="120" y2="120"/>
+	<rect fill="#484848" stroke="0px" x="45" y="25" width="70" height="110"/>
 	<rect fill="url(#memgrad2)" stroke="0px" x="50" y="30" width="60" height="100"/>
 </g>
 
 <g transform="translate(480,0)">
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="130" y2="130"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="130" y2="130"/>
-	<rect fill="#484848" stroke="0px" x="40" y="10" width="80" height="140"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="40" y2="40"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="80" y2="80"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="120" y2="120"/>
+	<rect fill="#484848" stroke="0px" x="45" y="25" width="70" height="110"/>
 	<rect fill="url(#memgrad3)" stroke="0px" x="50" y="30" width="60" height="100"/>
 </g>
 
 <g transform="translate(640,0)">
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="130" y2="130"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="130" y2="130"/>
-	<rect fill="#484848" stroke="0px" x="40" y="10" width="80" height="140"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="40" y2="40"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="80" y2="80"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="120" y2="120"/>
+	<rect fill="#484848" stroke="0px" x="45" y="25" width="70" height="110"/>
 	<rect fill="url(#memgrad4)" stroke="0px" x="50" y="30" width="60" height="100"/>
 </g>
 
 <g transform="translate(800,0)">
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="130" y2="130"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="130" y2="130"/>
-	<rect fill="#484848" stroke="0px" x="40" y="10" width="80" height="140"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="40" y2="40"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="80" y2="80"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="120" y2="120"/>
+	<rect fill="#484848" stroke="0px" x="45" y="25" width="70" height="110"/>
 	<rect fill="url(#memgrad5)" stroke="0px" x="50" y="30" width="60" height="100"/>
 </g>
 
 <g transform="translate(960,0)">
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="130" y2="130"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="130" y2="130"/>
-	<rect fill="#484848" stroke="0px" x="40" y="10" width="80" height="140"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="40" y2="40"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="80" y2="80"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="120" y2="120"/>
+	<rect fill="#484848" stroke="0px" x="45" y="25" width="70" height="110"/>
 	<rect fill="url(#memgrad6)" stroke="0px" x="50" y="30" width="60" height="100"/>
 </g>
 
 <g transform="translate(1120,0)">
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="130" y2="130"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="130" y2="130"/>
-	<rect fill="#484848" stroke="0px" x="40" y="10" width="80" height="140"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="40" y2="40"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="80" y2="80"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="120" y2="120"/>
+	<rect fill="#484848" stroke="0px" x="45" y="25" width="70" height="110"/>
 	<rect fill="url(#memgrad7)" stroke="0px" x="50" y="30" width="60" height="100"/>
 </g>
 
 <g transform="translate(1280,0)">
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="130" y2="130"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="130" y2="130"/>
-	<rect fill="#484848" stroke="0px" x="40" y="10" width="80" height="140"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="40" y2="40"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="80" y2="80"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="120" y2="120"/>
+	<rect fill="#484848" stroke="0px" x="45" y="25" width="70" height="110"/>
 	<rect fill="url(#memgrad8)" stroke="0px" x="50" y="30" width="60" height="100"/>
 </g>
 
 <g transform="translate(1440,0)">
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="20" x2="50" y1="130" y2="130"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="30" y2="30"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="80" y2="80"/>
-	<line stroke-width="12" stroke="#AAAACC" x1="110" x2="140" y1="130" y2="130"/>
-	<rect fill="#484848" stroke="0px" x="40" y="10" width="80" height="140"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="40" y2="40"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="80" y2="80"/>
+	<line stroke-width="14" stroke="#DDBB66" x1="25" x2="135" y1="120" y2="120"/>
+	<rect fill="#484848" stroke="0px" x="45" y="25" width="70" height="110"/>
 	<rect fill="url(#memgrad9)" stroke="0px" x="50" y="30" width="60" height="100"/>
 </g>
 

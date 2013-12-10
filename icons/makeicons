@@ -31,7 +31,7 @@ done >> icons.svg
 
 echo "</svg>" >> icons.svg
 
-convert icons.svg -alpha set -fuzz 18% -fill none -floodfill +0+0 white icons.png
+convert icons.svg -alpha set -fuzz 24% -fill none -floodfill +0+0 white icons.png
 rm icons.svg
 
 

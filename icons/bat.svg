@@ -5,35 +5,35 @@
 	<stop offset="90%" stop-color="#4884AA" stop-opacity="1" />
 </linearGradient>
 <linearGradient id="batgrad8" x1="0%" y1="100%" x2="0%" y2="0%">
-	<stop offset="0%"   stop-color="#00A8FF" stop-opacity="1"/>
+	<stop offset="0%"   stop-color="#0000FF" stop-opacity="1"/>
 	<stop offset="90%" stop-color="#4884AA" stop-opacity="1" />
 </linearGradient>
 <linearGradient id="batgrad7" x1="0%" y1="100%" x2="0%" y2="0%">
-	<stop offset="0%"   stop-color="#00FFFF" stop-opacity="1"/>
+	<stop offset="0%"   stop-color="#0088FF" stop-opacity="1"/>
 	<stop offset="90%" stop-color="#4884AA" stop-opacity="1" />
 </linearGradient>
 <linearGradient id="batgrad6" x1="0%" y1="100%" x2="0%" y2="0%">
-	<stop offset="0%"   stop-color="#00FF80" stop-opacity="1"/>
+	<stop offset="0%"   stop-color="#00FFFF" stop-opacity="1"/>
 	<stop offset="90%" stop-color="#4884AA" stop-opacity="1" />
 </linearGradient>
 <linearGradient id="batgrad5" x1="0%" y1="100%" x2="0%" y2="0%">
-	<stop offset="0%"   stop-color="#00FF15" stop-opacity="1"/>
+	<stop offset="0%"   stop-color="#00FF88" stop-opacity="1"/>
 	<stop offset="90%" stop-color="#4884AA" stop-opacity="1" />
 </linearGradient>
 <linearGradient id="batgrad4" x1="0%" y1="100%" x2="0%" y2="0%">
-	<stop offset="0%"   stop-color="#54FF00" stop-opacity="1"/>
+	<stop offset="0%"   stop-color="#00FF00" stop-opacity="1"/>
 	<stop offset="90%" stop-color="#4884AA" stop-opacity="1" />
 </linearGradient>
 <linearGradient id="batgrad3" x1="0%" y1="100%" x2="0%" y2="0%">
-	<stop offset="0%"   stop-color="#E0FF00" stop-opacity="1"/>
+	<stop offset="0%"   stop-color="#88FF00" stop-opacity="1"/>
 	<stop offset="90%" stop-color="#4884AA" stop-opacity="1" />
 </linearGradient>
 <linearGradient id="batgrad2" x1="0%" y1="100%" x2="0%" y2="0%">
-	<stop offset="0%"   stop-color="#FFD400" stop-opacity="1"/>
+	<stop offset="0%"   stop-color="#FFFF00" stop-opacity="1"/>
 	<stop offset="90%" stop-color="#4884AA" stop-opacity="1" />
 </linearGradient>
 <linearGradient id="batgrad1" x1="0%" y1="100%" x2="0%" y2="0%">
-	<stop offset="0%"   stop-color="#FF5400" stop-opacity="1"/>
+	<stop offset="0%"   stop-color="#FF8800" stop-opacity="1"/>
 	<stop offset="90%" stop-color="#4884AA" stop-opacity="1" />
 </linearGradient>
 <linearGradient id="batgrad0" x1="0%" y1="100%" x2="0%" y2="0%">

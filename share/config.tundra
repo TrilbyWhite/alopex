@@ -5,7 +5,6 @@
 ## edit and add the following lines to the section below:
 #	status input     = /path/to/your/script
 #	background       = /path/to/wallpaper
-#	icons path       = /path/to/icons
 ## Suggested backgrounds:
 # The following images should fit well with this theme and
 # all have suitable licenses for use and sharing.
@@ -17,6 +16,7 @@ bars:
 	status format    = "%T%I& %1%C "
 	font path        = /usr/share/fonts/TTF/DroidSansMono.ttf
 	alt font path    = /usr/share/fonts/TTF/DroidSans-Bold.ttf
+	icons path       = /usr/share/alopex/icons.png
 	font size        = 14
 	tag names        = one two three four five
 	tag icons        = 1 2 3 4 5
