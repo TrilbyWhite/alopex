@@ -22,6 +22,7 @@ static void get_mons();
 static pid_t stat_open(const char *);
 
 static pid_t pid;
+static int default_mode = RSTACK;
 
 #define SAFE_DUP(a,b)	{ if (b) free(b); b = strdup(a); }
 #define SAFE_FREE(x)	{ if (x) free(x); x = NULL; }
@@ -236,7 +237,7 @@ void conf_clients(FILE *rc) {
 };
 
 void conf_containers(FILE *rc) {
-	int i, n, c[10]; char line[LINE_LEN];
+	int i, n, c[10]; char line[LINE_LEN], s[LINE_LEN];
 	while (fgets(line,LINE_LEN,rc)) {
 		if (line[0] != '\t') break;
 		if ( (n=sscanf(line," counts = %d %d %d %d %d %d %d %d %d %d",
@@ -249,9 +250,14 @@ void conf_containers(FILE *rc) {
 			ncontainers = i+1;
 		}
 		else if (sscanf(line," padding = %d", &n))
-			container_pad = n; 
+			container_pad = n;
 		else if (sscanf(line," split = %d", &n))
-			container_split = n; 
+			container_split = n;
+		else if (sscanf(line," mode = %s",s)) {
+			if (!strncasecmp(s,"rstack",strlen(s))) default_mode = RSTACK;
+			if (!strncasecmp(s,"bstack",strlen(s))) default_mode = BSTACK;
+			if (!strncasecmp(s,"monocle",strlen(s))) default_mode = MONOCLE;
+		}
 		else fprintf(stderr,"ALOPEX: unrecognized configuration entry: "
 				"%s\n",line);
 
@@ -357,7 +363,7 @@ bg_init(M);
 			cairo_set_line_width(M->sbar[i].ctx,theme[statRGBABrd].e);
 			cairo_set_line_join(M->sbar[i].ctx,CAIRO_LINE_JOIN_ROUND);
 		}
-		M->mode = RSTACK; //TODO
+		M->mode = default_mode;
 		M->focus = M->container;
 	}
 	m = mons;

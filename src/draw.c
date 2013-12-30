@@ -137,13 +137,10 @@ int draw_tab(Container *C, int con, Client *c, int n, int count) {
 	int tx = x + n * tw;
 	int th = BAR_HEIGHT(C->bar.opts);
 	double off;
-	cairo_text_extents_t ext;
-	cairo_text_extents(C->bar.ctx,c->title,&ext);
 /* ICONS:
 c->hints->icon_pixmap
 c->hints->icon_mask
 */
-	//TODO need to trim long titles:
 	if (m->focus == C && C->top == c)
 		off = round_rect(&C->bar, tx, 0, tw, th,
 				tabOffset, tabRGBAFocus, tabRGBAFocusBrd, tabRGBAFocusText);
@@ -153,11 +150,17 @@ c->hints->icon_mask
 	else
 		off = round_rect(&C->bar, tx, 0, tw, th,
 				tabOffset, tabRGBAOther, tabRGBAOtherBrd, tabRGBAOtherText);
+	cairo_text_extents_t ext;
+	cairo_text_extents(C->bar.ctx,c->title,&ext);
 	if (off < 0) off *= -1;
 	else off *= tw - ext.x_advance;
+	if (off < 0) off = theme[tabOffset].d;
+	cairo_rectangle(C->bar.ctx,tx+off,0,tw-2.0*off,th);
+	cairo_clip(C->bar.ctx);
 	cairo_move_to(C->bar.ctx,tx + off,th-4);
 	cairo_show_text(C->bar.ctx,c->title);
 	cairo_stroke(C->bar.ctx);
+	cairo_reset_clip(C->bar.ctx);
 }
 
 
@@ -230,7 +233,7 @@ void blit_status() {
 		cairo_set_source_surface(C->bar.ctx,M->sbar[0].buf,0,0);
 		cairo_paint(C->bar.ctx);
 		cairo_restore(C->bar.ctx);
-		XCopyArea(dpy,C->bar.buf,C->bar.win,gc,0,0,C->w,M->sbar[0].height,0,0);
+		//XCopyArea(dpy,C->bar.buf,C->bar.win,gc,0,0,C->w,M->sbar[0].height,0,0);
 		if (C->next && C->next->top && M->mode != MONOCLE) C = C->next;
 		cairo_save(C->bar.ctx);
 		cairo_rectangle(C->bar.ctx,C->w - M->sbar[1].width, 0,
@@ -245,7 +248,10 @@ void blit_status() {
 		cairo_set_source_surface(C->bar.ctx,M->sbar[1].buf,C->w - M->sbar[1].width,0);
 		cairo_paint(C->bar.ctx);
 		cairo_restore(C->bar.ctx);
-		XCopyArea(dpy,C->bar.buf,C->bar.win,gc,0,0,C->w,M->sbar[1].height,0,0);
+		//XCopyArea(dpy,C->bar.buf,C->bar.win,gc,0,0,C->w,M->sbar[1].height,0,0);
+		for (C = M->container; C; C = C->next)
+			XCopyArea(dpy,C->bar.buf,C->bar.win,gc,0,0,C->w,
+					BAR_HEIGHT(C->bar.opts),0,0);
 	}
 }
 

@@ -57,25 +57,26 @@ void input_free() {
 
 int loop(char *str) {
 	XEvent ev; XKeyEvent *e; KeySym sym;
-	char txt[32]; int del = 0;
+	char txt[32]; int del = 0, timeout = chain_delay;
 	Status stat;
 	str[0] = '\0';
 	ibar_text = str;
 	while (True) {
-		if (chain_delay && !XCheckMaskEvent(dpy,KeyPressMask,&ev)) {
+		if (timeout && !XCheckMaskEvent(dpy,KeyPressMask,&ev)) {
 			usleep(1000);
-			if ( (++del) > chain_delay ) break;
+			if ( (++del) > timeout ) break;
 			continue;
 		}
-		if (!chain_delay) XMaskEvent(dpy,KeyPressMask,&ev);
+		if (!timeout) XMaskEvent(dpy,KeyPressMask,&ev);
 		del = 0; e = &ev.xkey;
 		XmbLookupString(xic,e,txt,sizeof(txt),&sym,&stat);
 		if (stat == XBufferOverflow) continue;
 		// if e->state ...
 		if (sym == XK_Return) break;
 		else if (sym == XK_Escape) {str[0] = '\0'; break; }
+		else if (sym == XK_Super_L) timeout = 0;
 		else if (!iscntrl(*txt)) {
-			// allow insertion
+			// allow insertion ?
 			strcat(str,txt);
 			if (theme[statRGBAInput].e) draw(1);
 		}

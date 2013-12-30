@@ -78,7 +78,7 @@ static Bool condition(const char *exp) {
 		case '<': op--; case '>': op--;
 		case '=': exp++; default: break;
 	}
-	int n;
+	int n; Container *C;
 	n = atoi(exp);
 	for (exp; *exp && *exp > '/' && *exp < ':'; exp++);
 	switch (*exp) {
@@ -93,7 +93,13 @@ static Bool condition(const char *exp) {
 		case 'M':
 			return m && m->mode == n;
 			break;
-		default: return False;
+		case 'b':
+			for (C = m->container; n > 1; n--, C = C->next);
+			if (*(++exp) == 'v') return (C->bar.opts && BAR_VISIBLE);
+			else return False;
+			break;
+		default:
+			return False;
 	}
 }
 

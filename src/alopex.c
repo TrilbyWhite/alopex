@@ -149,11 +149,11 @@ void buttonpress(XEvent *ev) {
 	XRaiseWindow(dpy,c->win);
 	set_focus(c);
 	int b = e->button;
-	if (b == 2) {
+	if (b == 2 && c->flags & WIN_FLOAT) {
 		c->flags &= ~WIN_FLOAT;
 		draw(2);
-		return;
 	}
+	if (b == 2) return;
 	XGrabPointer(dpy,root,True,PointerMotionMask | ButtonReleaseMask,
 		GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XEvent ee;
@@ -162,10 +162,11 @@ void buttonpress(XEvent *ev) {
 	int wx, wy, ww, wh, ig;
 	Window w;
 	XGetGeometry(dpy,c->win,&w,&wx,&wy,&ww,&wh,&ig,&ig);
+	c->flags |= WIN_FLOAT;
+	draw(2);
 	while (True) {
 		XMaskEvent(dpy,PointerMotionMask | ButtonReleaseMask,&ee);
 		if (ee.type == MotionNotify) {
-			c->flags |= WIN_FLOAT;
 			dx = ee.xbutton.x_root - xx;
 			dy = ee.xbutton.y_root - yy;
 			if (b == 1) XMoveWindow(dpy,c->win,wx+dx,wy+dy);
@@ -175,7 +176,6 @@ void buttonpress(XEvent *ev) {
 		draw(1);
 	}
 	XUngrabPointer(dpy, CurrentTime);
-	draw(2);
 }
 
 void configurerequest(XEvent *ev) {
@@ -186,8 +186,8 @@ void configurerequest(XEvent *ev) {
 			if ( (e->width == m->w) && (e->height == m->h) ) winmarks[2] = c;
 	//		if (c->flags & WIN_FLOAT)
 	//			XMoveResizeWindow(dpy,c->win,e->x, e->y, e->width, e->height);
+			draw(2);
 		}
-		draw(2);
 		return;
 	}
 	XWindowChanges wc;
@@ -320,7 +320,7 @@ void propertynotify(XEvent *ev) {
 	else if (e->atom == XA_WM_HINTS) get_hints(c);
 	//else if (e->atom == XA_WM_CLASS) apply_rules(c);
 	else return;
-	draw(2);
+	draw(1);
 }
 
 void unmapnotify(XEvent *ev) {
