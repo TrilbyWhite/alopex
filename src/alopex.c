@@ -320,7 +320,7 @@ void propertynotify(XEvent *ev) {
 	else if (e->atom == XA_WM_HINTS) get_hints(c);
 	//else if (e->atom == XA_WM_CLASS) apply_rules(c);
 	else return;
-	draw(2);
+	draw(1);
 }
 
 void unmapnotify(XEvent *ev) {
