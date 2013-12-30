@@ -32,6 +32,7 @@ static void configurerequest(XEvent *);
 static void enternotify(XEvent *);
 static void expose(XEvent *);
 static void get_hints(Client *);
+static void get_icon(Client *);
 static void keypress(XEvent *);
 static void keyrelease(XEvent *);
 static void maprequest(XEvent *);
@@ -149,11 +150,11 @@ void buttonpress(XEvent *ev) {
 	XRaiseWindow(dpy,c->win);
 	set_focus(c);
 	int b = e->button;
-	if (b == 2) {
+	if (b == 2 && c->flags & WIN_FLOAT) {
 		c->flags &= ~WIN_FLOAT;
 		draw(2);
-		return;
 	}
+	if (b == 2) return;
 	XGrabPointer(dpy,root,True,PointerMotionMask | ButtonReleaseMask,
 		GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XEvent ee;
@@ -162,10 +163,11 @@ void buttonpress(XEvent *ev) {
 	int wx, wy, ww, wh, ig;
 	Window w;
 	XGetGeometry(dpy,c->win,&w,&wx,&wy,&ww,&wh,&ig,&ig);
+	c->flags |= WIN_FLOAT;
+	draw(2);
 	while (True) {
 		XMaskEvent(dpy,PointerMotionMask | ButtonReleaseMask,&ee);
 		if (ee.type == MotionNotify) {
-			c->flags |= WIN_FLOAT;
 			dx = ee.xbutton.x_root - xx;
 			dy = ee.xbutton.y_root - yy;
 			if (b == 1) XMoveWindow(dpy,c->win,wx+dx,wy+dy);
@@ -175,7 +177,6 @@ void buttonpress(XEvent *ev) {
 		draw(1);
 	}
 	XUngrabPointer(dpy, CurrentTime);
-	draw(2);
 }
 
 void configurerequest(XEvent *ev) {
@@ -186,8 +187,8 @@ void configurerequest(XEvent *ev) {
 			if ( (e->width == m->w) && (e->height == m->h) ) winmarks[2] = c;
 	//		if (c->flags & WIN_FLOAT)
 	//			XMoveResizeWindow(dpy,c->win,e->x, e->y, e->width, e->height);
+			draw(2);
 		}
-		draw(2);
 		return;
 	}
 	XWindowChanges wc;
@@ -222,12 +223,36 @@ void get_hints(Client *c) {
 	if ( !(hint=XGetWMHints(dpy,c->win)) ) return;
 	if (hint->flags & XUrgencyHint) c->flags |= WIN_URGENT;
 	if (hint->flags & InputHint && !hint->input) c->flags |= WIN_FOCUS;
-	// get icon
-	// if (hint->flags & IconThingy) {
-	//	if (c->icon) { cairo_surface_destroy(c->icon); c->icon = NULL; };
-	//	... cairo render to c->icon at size BAR_HEIGHT ...
-	// }
+	if (hint->flags & (IconPixmapHint | IconMaskHint)) get_icon(c);
 	XFree(hint);
+}
+
+void get_icon(Client *c) {
+	XWMHints *hint;
+	if (!(hint=XGetWMHints(dpy,c->win))) return;
+	if (c->icon) { cairo_surface_destroy(c->icon); c->icon = NULL; }
+	if (!(hint->flags & (IconPixmapHint | IconMaskHint))) return;
+	int w, h, ig, sz = font_size;
+	Window wig;
+	XGetGeometry(dpy, hint->icon_pixmap, &wig, &ig, &ig, &w, &h, &ig, &ig);
+	if (c->icon) cairo_surface_destroy(c->icon);
+	cairo_surface_t *icon, *mask = NULL;
+	icon = cairo_xlib_surface_create(dpy, hint->icon_pixmap,
+			DefaultVisual(dpy,scr), w, h);
+	if (hint->flags & IconMaskHint)
+		//mask = cairo_xlib_surface_create(dpy, hint->icon_mask,
+		//	DefaultVisual(dpy,scr), w, h);
+		mask = cairo_xlib_surface_create_for_bitmap(dpy,
+				hint->icon_mask, DefaultScreenOfDisplay(dpy), w, h);
+	c->icon = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, sz, sz);
+	cairo_t *ctx = cairo_create(c->icon);
+	cairo_scale(ctx, sz / (double) w, sz / (double) h);
+	cairo_set_source_surface(ctx, icon, 0, 0);
+	if (mask) cairo_mask_surface(ctx, mask, 0, 0);
+	else cairo_paint(ctx);
+	cairo_destroy(ctx);
+	cairo_surface_destroy(icon);
+	if (mask) cairo_surface_destroy(mask);
 }
 
 void get_name(Client *c) {
@@ -281,6 +306,7 @@ void maprequest(XEvent *ev) {
 	c->win = e->window;
 	c->tags = m->tags;
 	get_hints(c);
+	get_icon(c);
 	if (XGetTransientForHint(dpy,c->win,&c->parent)) c->flags |= WIN_TRANSIENT;
 	else c->parent = e->parent;
 	get_name(c);

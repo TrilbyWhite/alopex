@@ -101,7 +101,7 @@ void tile_container(Monitor *M, Container *C, int ncon, int nlast) {
 			(con > 1 ? ss * (con - 1) + M->gap: 0));
 	int w = (M->mode == RSTACK ? (con ? ms - M->split : ms + M->split) :
 			(con ? ss : mss));
-	int h = (M->mode == BSTACK ? (con ? ms - M->split : ms + M->split) : 
+	int h = (M->mode == BSTACK ? (con ? ms - M->split : ms + M->split) :
 			(con ? ss : mss));
 	C->w = w;
 	/* adjust for container bar */

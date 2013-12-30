@@ -28,6 +28,7 @@ containers:
 	split            = 0
 	counts           = 1 3 3
 	padding          = 0
+	mode             = rstack
 
 clients:
 	mouse focus      = false
