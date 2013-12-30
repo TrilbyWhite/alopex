@@ -9,8 +9,8 @@ X Fix statusbar drawing to allow for psuedo transparency
 X Ensure top window is maintained in layout switch
 X Write status input reader
 > Clean up config.c and move code from X_init in alopex.c
-- Get client window icons
-> Finish icon drawing functions
+> Get client window icons
+X Finish icon drawing functions
 X Track down bottom-bar bug
 X Add ibar_text to draw (and option to config)
 X Replace placeholder tabs with nicer looking tabs

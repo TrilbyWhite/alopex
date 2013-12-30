@@ -137,10 +137,6 @@ int draw_tab(Container *C, int con, Client *c, int n, int count) {
 	int tx = x + n * tw;
 	int th = BAR_HEIGHT(C->bar.opts);
 	double off;
-/* ICONS:
-c->hints->icon_pixmap
-c->hints->icon_mask
-*/
 	if (m->focus == C && C->top == c)
 		off = round_rect(&C->bar, tx, 0, tw, th,
 				tabOffset, tabRGBAFocus, tabRGBAFocusBrd, tabRGBAFocusText);
@@ -155,7 +151,15 @@ c->hints->icon_mask
 	if (off < 0) off *= -1;
 	else off *= tw - ext.x_advance;
 	if (off < 0) off = theme[tabOffset].d;
-	cairo_rectangle(C->bar.ctx,tx+off,0,tw-2.0*off,th);
+	if (c->icon) {
+		cairo_save(C->bar.ctx);
+		int margin = (th - font_size) / 2.0;
+		cairo_set_source_surface(C->bar.ctx,c->icon,tx + off, margin);
+		off += font_size + margin;
+		cairo_paint(C->bar.ctx);
+		cairo_restore(C->bar.ctx);
+	}
+	cairo_rectangle(C->bar.ctx,tx+off,0,tw-off,th);
 	cairo_clip(C->bar.ctx);
 	cairo_move_to(C->bar.ctx,tx + off,th-4);
 	cairo_show_text(C->bar.ctx,c->title);
