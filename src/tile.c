@@ -17,7 +17,14 @@ int tile() {
 	int num, cn, numC, ord;
 	for (M = mons; M; M = M->next) {
 		/* calculate how many containers will be used: */
-		if (M->mode == MONOCLE) numC = 1;
+		if (M->mode == MONOCLE) {
+			M->focus = M->container;
+			numC = 1;
+			for (c = clients; c; c = c->next) if (tile_check(M, c)) {
+				if (!winmarks[1]) winmarks[1] = c;
+				if (c == winmarks[1]) M->container->top = c;
+			}
+		}
 		else {
 			c = clients;
 			for (numC = 0, C = M->container; C; C = C->next, numC++) {
