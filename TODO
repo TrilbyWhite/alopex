@@ -2,4 +2,10 @@
 more actions
 status input reader
 icons
+bug: titles sometimes disappear?
+	- after running for some time
+	- it seems bars stop being redrawn
+	- observed only in monocle mode, test in stack modes:
+		- check whether a new previously unused container will draw a new
+		  bar
 switch from configdb to config

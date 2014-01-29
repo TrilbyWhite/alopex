@@ -63,13 +63,17 @@ int focus(Client *t, const char *s) {
 				winmarks[0] = winmarks[1];
 				winmarks[1] = a;
 			}
-			else {
-				/* focus first container, or next container */
+			else { /* focus first container, or next container ... */
 				C = m->container;
 				if (C->top == winmarks[1]) C = C->next;
-				if (C->top) {
+				if (C->top)
+					a = C->top;
+				else /* ... only one container -> focus another client */
+					for (a = clients; a; a = a->next)
+						if (a != winmarks[1] && tile_check(m, a)) break;
+				if (a) {
 					winmarks[0] = winmarks[1];
-					winmarks[1] = C->top;
+					winmarks[1] = a;
 				}
 			}
 			break;

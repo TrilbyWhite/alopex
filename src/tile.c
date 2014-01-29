@@ -13,7 +13,7 @@ int tile() {
 	}
 	Monitor *M;
 	Container *C;
-	Client *c, *pc;
+	Client *c, *pc, *t;
 	int num, cn, numC, ord;
 	for (M = mons; M; M = M->next) {
 		/* calculate how many containers will be used: */
@@ -25,35 +25,41 @@ int tile() {
 				if (c == winmarks[1]) M->container->top = c;
 			}
 		}
-		else {
+		else { /* {r/b}stack: */
 			c = clients;
 			for (numC = 0, C = M->container; C; C = C->next, numC++) {
 				cn = (M->mode == MONOCLE ? 1024 : (C->n > 0 ? C->n : 1024));
+				t = NULL;
 				for (num = 0, pc = c; c && num < cn; c = c->next) {
+				/* fill C up to max clients */
 					if (tile_check(M, c)) {
 						num++;
+						/* set C->top */
 						if (!winmarks[1]) winmarks[1] = c;
 						if (c == winmarks[1]) {
 							M->focus = C;
 							C->top = c;
 						}
+						if (!t) t = c;
+						if (c == C->top) t = c;
 					}
 				}
 				if (num == 0) break;
+				C->top = t;
 			}
 		}
-		/* tile each used container: */
+		/* tile each used container, hide others */
 		c = clients;
 		for (ord = 0, C = M->container; C && c; C = C->next, ord++) {
 			cn = (M->mode == MONOCLE ? 1024 : (C->n > 0 ? C->n : 1024));
 			for (num = 0, pc = c; c && num < cn; c = c->next)
 				if (tile_check(M, c)) num++;
-			if (!num) break; // or continue?
+			if (!num) break;
 			resize_container(M, C, numC, ord);
 			tile_container(M, C, pc, num);
 		}
-		for (C; C; C = C->next)
-			purgatory(C->win);
+		for (C; C; C = C->next) purgatory(C->win);
+		/* show bar if no containers are visible */
 		if (!numC && !(conf.bar_opts & BAR_HIDE)) {
 			C = M->container;
 			int y = M->y + (conf.bar_opts & BAR_BOTTOM ? M->h-C->bar->h : 0);
@@ -61,6 +67,7 @@ int tile() {
 			cairo_set_source_surface(C->bar->ctx, M->bg, -C->x, -y);
 			cairo_paint(C->bar->ctx);
 		}
+		/* sort floating windows */
 		for (c = clients; c; c = c->next) {
 			// TODO: needs testing
 			if (!(M->tags & c->tags))
@@ -70,7 +77,7 @@ int tile() {
 		}
 		if (!M->focus) M->focus = M->container;
 	}
-	/* paint bars to windows */
+	/* paint bar buffers to windows */
 	for (M = mons; M; M = M->next) {
 		for (numC = 0, C = M->container; C; C = C->next, numC++) {
 			cairo_set_source_surface(C->ctx, C->bar->buf, 0, 0);
@@ -83,8 +90,9 @@ int tile() {
 
 
 int resize_container(Monitor *M, Container *C, int numC, int ord) {
+	/* calcualte size based on mode */
 	int stack_size;
-	if (numC == 1) {
+	if (numC == 1) { /* only one container */
 		C->x = M->x + M->gap;
 		C->y = M->y + M->gap;
 		C->w = M->w - 2 * M->gap;
@@ -108,11 +116,13 @@ int resize_container(Monitor *M, Container *C, int numC, int ord) {
 				(M->h - M->gap) / 2 - M->gap + M->split);
 		if (ord == numC - 1) C->w = M->w - M->gap - C->x + M->x;
 	}
+	/* adjust for bar space */
 	if (!(C->bar->opts & BAR_HIDE)) {
 		C->h -= C->bar->h;
 		if (!(C->bar->opts & BAR_BOTTOM))
 			C->y += C->bar->h;
 	}
+	/* hide/show the bar */
 	if (C->bar->opts & BAR_HIDE) purgatory(C->win);
 	else {
 		int y = (C->bar->opts & BAR_BOTTOM ? C->y+C->h : C->y-C->bar->h);
@@ -133,9 +143,6 @@ int tile_container(Monitor *M, Container *C, Client *pc, int num) {
 		XMoveResizeWindow(dpy, c->win, C->x, C->y, C->w, C->h);
 		if (!(C->bar->opts & BAR_HIDE))
 			draw_tab(C, c, num - n, num, C->bar->opts & BAR_BOTTOM);
-		if (!t) t = c;
-		if (c == C->top) t = c;
 		n--;
 	}
-	C->top = t;
 }
