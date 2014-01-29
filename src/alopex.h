@@ -5,65 +5,63 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
-#include <signal.h>
 #include <locale.h>
 #include <math.h>
+#include <signal.h>
+#include <sys/types.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
+#include <X11/Xresource.h>
+#include <X11/extensions/Xinerama.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include <cairo.h>
 #include <cairo-xlib.h>
 #include <cairo-ft.h>
 
-#define BAR_VISIBLE			0x0100
-#define BAR_TOP				0x0200
-#define BAR_HEIGHT(x)		(x & 0x00FF)
-#define SET_BAR_HEIGHT(x)	x
+#define BAR_BOTTOM		0x1000
+#define BAR_HIDE			0x2000
+#define BAR_HEIGHT		0x00FF
+#define ATTACH_TOP		0x0000
+#define ATTACH_ABOVE		0x0001
+#define ATTACH_BELOW		0x0002
+#define ATTACH_BOTTOM	0x0003
+#define MONOCLE			0x0000
+#define RSTACK				0x0001
+#define BSTACK				0x0002
 
-#define RSTACK					0x01
-#define BSTACK					0x02
-#define MONOCLE					0x03
+#define WIN_FLOAT       0x0001
+#define WIN_FULL        0x0003
+#define WIN_TRANS       0x0005
+#define WIN_FOCUS       0x0010
+#define WIN_URGENT      0x0020
 
-#define ATTACH_TOP			0x0001
-#define ATTACH_BOTTOM		0x0002
-#define ATTACH_ABOVE			0x0003
-#define ATTACH_BELOW			0x0004
+#define NWINMARKS			11
 
-#define CMD(x)	x " &"
+enum {
+	TabOffset,
+	TabBackground, TabBorder, TabText,
+	TabFocusBackgorund, TabFocusBorder, TabFocusText,
+	TabTopBackground, TabTopBorder, TabTopText,
+	StatusOffset,
+	StatusBackground, StatusBorder, StatusText,
+	StatusInput,
+	TagOccupied, TagView, TagAlt, TagBoth,
+	ThemeLast
+};
 
-#define WIN_FLOAT			0x01
-#define WIN_TRANSIENT		0x11
-#define WIN_URGENT			0x02
-#define WIN_FOCUS			0x04
-
-/* Theme elements */
-#define tabOffset				0x00
-#define tabRGBAFocus			0x01
-#define tabRGBAFocusBrd		0x02
-#define tabRGBAFocusText	0x03
-#define tabRGBATop			0x04
-#define tabRGBATopBrd		0x05
-#define tabRGBATopText		0x06
-#define tabRGBAOther			0x07
-#define tabRGBAOtherBrd		0x08
-#define tabRGBAOtherText	0x09
-#define statOffset			0x0a
-#define statRGBA				0x0b
-#define statRGBABrd			0x0c
-#define statRGBAText			0x0d
-#define statRGBAInput		0x0e
-#define tagRGBAOcc			0x0f
-#define tagRGBASel			0x10
-#define tagRGBAAlt			0x11
-#define tagRGBABoth			0x12
-#define themeEND				0x13
+enum {
+	WM_PROTOCOLS, WM_DELETE_WINDOW, WM_STATE, WM_TAKE_FOCUS,
+	NET_SUPPORTED, NET_WM_NAME, NET_WM_STATE,
+	NET_WM_STATE_FULLSCREEN, NET_ACTIVE_WINDOW,
+	NET_WM_WINDOW_TYPE, NET_WM_TYPE_DIALOG, NET_CLIENT_LIST,
+	ATOM_LAST
+};
 
 typedef struct Key {
 	unsigned short int mod;
@@ -77,27 +75,30 @@ struct Client {
 	Window win, parent;
 	char *title;
 	cairo_surface_t *icon;
-	int tags, flags, x, y;
+	int tags, flags, x, y, w, h;
 };
 
-typedef struct Bar {
-	Window win;
-	Pixmap buf;
-	cairo_t *ctx;
-	int opts, x, y;
-} Bar;
+typedef struct Rule {
+	const char *name;
+	const char *class;
+	int tags;
+	int flags;
+} Rule;
 
-typedef struct SBar {
+typedef struct Bar {
 	cairo_surface_t *buf;
 	cairo_t *ctx;
-	int x, width, height;
-} SBar;
+	int opts;
+	int xoff, w, h;
+} Bar;
 
 typedef struct Container Container;
 struct Container {
 	Container *next;
-	int n, w;
-	Bar bar;
+	Window win;
+	cairo_t *ctx;
+	int x, y, w, h, n;
+	Bar *bar;
 	Client *top;
 };
 
@@ -106,60 +107,45 @@ struct Monitor {
 	Monitor *next;
 	int x, y, w, h, gap;
 	int tags, occ, mode, split;
-	Container *container;
-	Container *focus;
-	SBar sbar[2];
+	Container *container, *focus;
 	cairo_surface_t *bg;
 };
 
-typedef struct Theme {
-	double a, b, c, d, e;
+typedef union Theme {
+	struct { double x, y, w, h, r; };
+	struct { double R, G, B, A, e; };
 } Theme;
 
-Monitor *mons;
-Monitor *m;
-Client *clients;
+typedef struct Config {
+	cairo_font_face_t *font, *bfont;
+	Theme theme[ThemeLast];
+	int nkeys;
+	Key *key;
+	int nrules;
+	Rule *rule;
+	int statfd;
+	FILE *stat;
+	const char *macro[26];
+	char **tag_name, *stat_fmt;
+	int *tag_icon;
+	int gap, split, mode, bar_pad, chain_delay, bar_opts, attach;
+	int font_size;
+	Bool focus_follow;
+} Config;
+
+Monitor *mons, *m;
+Client *clients, *winmarks[NWINMARKS+1];
 Display *dpy;
 int scr;
 Window root;
-Bool running;
 GC gc;
-FT_Library library;
-FT_Face face, face2;
-Client *winmarks[10];
-cairo_font_face_t *cfont, *cfont2;
+Atom atom[ATOM_LAST];
+Bool running;
+FT_Library ftlib;
+Config conf;
+Bar sbar[2];
 
-extern int die(const char *);
-extern int purgatory(Window);
-extern int set_focus(Client *);
-
-extern int reconfig();
-
-extern int draw(int);
-extern int draw_background(Container *);
-extern int draw_status();
-extern int draw_tab(Container *, int, Client *, int, int);
-extern int icons_init(const char *, int);
-extern int icons_free();
-
-extern int input(char *);
-
-extern int key_chain(const char *);
-
+extern void die(const char *, ...);
 extern int tile();
 
-char **tag_names, **string;
-char *status_fmt, *font_path, *font_path2, *icons_path, *ibar_text, *bg_path;
-const char *theme_name;
-char instring[256];
-int font_size, container_pad, tag_pad, *containers, ncontainers;
-int container_split;
-unsigned short int tag_icon[16];
-int client_opts, bar_opts, ntags, nkeys;
-int statfd, chain_delay;
-Bool focusfollowmouse;
-Theme *theme;
-Key *key;
-
 #endif /* __ALOPEX_H__ */
-

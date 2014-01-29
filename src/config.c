@@ -1,388 +1,347 @@
-/********************************************************************\
-* CONFIG.C - part of alopex, see alopex.c for license information
-*
-* Author: Jesse McClure, copyright 2012-2013
-\********************************************************************/
-
-/********************************************************************/
-/*  LOCAL DATA                                                      */
-/********************************************************************/
 
 #include "alopex.h"
-#define LINE_LEN	128
 
-static void conf_bars(FILE *);
-static void conf_bindings(FILE *);
-static void conf_clients(FILE *);
-static void conf_containers(FILE *);
-static void conf_strings(FILE *);
-static void conf_theme(FILE *);
-static void free_mons();
-static void get_mons();
-static pid_t stat_open(const char *);
+extern int free_mons();
+extern int get_mons(const char *, const char *);
+extern int icons_init(const char *);
+extern int icons_free();
 
+static int config_general(XrmDatabase, const char *);
+static int config_binds(XrmDatabase, const char *);
+static int config_macros(XrmDatabase, const char *);
+static int config_rules(XrmDatabase, const char *);
+static int config_theme(XrmDatabase, const char *);
+
+FT_Face face, bface;
 static pid_t pid;
-static int default_mode = RSTACK;
+static XrmDatabase xrdb;
 
-#define SAFE_DUP(a,b)	{ if (b) free(b); b = strdup(a); }
-#define SAFE_FREE(x)	{ if (x) free(x); x = NULL; }
-
-/********************************************************************/
-/*  GLOBAL FUNCTIONS                                                */
-/********************************************************************/
-
-int config() {
+int config_init(const char *theme) {
 	const char *pwd = getenv("PWD");
-	FILE *rc = NULL;
+	XrmInitialize();
+	xrdb = XrmGetFileDatabase("/usr/share/alopex/configdb");
 	if ( (!chdir(getenv("XDG_CONFIG_HOME")) && !chdir("alopex")) ||
 			(!chdir(getenv("HOME")) && !chdir(".config/alopex")) )
-		rc = fopen("config","r");
-	if (!rc) {
-		char path[LINE_LEN];
-		if (theme_name && theme_name[0] != '/')
-			snprintf(path,LINE_LEN,"/usr/share/alopex/config.%s",theme_name);
-		else
-			strncpy(path,theme_name,LINE_LEN);
-		rc = fopen(path,"r");
-	}
-	if (!rc) die("cannot open configuration file");
-	char line[LINE_LEN];
-	while (fgets(line,LINE_LEN,rc)) {
-		if (line[0] == '#' || line[0] == '\n') continue;
-		else if (!strncmp(line,"bars:",5)) conf_bars(rc);
-		else if (!strncmp(line,"containers:",11)) conf_containers(rc);
-		else if (!strncmp(line,"clients:",8)) conf_clients(rc);
-		else if (!strncmp(line,"theme:",6)) conf_theme(rc);
-		else if (!strncmp(line,"strings:",8)) conf_strings(rc);
-		else if (!strncmp(line,"bindings:",8)) conf_bindings(rc);
-		else fprintf(stderr,"ALOPEX: unrecognized configuration entry: "
-				"%s\n",line);
-	}
-	fclose(rc);
-	if (pwd) chdir(pwd);
-	if (FT_New_Face(library,font_path,0,&face) | FT_Set_Pixel_Sizes(face,0,font_size))
-		die("unable to load free type font");
-	if (font_path2 && (FT_New_Face(library,font_path2,0,&face2) |
-			FT_Set_Pixel_Sizes(face2,0,font_size)))
-		die("unable to load free type font");
-	cfont = cairo_ft_font_face_create_for_ft_face(face,0);
-	if (font_path2) cfont2 = cairo_ft_font_face_create_for_ft_face(face2,0);
-	get_mons();
+		XrmCombineFileDatabase("configdb", &xrdb, True);
+	if (!xrdb) die("cannot find a configuration resource database");
+	char *_base = "icecap";
+	const char *base = _base;
+	if (theme) base = theme;
+	config_binds(xrdb, base);
+	config_general(xrdb, base);
+	config_macros(xrdb, base);
+	config_rules(xrdb, base);
+	config_theme(xrdb, base);
+	chdir(pwd);
 	return 0;
 }
 
-int deconfig() {
-	free_mons();
-	SAFE_FREE(bg_path)
-	SAFE_FREE(containers)
-	SAFE_FREE(icons_path)
-	SAFE_FREE(key)
-	SAFE_FREE(status_fmt)
-	SAFE_FREE(theme)
-	int i;
-	memset(tag_icon,0,16 * sizeof(unsigned short int));
-	if (statfd) {
-		statfd = 0;
-		kill(pid,SIGKILL);
+int config_free() {
+	XrmDestroyDatabase(xrdb);
+	if (conf.statfd) {
+		fclose(conf.stat);
+		conf.statfd = 0;
+		kill(pid, SIGKILL);
 		wait(pid);
-		instring[0] = '\0';
 	}
-	if (tag_names) {
-		for (i = 0; i < ntags; i++) free(tag_names[i]);
-		free(tag_names); tag_names = NULL;
+	icons_free();
+	free_mons();
+	int i;
+	if (conf.tag_name) {
+		for (i = 0; conf.tag_name[i]; i++)
+			free(conf.tag_name[i]);
+		free(conf.tag_name);
 	}
-	if (string) {
-		for (i = 0; i < 128; i++)
-			if (string[i]) free(string[i]);
-		free(string); string = NULL;
-	}
-	if (font_path) {
-		cairo_font_face_destroy(cfont);
-		FT_Done_Face(face);
-		free(font_path); font_path = NULL;
-	}
-	if (font_path2) {
-		cairo_font_face_destroy(cfont2);
-		FT_Done_Face(face2);
-		free(font_path2); font_path2 = NULL;
-	}
-}
-
-int reconfig() {
-//TODO reset C->top for all C
-	int i, j; Monitor *M; Container *C, *CC = NULL;
-	int *foc = NULL, *t = NULL, *o = NULL, *md = NULL;
-	for (M = mons, i = 0; M; M = M->next, i++) {
-		foc = realloc(foc,(i+1) * sizeof(int));
-		t = realloc(t,(i+1) * sizeof(int));
-		o = realloc(o,(i+1) * sizeof(int));
-		md = realloc(md,(i+1) * sizeof(int));
-		for (C = M->container, j = 0; C; C = C->next, j++)
-			if (M->focus == C) foc[i] = j;
-		t[i] = M->tags;
-		o[i] = M->occ;
-		md[i] = M->mode;
-	}
-	deconfig();
-	config();
-	for (M = mons, i = 0; M; M = M->next, i++) {
-		for (C = M->container, j = foc[i]; j && C; C = C->next, j--);
-		if (C) M->focus = C;
-		M->tags = t[i];
-		M->occ = o[i];
-		M->mode = md[i];
-	}
-	free(foc); free(t); free(o); free(md);
+	if (conf.tag_icon) free(conf.tag_icon);
+	cairo_font_face_destroy(conf.font);
+	cairo_font_face_destroy(conf.bfont);
+	FT_Done_Face(face);
+	FT_Done_Face(bface);
+	free(conf.key);
+	conf.key = NULL;
+	conf.nkeys = 0;
 	return 0;
 }
 
-/********************************************************************/
-/*  LOCAL FUNCTIONS                                                 */
-/********************************************************************/
-
-void conf_bars(FILE *rc) {
-	char line[LINE_LEN], str[LINE_LEN];
-	char **toks = NULL, *tok;
-	int n, ntok = 0;
-	bar_opts = 0;
-	while (fgets(line,LINE_LEN,rc)) {
-		if (line[0] != '\t') break;
-		else if (sscanf(line," status format = \"%[^\"]\"\n",str) == 1)
-			SAFE_DUP(str,status_fmt)
-		else if (sscanf(line," status input = %[^\n]\n",str) == 1)
-			pid = stat_open(str);
-		else if (sscanf(line," font path = %[^\n]\n",str) == 1)
-			SAFE_DUP(str,font_path)
-		else if (sscanf(line," background = %[^\n]\n",str) == 1)
-			SAFE_DUP(str,bg_path)
-		else if (sscanf(line," alt font path = %[^\n]\n",str) == 1)
-			SAFE_DUP(str,font_path2)
-		else if (sscanf(line," icons path = %[^\n]\n",str) == 1)
-			SAFE_DUP(str,icons_path)
-		else if (sscanf(line," options = %[^\n]\n",str) == 1) {
-			if (strstr(str,"visible")) bar_opts |= BAR_VISIBLE;
-			if (strstr(str,"top")) bar_opts |= BAR_TOP;
-			if ( (tok=strstr(str,"height=")) ) bar_opts |= atoi(tok+7);
-		}
-		else if (sscanf(line," font size = %d",&n) == 1)
-			font_size = n;
-		else if (sscanf(line," tag padding = %d",&n) == 1)
-			tag_pad = n;
-		else if (sscanf(line," chain delay = %d",&n) == 1)
-			chain_delay = n;
-		else if (sscanf(line," tag names = %[^\n]\n",str) == 1 ) {
-			tok = strtok(str," ");
-			while (tok) {
-				toks = realloc(toks,(++ntok) * sizeof(char *));
-				toks[ntok-1] = strdup(tok);
-				tok = strtok(NULL," ");
-			}
-		}
-		else if (sscanf(line," tag icons = "
-		"%hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu %hu",
-		&tag_icon[0], &tag_icon[1], &tag_icon[2], &tag_icon[3],
-		&tag_icon[4], &tag_icon[5], &tag_icon[6], &tag_icon[7],
-		&tag_icon[8], &tag_icon[9], &tag_icon[10], &tag_icon[11],
-		&tag_icon[12], &tag_icon[13], &tag_icon[14], &tag_icon[15]));
-		else fprintf(stderr,"ALOPEX: unrecognized configuration entry: "
-				"%s\n",line);
-	}
-	tag_names = toks;
-	ntags = ntok;
+int reconfigure() {
+	config_free();
+	config_init(NULL);
 }
 
-void conf_bindings(FILE *rc) {
-	char line[LINE_LEN], mods[24], ch[12], str[LINE_LEN];
-	KeySym sym;
-	int n = 0;
-	while (fgets(line,LINE_LEN,rc)) {
-		if (line[0] != '\t') break;
-		mods[0] = '\0';
-		if (sscanf(line," %s %s = %s",mods,ch,str) == 3) {
-			if ( (sym=XStringToKeysym(ch)) == NoSymbol )
-				fprintf(stderr,"ALOPEX: config binding error: %s\n", line);
-			else {
-				key = realloc(key,(n+1) * sizeof(Key));
-				key[n].keysym = sym;
-				key[n].arg = strdup(str);
-				key[n].mod = 0;
-				if (strcasestr(mods,"super")) key[n].mod |= Mod4Mask;
-				if (strcasestr(mods,"alt")) key[n].mod |= Mod1Mask;
-				if (strcasestr(mods,"shift")) key[n].mod |= ShiftMask;
-				if (strcasestr(mods,"control")) key[n].mod |= ControlMask;
-				if (strcasestr(mods,"ctrl")) key[n].mod |= ControlMask;
-				n++;
-			}
-		}
-		else fprintf(stderr,"ALOPEX: unrecognized configuration entry: "
-				"%s\n",line);
-	}
-	nkeys = n;
-}
+/**** Local functions ****/
 
-void conf_clients(FILE *rc) {
-	char line[LINE_LEN], str[LINE_LEN];
-	focusfollowmouse = False;
-	client_opts = 0;
-	while (fgets(line,LINE_LEN,rc)) {
-		if (line[0] != '\t') break;
-		if (sscanf(line," mouse focus = %s",str)) {
-			if (!strncasecmp(str,"true",4)) focusfollowmouse = True;
-		}
-		if (sscanf(line," attach = %s",str)) {
-			if (!strncasecmp(str,"top",3)) client_opts |= ATTACH_TOP;
-			if (!strncasecmp(str,"bot",3)) client_opts |= ATTACH_BOTTOM;
-		}
-	}
+enum {
+	STR_Font, STR_BoldFont, STR_IconFile, STR_Options, STR_Background,
+	STR_Containers, STR_Names, STR_Icons, STR_FollowMouse, STR_Attach,
+	STR_StatIn, STR_Mode,
+	STR_Last
 };
+enum { TYPE_S, TYPE_D };
+typedef struct Res {
+	const char *elem, *opt;
+	int type;
+	void *dest;
+} Res;
 
-void conf_containers(FILE *rc) {
-	int i, n, c[10]; char line[LINE_LEN], s[LINE_LEN];
-	while (fgets(line,LINE_LEN,rc)) {
-		if (line[0] != '\t') break;
-		if ( (n=sscanf(line," counts = %d %d %d %d %d %d %d %d %d %d",
-				&c[0], &c[1], &c[2], &c[3], &c[4], &c[5],
-				&c[6], &c[7], &c[8], &c[9])) ) {
-			n++;
-			containers = calloc(n,sizeof(int));
-			for (i = 0; i < n-1; i++) containers[i] = c[i];
-			containers[i] = -1;
-			ncontainers = i+1;
-		}
-		else if (sscanf(line," padding = %d", &n))
-			container_pad = n;
-		else if (sscanf(line," split = %d", &n))
-			container_split = n;
-		else if (sscanf(line," mode = %s",s)) {
-			if (!strncasecmp(s,"rstack",strlen(s))) default_mode = RSTACK;
-			if (!strncasecmp(s,"bstack",strlen(s))) default_mode = BSTACK;
-			if (!strncasecmp(s,"monocle",strlen(s))) default_mode = MONOCLE;
-		}
-		else fprintf(stderr,"ALOPEX: unrecognized configuration entry: "
-				"%s\n",line);
-
+int config_general(XrmDatabase xrdb, const char *base) {
+	const char *s[STR_Last];
+	memset(s, 0, STR_Last);
+	int bar_height = 0;
+	const char *RES_Bar = "Bar";
+	const char *RES_Background = "Background";
+	const char *RES_Tags = "Tags";
+	const char *RES_Tiling = "Tiling";
+	const char *RES_Padding = "Padding";
+	const char *RES_Clients = "Clients";
+	Res res[] = {
+		{ RES_Bar,    "StatFmt",      TYPE_S, &conf.stat_fmt},
+		{ RES_Bar,    "StatInput",    TYPE_S, &s[STR_StatIn]},
+		{ RES_Bar,    "Font",         TYPE_S, &s[STR_Font]},
+		{ RES_Bar,    "BoldFont",     TYPE_S, &s[STR_BoldFont]},
+		{ RES_Bar,    "FontSize",     TYPE_D, &conf.font_size},
+		{ RES_Bar,    "Height",       TYPE_D, &bar_height},
+		{ RES_Bar,    "Icons",        TYPE_S, &s[STR_IconFile]},
+		{ RES_Bar,    "Options",      TYPE_S, &s[STR_Options]},
+		{ RES_Tiling, RES_Background, TYPE_S, &s[STR_Background]},
+		{ RES_Tiling, "Split",        TYPE_D, &conf.split},
+		{ RES_Tiling, RES_Padding,    TYPE_D, &conf.gap},
+		{ RES_Tiling, "Containers",   TYPE_S, &s[STR_Containers]},
+		{ RES_Tiling, "Mode",         TYPE_S, &s[STR_Mode]},
+		{ RES_Tags,   "Names",        TYPE_S, &s[STR_Names]},
+		{ RES_Tags,   "Icons",        TYPE_S, &s[STR_Icons]},
+		{ RES_Tags,   RES_Padding,    TYPE_D, &conf.bar_pad},
+		{ "Chains",   "Delay",        TYPE_D, &conf.chain_delay},
+		{ RES_Clients,"FollowMouse",  TYPE_S, &s[STR_FollowMouse]},
+		{ RES_Clients,"Attach",       TYPE_S, &s[STR_Attach]},
+	};
+	int i;
+	char class[256], *type;
+	XrmValue val;
+	for (i = 0; i < sizeof(res)/sizeof(res[0]); i++) {
+		strcpy(class,base);
+		strcat(class,"."); strcat(class,res[i].elem);
+			strcat(class,"."); strcat(class,res[i].opt);
+		if (!XrmGetResource(xrdb, class, class, &type, &val)) continue;
+		if (res[i].type == TYPE_S)
+			*(char **) res[i].dest = val.addr;
+		else if (res[i].type == TYPE_D)
+			 *((int *) res[i].dest) = atoi(val.addr);
 	}
-};
-
-void conf_strings(FILE *rc) {
-	int i; char line[LINE_LEN], str[LINE_LEN], c;
-	string = calloc(128, sizeof(char *));
-	while (fgets(line,LINE_LEN,rc)) {
-		if (line[0] != '\t') break;
-		if ( sscanf(line," %c! %[^\n]\n",&c,str) == 2) {
-			strcat(str," &"); SAFE_DUP(str,string[c])
-		}
-		else if ( sscanf(line," %c %[^\n]\n",&c,str) == 2)
-			SAFE_DUP(str,string[c])
-		else fprintf(stderr,"ALOPEX: unrecognized configuration entry: "
-					"%s\n",line);
+	/* get fonts */
+	if (FT_New_Face(ftlib, s[STR_Font], 0, &face) |
+			FT_Set_Pixel_Sizes(face, 0, conf.font_size))
+		die("unable to load freetype font \"%s\"",s[STR_Font]);
+	if (FT_New_Face(ftlib, s[STR_BoldFont], 0, &bface) |
+			FT_Set_Pixel_Sizes(bface, 0, conf.font_size))
+		die("unable to load freetype font \"%s\"",s[STR_BoldFont]);
+	conf.font = cairo_ft_font_face_create_for_ft_face(face, 0);
+	conf.bfont = cairo_ft_font_face_create_for_ft_face(bface, 0);
+	/* set options */
+	conf.bar_opts = (bar_height ? bar_height : conf.font_size + 4);
+	if (strcasestr(s[STR_Mode],"rstack")) conf.mode = RSTACK;
+	if (strcasestr(s[STR_Mode],"bstack")) conf.mode = BSTACK;
+	if (strcasestr(s[STR_Mode],"monocle")) conf.mode = MONOCLE;
+	if (strcasestr(s[STR_Options],"bottom")) conf.bar_opts |= BAR_BOTTOM;
+	if (strcasestr(s[STR_Options],"hide")) conf.bar_opts |= BAR_HIDE;
+	if (strcasestr(s[STR_FollowMouse],"true")) conf.focus_follow = True;
+	if (strcasestr(s[STR_Attach],"top")) conf.attach = ATTACH_TOP;
+	if (strcasestr(s[STR_Attach],"above")) conf.attach = ATTACH_ABOVE;
+	if (strcasestr(s[STR_Attach],"below")) conf.attach = ATTACH_BELOW;
+	if (strcasestr(s[STR_Attach],"bottom")) conf.attach = ATTACH_BOTTOM;
+	/* get tag names and icon numbers */
+	conf.tag_name = NULL;
+	char *name = strtok((char *) s[STR_Names]," ");
+	for (i = 0; name; i++) {
+		conf.tag_name = realloc(conf.tag_name, (i+1) * sizeof(char *));
+		conf.tag_name[i] = strdup(name);
+		name = strtok(NULL," ");
 	}
-}
-
-void conf_theme(FILE *rc) {
-	int i = 0; Theme *q; char line[LINE_LEN], str[LINE_LEN];
-	theme = calloc(themeEND, sizeof(Theme));
-	double a,b,c,d,e;
-	while (fgets(line,LINE_LEN,rc)) {
-		if (line[0] != '\t') break;
-		q = &theme[i];
-		if ( sscanf(line," %*[^=]= %lf %lf %lf %lf %lf\n",
-				&q->a,&q->b,&q->c,&q->d,&q->e) == 5 ) i++;
-		else fprintf(stderr,"ALOPEX: unrecognized configuration entry: "
-					"%s\n",line);
-		if (i == themeEND) break;
+	conf.tag_name = realloc(conf.tag_name, (i+1) * sizeof(char *));
+	conf.tag_name[i] = NULL;
+	conf.tag_icon = NULL;
+	name = strtok((char *) s[STR_Icons]," ");
+	for (i = 0; name; i++) {
+		conf.tag_icon = realloc(conf.tag_icon, (i+1) * sizeof(int));
+		conf.tag_icon[i] = atoi(name);
+		name = strtok(NULL," ");
 	}
-}
-
-void free_mons() {
-	int i; Monitor *M; Container *C, *CC = NULL;
-	for (M = mons; M; M = M->next) {
-		for (i = 0; i < 2; i++) {
-			cairo_surface_destroy(M->sbar[i].buf);
-			cairo_destroy(M->sbar[i].ctx);
+	conf.tag_icon = realloc(conf.tag_icon, (i+1) * sizeof(int));
+	conf.tag_icon[i] = -1;
+	/* status input */
+	if (s[STR_StatIn]) {
+		int fd[2];
+		pipe(fd);
+		if ( (pid=fork()) ) {
+			conf.statfd = fd[0];
+			conf.stat = fdopen(fd[0],"r");
+//			close(fd[1]);
 		}
-		for (C = M->container; C; CC = C, C = C->next) {
-			if (CC) free(CC);
-			cairo_destroy(C->bar.ctx);
-			XFreePixmap(dpy,C->bar.buf);
-			XDestroyWindow(dpy,C->bar.win);
+		else {
+			close(ConnectionNumber(dpy));
+			close(fd[0]);
+			dup2(fd[1], 1);
+			close(fd[1]);
+			execlp(s[STR_StatIn], s[STR_StatIn], NULL);
 		}
-		free(C);
-		bg_free(M);
-	}
-	free(mons);
-}
-
-void get_mons() {
-	int i, bh = (BAR_HEIGHT(bar_opts) ? BAR_HEIGHT(bar_opts) : font_size + 4);
-	Monitor *M; Container *C, *CC = NULL;
-	XSetWindowAttributes wa;
-	wa.override_redirect = True;
-	wa.event_mask = ExposureMask;
-	cairo_surface_t *t;
-// TODO get actual monitor data
-mons = calloc(1,sizeof(Monitor));
-	for (M = mons; M; M = M->next) {
-// TODO get actual monitor data
-M->x = 0; M->y = 0;
-M->w = DisplayWidth(dpy,scr);
-M->h = DisplayHeight(dpy,scr);
-bg_init(M);
-		M->split = container_split;
-		M->gap = container_pad;
-		for (i = 0; i < ncontainers; i++) {
-		//for (C = M->container; C; C = C->next) {
-			C = calloc(1,sizeof(Container));
-			C->n = containers[i];
-			C->bar.opts = bar_opts | bh;
-			C->bar.win = XCreateSimpleWindow(dpy, root, M->x,
-					(bar_opts & BAR_TOP ? M->y:  M->y + M->h - bh),
-					M->w, bh, 0, 0, 0);
-			XChangeWindowAttributes(dpy,C->bar.win,CWOverrideRedirect |
-					CWEventMask, &wa);
-			C->bar.buf = XCreatePixmap(dpy,root,M->w,bh,DefaultDepth(dpy,scr));
-			t = cairo_xlib_surface_create(dpy,C->bar.buf,DefaultVisual(dpy,scr),
-					M->w,bh);
-			C->bar.ctx = cairo_create(t);
-			cairo_surface_destroy(t);
-			cairo_set_font_face(C->bar.ctx,cfont);
-			cairo_set_font_size(C->bar.ctx,font_size);
-			cairo_set_line_width(C->bar.ctx,theme[tabRGBAFocusBrd].e);
-			cairo_set_line_join(C->bar.ctx,CAIRO_LINE_JOIN_ROUND);
-			XMapWindow(dpy,C->bar.win);
-			if (!M->container) M->container = C;
-			if (CC) CC->next = C;
-			CC = C;
-		}
-		for (i = 0; i < 2; i++) {
-			M->sbar[i].width = M->w/2; M->sbar[i].height = bh;
-			M->sbar[i].buf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,M->w/2,bh);
-			M->sbar[i].ctx = cairo_create(M->sbar[i].buf);
-			cairo_set_font_face(M->sbar[i].ctx,cfont);
-			cairo_set_font_size(M->sbar[i].ctx,font_size);
-			cairo_set_line_width(M->sbar[i].ctx,theme[statRGBABrd].e);
-			cairo_set_line_join(M->sbar[i].ctx,CAIRO_LINE_JOIN_ROUND);
-		}
-		M->mode = default_mode;
-		M->focus = M->container;
-	}
-	m = mons;
-}
-
-pid_t stat_open(const char *cmd) {
-	int fd[2];
-	pipe(fd);
-	pid_t in;
-	if ( (in=fork()) ) {
-		statfd = fd[0];
-		//inpipe = fdopen(fd[0],"r");
-		close(fd[1]);
-		return in;
 	}
 	else {
-		close(fd[0]); dup2(fd[1],1); close(fd[1]);
-		const char *arg[2]; arg[0] = cmd; arg[1] = NULL;
-		execv(arg[0],(char * const *)arg);
+		conf.statfd = 0;
+		conf.stat = NULL;
 	}
+	/* external inits */
+	get_mons(s[STR_Background], s[STR_Containers]);
+	icons_init(s[STR_IconFile]);
+	return 0;
 }
 
+#define MAX_MOD	6
+int config_binds(XrmDatabase xrdb, const char *base) {
+	/* get modifiers */
+	int mods[MAX_MOD];
+	memset(mods,0,MAX_MOD);
+	const char *ord[MAX_MOD] = {
+		"None", "First", "Second", "Third", "Fourth", "Fifth"
+	};
+	char class[256], *type;
+	XrmValue val;
+	int i, j, tmod;
+	for (i = 1; i < MAX_MOD; i++) {
+		sprintf(class,"%s.Bind.Mod.%s",base,ord[i]);
+		if (XrmGetResource(xrdb, class, class, &type, &val)) {
+			mods[i] = 0;
+			if (strcasestr(val.addr,"super") ||
+					strcasestr(val.addr, "win") ||
+					strcasestr(val.addr, "mod4"))
+				mods[i] |= Mod4Mask;
+			if (strcasestr(val.addr, "control") ||
+					strcasestr(val.addr,"ctrl"))
+				mods[i] |= ControlMask;
+			if (strcasestr(val.addr, "shift"))
+				mods[i] |= ShiftMask;
+			if (strcasestr(val.addr, "alt"))
+				mods[i] |= Mod1Mask;
+		}
+	}
+	/* loop through bindings */
+	conf.key = NULL;
+	conf.nkeys = 0;
+	int bmax = 1000;
+	sprintf(class,"%s.Bind.Max",base);
+	if (XrmGetResource(xrdb, class, class, &type, &val))
+		bmax = atoi(val.addr) + 1;
+	KeySym sym;
+	for (i = 0; i < bmax; i++) {
+		sprintf(class,"%s.Bind.%03d.Key",base,i);
+		if (!XrmGetResource(xrdb, class, class, &type, &val)) continue;
+		if ( (sym=XStringToKeysym(val.addr)) == NoSymbol ) continue;
+		for (j = 0; j < MAX_MOD; j++) {
+			sprintf(class,"%s.Bind.%03d.%s",base,i,ord[j]);
+			if (!XrmGetResource(xrdb, class, class, &type, &val)) continue;
+			conf.key = realloc(conf.key, (conf.nkeys+1) * sizeof(Key));
+			conf.key[conf.nkeys].keysym = sym;
+			conf.key[conf.nkeys].mod = mods[j];
+			conf.key[conf.nkeys].arg = val.addr;
+			conf.nkeys++;
+		}
+	}
+	return 0;
+}
+
+int config_macros(XrmDatabase xrdb, const char *base) {
+	char class[256], *type;
+	XrmValue val;
+	char i;
+	memset(conf.macro,0,26);
+	for (i = 'a'; i < '{'; i++) {
+		sprintf(class,"%s.Macro.%c",base,i);
+		if (XrmGetResource(xrdb, class, class, &type, &val))
+		conf.macro[i - 'a'] = val.addr;
+	}
+	return 0;
+}
+
+int config_rules(XrmDatabase xrdb, const char *base) {
+	char class[256], *type, *rn, *rc;
+	XrmValue val;
+	conf.rule = NULL;
+	conf.nrules = 0;
+	int i, j, rmax = 1000, tags, flags, n[8];
+	sprintf(class,"%s.Rule.Max",base);
+	if (XrmGetResource(xrdb, class, class, &type, &val))
+		rmax = atoi(val.addr) + 1;
+	for (i = 0; i < rmax; i++) {
+		rn = rc = NULL;
+		sprintf(class,"%s.Rule.%03d.Name",base,i);
+		if (XrmGetResource(xrdb, class, class, &type, &val)) rn = val.addr;
+		sprintf(class,"%s.Rule.%03d.Class",base,i);
+		if (XrmGetResource(xrdb, class, class, &type, &val)) rc = val.addr;
+		if (!rn && !rc) continue;
+		conf.rule = realloc(conf.rule, (conf.nrules+1) * sizeof(Rule));
+		conf.rule[conf.nrules].name = rn;
+		conf.rule[conf.nrules].class = rc;
+		conf.rule[conf.nrules].tags = 0;
+		sprintf(class,"%s.Rule.%03d.Tags",base,i);
+		if (XrmGetResource(xrdb, class, class, &type, &val)) {
+			memset(n,0,8 * sizeof(int));
+			sscanf(val.addr,"%d %d %d %d %d %d %d %d",
+					&n[0], &n[1], &n[2], &n[3], &n[4], &n[5], &n[6], &n[7]);
+			for (j = 0; j < 8; j++)
+				if (n[j]) conf.rule[conf.nrules].tags |= (1<<(n[j]-1));
+		}
+		conf.rule[conf.nrules].flags = 0;
+		sprintf(class,"%s.Rule.%03d.Flags",base,i);
+		if (XrmGetResource(xrdb, class, class, &type, &val)) {
+			if (strcasestr(val.addr,"fullscreen"))
+				conf.rule[conf.nrules].flags |= WIN_FULL;
+			if (strcasestr(val.addr,"float"))
+				conf.rule[conf.nrules].flags |= WIN_FLOAT;
+		}
+		conf.nrules++;
+	}
+	return 0;
+}
+
+int config_theme(XrmDatabase xrdb, const char *base) {
+	const char *RES_Tab = "Tab";
+	const char *RES_TabFocus = "TabFocus";
+	const char *RES_TabTop = "TabTop";
+	const char *RES_Status = "Status";
+	const char *RES_Tag = "Tag";
+	const char *RES_Offset = "Offset";
+	const char *RES_Background = "Background";
+	const char *RES_Border = "Border";
+	const char *RES_Text = "Text";
+	Res res[] = {
+		{ RES_Tab,       RES_Offset,     0, NULL},
+		{ RES_Tab,       RES_Background, 0, NULL},
+		{ RES_Tab,       RES_Border,     0, NULL},
+		{ RES_Tab,       RES_Text,       0, NULL},
+		{ RES_TabFocus,  RES_Background, 0, NULL},
+		{ RES_TabFocus,  RES_Border,     0, NULL},
+		{ RES_TabFocus,  RES_Text,       0, NULL},
+		{ RES_TabTop,    RES_Background, 0, NULL},
+		{ RES_TabTop,    RES_Border,     0, NULL},
+		{ RES_TabTop,    RES_Text,       0, NULL},
+		{ RES_Status,    RES_Offset,     0, NULL},
+		{ RES_Status,    RES_Background, 0, NULL},
+		{ RES_Status,    RES_Border,     0, NULL},
+		{ RES_Status,    RES_Text,       0, NULL},
+		{ RES_Status,    "Input",        0, NULL},
+		{ RES_Tag,       "Occupied",     0, NULL},
+		{ RES_Tag,       "View",         0, NULL},
+		{ RES_Tag,       "Alt",          0, NULL},
+		{ RES_Tag,       "Both",         0, NULL},
+	};
+	char class[256], *type;
+	XrmValue val;
+	int i;
+	Theme *q;
+	for (i = 0; i < sizeof(res)/sizeof(res[0]); i++) {
+		sprintf(class,"%s.%s.%s", base, res[i].elem, res[i].opt);
+		if (!XrmGetResource(xrdb, class, class, &type, &val)) continue;
+		q = &conf.theme[i];
+		sscanf(val.addr,"%lf %lf %lf %lf %lf",
+			&q->R, &q->G, &q->B, &q->A, &q->e);
+	}
+	return 0;
+}
