@@ -9,16 +9,16 @@
 
 !----- Bar -----!
 *.Bar.StatFmt:				"%i%I& %1 "
-*.Bar.StatInput:			/home/jmcclure/code/bin/lag
+*.Bar.StatInput:			/full/path/to/script
 *.Bar.Font:					/usr/share/fonts/TTF/DroidSansMono.ttf
 *.Bar.BoldFont:			/usr/share/fonts/TTF/DroidSans-Bold.ttf
 *.Bar.FontSize:			14
-*.Bar.Icons:				/home/jmcclure/images/icons.png
+*.Bar.Icons:				/full/path/to/icons.png
 *.Bar.Height:           default
 *.Bar.Options:				visible top
 
 !----- Tiling -----!
-*.Tiling.Background:		/home/jmcclure/images/alopexN.png
+*.Tiling.Background:		/full/path/to/image.png
 *.Tiling.Split:			0
 *.Tiling.Padding:			8
 *.Tiling.Containers:		1 3 3
