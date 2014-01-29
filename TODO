@@ -1,19 +1,5 @@
 
 more actions
-	- Focus done, now move
 status input reader
 icons
-bug: titles sometimes disappear?
-	- after running for some time
-	- it seems bars stop being redrawn
-	- observed only in monocle mode, test in stack modes:
-		- check whether a new previously unused container will draw a new
-		  bar
-		- RESULT: new bars are drawn fine, only existing bars "freeze up"
-			- Even when on an empty tag, still shows last tab
-			- QUESTION: do bars stop drawing, or does buffer stop rendering
-			  to bar windows?
-		- SUSPECT: draw.c functions ?
-		- FIX? So far I'm unable to replicate since adding the surface
-		  flush on line 83 of tile.c --- this may solve it.
 switch from configdb to config

@@ -22,9 +22,9 @@ int focus(Client *t, const char *s) {
 		winmarks[1] = t;
 		return 0;
 	}
-	if (!m->focus || !m->focus->top) return 1;
 	Container *C;
-	Client *c = m->focus->top, *a, *b;
+	Client *c, *a, *b;
+	if (!(c=winmarks[1])) return 1;
 	switch (*s) {
 		case 'h':
 			for (C = m->container; C && C->next; C = C->next) {
@@ -88,22 +88,33 @@ int killclient(Client *c) {
 }
 
 int move(Client *t, const char *s) {
+	Client *c, *a, *b;
+	if (!(c=winmarks[1])) return 1;
 	if (t) { /* move focused relative to t */
 		if (!(m->focus && m->focus->top)) return 1;
-		Client *f = m->focus->top;
-		if (f == t) return 2;
+		if (c == t) return 2;
 		switch (s[0]) {
-			case 'a': pull_client(f); push_client(f, t); break;
-			case 'b': pull_client(f); push_client(f, t->next); break;
+			case 'a': pull_client(c); push_client(c, t); break;
+			case 'b': pull_client(c); push_client(c, t->next); break;
 			case 's': /* TODO swap */ break;
 		}
 	}
 	else { /* move focused in direction */
 		switch (s[0]) {
-			case 'h': break;
-			case 'j': break;
-			case 'k': break;
-			case 'l': break;
+			case 'h': pull_client(c); push_client(c, clients); break;
+			case 'j':
+				for (a = c->next; a; a = a->next)
+					if (tile_check(m, a)) break;
+				if (a) for (a = a->next; a; a = a->next)
+					if (tile_check(m, a)) break;
+				pull_client(c); push_client(c, a);
+				break;
+			case 'k':
+				for (a = clients; a && a != c; a = a->next)
+					if (tile_check(m, a)) b = a;
+				if (b) { pull_client(c); push_client(c, b); }
+				break;
+			case 'l': pull_client(c); push_client(c, NULL); break;
 		}
 	}
 }
