@@ -20,7 +20,10 @@ int draw_tab(Container *C, Client *c, int n, int count) {
 	cairo_text_extents_t ext;
 	cairo_text_extents(b->ctx, c->title, &ext);
 	if (off < 0) off *= -1;
-	else off *= w - ext.x_advance;
+	else {
+		off *= w - ext.x_advance;
+		if (off < 0) off = 0;
+	}
 	// if icon, adjust off
 	// TODO icons
 	cairo_rectangle(b->ctx, x+off, 0, w-off, h);
@@ -54,7 +57,6 @@ int round_rect(Bar *b, int x, int y, int w, int h,
 	cairo_arc(b->ctx, x + q->e, y + q->e, q->e, M_PI, 1.5 * M_PI);
 	cairo_close_path(b->ctx);
 	set_color(b->ctx, bg);
-//cairo_surface_flush(b->buf);
 	cairo_fill_preserve(b->ctx);
 	set_color(b->ctx, brd);
 	cairo_set_line_width(b->ctx, conf.theme[brd].r);

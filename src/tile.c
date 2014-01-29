@@ -80,6 +80,7 @@ int tile() {
 	/* paint bar buffers to windows */
 	for (M = mons; M; M = M->next) {
 		for (numC = 0, C = M->container; C; C = C->next, numC++) {
+cairo_surface_flush(C->bar->buf);
 			cairo_set_source_surface(C->ctx, C->bar->buf, 0, 0);
 			cairo_paint(C->ctx);
 		}
