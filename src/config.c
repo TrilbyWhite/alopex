@@ -225,17 +225,17 @@ int config_binds(XrmDatabase xrdb, const char *base) {
 	/* loop through bindings */
 	conf.key = NULL;
 	conf.nkeys = 0;
-	int bmax = 1000;
-	sprintf(class,"%s.Bind.Max",base);
-	if (XrmGetResource(xrdb, class, class, &type, &val))
-		bmax = atoi(val.addr) + 1;
+	int bmax = 100;
+//	sprintf(class,"%s.Bind.Max",base);
+//	if (XrmGetResource(xrdb, class, class, &type, &val))
+//		bmax = atoi(val.addr) + 1;
 	KeySym sym;
 	for (i = 0; i < bmax; i++) {
-		sprintf(class,"%s.Bind.%03d.Key",base,i);
+		sprintf(class,"%s.Bind.%02d.Key",base,i);
 		if (!XrmGetResource(xrdb, class, class, &type, &val)) continue;
 		if ( (sym=XStringToKeysym(val.addr)) == NoSymbol ) continue;
 		for (j = 0; j < MAX_MOD; j++) {
-			sprintf(class,"%s.Bind.%03d.%s",base,i,ord[j]);
+			sprintf(class,"%s.Bind.%02d.%s",base,i,ord[j]);
 			if (!XrmGetResource(xrdb, class, class, &type, &val)) continue;
 			conf.key = realloc(conf.key, (conf.nkeys+1) * sizeof(Key));
 			conf.key[conf.nkeys].keysym = sym;
@@ -265,22 +265,22 @@ int config_rules(XrmDatabase xrdb, const char *base) {
 	XrmValue val;
 	conf.rule = NULL;
 	conf.nrules = 0;
-	int i, j, rmax = 1000, tags, flags, n[8];
-	sprintf(class,"%s.Rule.Max",base);
-	if (XrmGetResource(xrdb, class, class, &type, &val))
-		rmax = atoi(val.addr) + 1;
+	int i, j, rmax = 100, tags, flags, n[8];
+//	sprintf(class,"%s.Rule.Max",base);
+//	if (XrmGetResource(xrdb, class, class, &type, &val))
+//		rmax = atoi(val.addr) + 1;
 	for (i = 0; i < rmax; i++) {
 		rn = rc = NULL;
-		sprintf(class,"%s.Rule.%03d.Name",base,i);
+		sprintf(class,"%s.Rule.%02d.Name",base,i);
 		if (XrmGetResource(xrdb, class, class, &type, &val)) rn = val.addr;
-		sprintf(class,"%s.Rule.%03d.Class",base,i);
+		sprintf(class,"%s.Rule.%02d.Class",base,i);
 		if (XrmGetResource(xrdb, class, class, &type, &val)) rc = val.addr;
 		if (!rn && !rc) continue;
 		conf.rule = realloc(conf.rule, (conf.nrules+1) * sizeof(Rule));
 		conf.rule[conf.nrules].name = rn;
 		conf.rule[conf.nrules].class = rc;
 		conf.rule[conf.nrules].tags = 0;
-		sprintf(class,"%s.Rule.%03d.Tags",base,i);
+		sprintf(class,"%s.Rule.%02d.Tags",base,i);
 		if (XrmGetResource(xrdb, class, class, &type, &val)) {
 			memset(n,0,8 * sizeof(int));
 			sscanf(val.addr,"%d %d %d %d %d %d %d %d",
@@ -289,7 +289,7 @@ int config_rules(XrmDatabase xrdb, const char *base) {
 				if (n[j]) conf.rule[conf.nrules].tags |= (1<<(n[j]-1));
 		}
 		conf.rule[conf.nrules].flags = 0;
-		sprintf(class,"%s.Rule.%03d.Flags",base,i);
+		sprintf(class,"%s.Rule.%02d.Flags",base,i);
 		if (XrmGetResource(xrdb, class, class, &type, &val)) {
 			if (strcasestr(val.addr,"fullscreen"))
 				conf.rule[conf.nrules].flags |= WIN_FULL;

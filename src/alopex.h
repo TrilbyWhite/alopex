@@ -34,6 +34,7 @@
 #define MONOCLE			0x0000
 #define RSTACK				0x0001
 #define BSTACK				0x0002
+#define LAST_MODE			0x0003
 
 #define WIN_FLOAT       0x0001
 #define WIN_FULL        0x0003
@@ -97,7 +98,7 @@ struct Container {
 	Container *next;
 	Window win;
 	cairo_t *ctx;
-	int x, y, w, h, n;
+	int x, y, w, h, n, nn;
 	Bar *bar;
 	Client *top;
 };

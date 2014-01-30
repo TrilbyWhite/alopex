@@ -87,6 +87,48 @@ int killclient(Client *c) {
 	return send_message(c, WM_PROTOCOLS, WM_DELETE_WINDOW);
 }
 
+int mod_bar(const char *s) {
+	Container *C;
+	Bar *b;
+	if (!m->focus || !(b=m->focus->bar)) return 1;
+	switch (s[0]) {
+		case 's': b->opts &= ~BAR_HIDE; break;
+		case 'h': b->opts |= BAR_HIDE; break;
+		case 'x': b->opts ^= BAR_HIDE; break;
+		case 't': b->opts &= ~BAR_BOTTOM; break;
+		case 'b': b->opts |= BAR_BOTTOM; break;
+		case 'S': for (C = m->container; C; C = C->next)
+			C->bar->opts &= ~BAR_HIDE; break;
+		case 'H': for (C = m->container; C; C = C->next)
+			C->bar->opts |= BAR_HIDE; break;
+		case 'X': for (C = m->container; C; C = C->next)
+			C->bar->opts ^= BAR_HIDE; break;
+		case 'T': for (C = m->container; C; C = C->next)
+			C->bar->opts &= ~BAR_BOTTOM; break;
+		case 'B': for (C = m->container; C; C = C->next)
+			C->bar->opts |= BAR_BOTTOM; break;
+		/* TODO allow for space for second bar */
+	}
+}
+
+int mod_container(const char *s) {
+	if (!m->focus) return 1;
+	int n, *t, r;
+	switch (s[0]) {
+		case 'n': t = &m->focus->n; r = m->focus->nn; break;
+		case 's': t = &m->split; r = conf.split; break;
+		case 'g': t = &m->gap; r = conf.gap; break;
+	}
+	if (s[2]) n = atoi(&s[2]);
+	switch (s[1]) {
+		case 'i': *t += 1; break;
+		case 'd': *t -= 1; break;
+		case 'r': *t = r; break;
+		default: *t += atoi(&s[1]); break;
+	}
+	/* TODO boundary checks */
+}
+
 int move(Client *t, const char *s) {
 	Client *c, *a, *b;
 	if (!(c=winmarks[1])) return 1;
@@ -116,6 +158,16 @@ int move(Client *t, const char *s) {
 				break;
 			case 'l': pull_client(c); push_client(c, NULL); break;
 		}
+	}
+}
+
+int ordering(const char *s) {
+	switch (s[0]) {
+		case 'r': m->mode = RSTACK; break;
+		case 'b': m->mode = BSTACK; break;
+		case 'm': m->mode = MONOCLE; break;
+		case 'x': m->mode = conf.mode; break;
+		default: if ( (++m->mode) == LAST_MODE ) m->mode = 0;
 	}
 }
 
@@ -209,14 +261,14 @@ m move		target move-focused (before|after|swap) (b|a|s)
 m move		move-focused (left|right|up|down) (h|j|k|l)
 t tag		target tag (move|add|remove|toggle) (x|a|r|t)#
 t tag		tag (single|add|remove|toggle) (x|a|r|t)#
-		mode (mono,rstack,bstack)
+o ordering  mode (mono,rstack,bstack)
 q quit		target kill
 q quit		kill-focused
 Q Quit		kill wm (quit)
-n nclient		nclients (up|down|one|many)
-s split		split (up|down|reset)
-g gap		gap (up|down|reset)
-b bar		bar (show|hide|top|bottom)
+n nclient		nclients (up|down|one|many) (i|d|r|#)
+s split		split (up|down|reset) (i|d|r|#)
+g gap		gap (up|down|reset) (i|d|r|#)
+b bar		bar (show|hide|top|bottom) (s|h|x|t|b)
 v view		view-swap
 z Windowmark num
 		monitor ...
@@ -251,12 +303,11 @@ int word(const char *word) {
 		case 'f': focus(t, &s[1]); break;
 		case 'm': move(t, &s[1]); break;
 		case 't': tag(t, &s[1]); break;
+		case 'o': ordering(&s[1]); break;
 		case 'q': killclient(dt); break;
 		case 'Q': running = False; break;
-		case 'n': break;
-		case 's': break;
-		case 'g': break;
-		case 'b': break;
+		case 'n': case 's': case 'g': mod_container(s);  break;
+		case 'b': mod_bar(&s[1]); break;
 		case 'v': break;
 		case 'z': break;
 	}

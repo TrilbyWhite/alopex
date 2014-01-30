@@ -103,7 +103,7 @@ int resize_container(Monitor *M, Container *C, int numC, int ord) {
 		stack_size = (M->h - M->gap) / (numC - 1) - M->gap;
 		C->x = M->x + M->gap + (ord ? (M->w -  M->gap) / 2 + M->split: 0);
 		C->y = M->y + M->gap + (stack_size + M->gap) * (ord ? ord - 1 : 0);
-		C->w = (ord ? M->w - M->gap - C->x - M->split :
+		C->w = (ord ? M->w - M->gap - C->x :
 				(M->w - M->gap) / 2 - M->gap + M->split);
 		C->h = (ord ? stack_size : M->h - 2 * M->gap);
 		if (ord == numC - 1) C->h = M->h - M->gap - C->y + M->y;
@@ -113,7 +113,7 @@ int resize_container(Monitor *M, Container *C, int numC, int ord) {
 		C->x = M->x + M->gap + (stack_size + M->gap) * (ord ? ord - 1 : 0);
 		C->y = M->y + M->gap + (ord ? (M->h -  M->gap) / 2 + M->split: 0);
 		C->w = (ord ? stack_size : M->w - 2 * M->gap);
-		C->h = (ord ? M->h - M->gap - C->y - M->split :
+		C->h = (ord ? M->h - M->gap - C->y :
 				(M->h - M->gap) / 2 - M->gap + M->split);
 		if (ord == numC - 1) C->w = M->w - M->gap - C->x + M->x;
 	}

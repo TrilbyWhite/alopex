@@ -132,6 +132,7 @@ int get_mons(const char *bg, const char *cont) {
 			C = &M->container[j];
 			if (j < ncounts - 1) C->next = &M->container[j+1];
 			C->n = counts[j];
+			C->nn = C->n;
 			C->bar = calloc(1, sizeof(Bar));
 			C->bar->opts = conf.bar_opts;
 			C->bar->w = mons[i].w;

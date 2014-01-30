@@ -2,23 +2,22 @@
 !! By: Jesse McClure (c) 2014
 !! License: CC-BY-SA
 
-
 !-------------------------------------------------------------------!
 ! SETTINGS FOR ALL THEMES
 !-------------------------------------------------------------------!
 
 !----- Bar -----!
 *.Bar.StatFmt:				"%i%I& %1 "
-*.Bar.StatInput:			/full/path/to/script
+*.Bar.StatInput:			/path/to/status-script
 *.Bar.Font:					/usr/share/fonts/TTF/DroidSansMono.ttf
 *.Bar.BoldFont:			/usr/share/fonts/TTF/DroidSans-Bold.ttf
 *.Bar.FontSize:			14
-*.Bar.Icons:				/full/path/to/icons.png
+*.Bar.Icons:				/path/to/icons.png
 *.Bar.Height:           default
 *.Bar.Options:				visible top
 
 !----- Tiling -----!
-*.Tiling.Background:		/full/path/to/image.png
+*.Tiling.Background:		/path/to/image.png
 *.Tiling.Split:			0
 *.Tiling.Padding:			8
 *.Tiling.Containers:		1 3 3
@@ -42,13 +41,12 @@
 *.Macro.w:					!firefox
 
 !----- Rules -----!
-*.Rule.Max:					2
-*.Rule.000.Name:			Float
-*.Rule.000.Flags:			float
-*.Rule.001.Class:			Float
-*.Rule.001.Flags:			float
-*.Rule.002.Class:			Firefox
-*.Rule.002.Tags:			2
+*.Rule.00.Name:			Float
+*.Rule.00.Flags:			float
+*.Rule.01.Class:			Float
+*.Rule.01.Flags:			float
+*.Rule.02.Class:			Firefox
+*.Rule.02.Tags:			2
 
 !----- Binds -----!
 ! Modifier definitions
@@ -57,49 +55,74 @@
 *.Bind.Mod.Third:			Super Shift
 *.Bind.Mod.Fourth:		Super Control
 *.Bind.Mod.Fifth:			Alt
-! Bind max
-*.Bind.Max:					24
 ! General bindings
-*.Bind.000.Key:			q
-*.Bind.000.Third:			Q
-*.Bind.001.Key:			Return
-*.Bind.001.First:			!urxvt
-*.Bind.002.Key:			w
-*.Bind.002.First:			!firefox
-*.Bind.003.Key:			F4
-*.Bind.003.Fifth:			wq
-! Foocus
-*.Bind.010.Key:			Tab
-*.Bind.010.First:			fp
-*.Bind.011.Key:			h
-*.Bind.011.First:			fh
-*.Bind.012.Key:			j
-*.Bind.012.First:			fj
-*.Bind.013.Key:			k
-*.Bind.013.First:			fk
-*.Bind.014.Key:			l
-*.Bind.014.First:			fl
+*.Bind.00.Key:			q
+*.Bind.00.Third:		Q
+*.Bind.01.Key:			Return
+*.Bind.01.First:		!urxvt
+*.Bind.02.Key:			w
+*.Bind.02.First:		!firefox
+*.Bind.03.Key:			F4
+*.Bind.03.Fifth:		wq
+! Tiling mode
+*.Bind.60.Key:			space
+*.Bind.60.First:		o
+*.Bind.60.Second:		ox
+*.Bind.60.Third:		om
+! Focus / Move
+*.Bind.70.Key:			Tab
+*.Bind.70.First:		fp
+*.Bind.71.Key:			h
+*.Bind.71.First:		fh
+*.Bind.71.Second:		mh
+*.Bind.72.Key:			j
+*.Bind.72.First:		fj
+*.Bind.72.Second:		mj
+*.Bind.73.Key:			k
+*.Bind.73.First:		fk
+*.Bind.73.Second:		mk
+*.Bind.74.Key:			l
+*.Bind.74.First:		fl
+*.Bind.74.Second:		ml
+! Modify Settings
+*.Bind.80.Key:			x
+*.Bind.80.First:		bx
+*.Bind.80.Second:		bS
+*.Bind.80.Third:		bX
+*.Bind.80.Fourth:		bH
+*.Bind.81.Key:			i
+*.Bind.81.First:		si
+*.Bind.81.Second:		gi
+*.Bind.81.Third:		ni
+*.Bind.82.Key:			d
+*.Bind.82.First:		sd
+*.Bind.82.Second:		gd
+*.Bind.82.Third:		nd
+*.Bind.83.Key:			r
+*.Bind.83.First:		sr
+*.Bind.83.Second:		gr
+*.Bind.83.Third:		nr
 ! Tag bindings
-*.Bind.021.Key:			1
-*.Bind.021.First:			tx1
-*.Bind.021.Second:		tt1
-*.Bind.021.Third:			wtx1
-*.Bind.021.Fourth:		wtt1
-*.Bind.022.Key:			2
-*.Bind.022.First:			tx2
-*.Bind.022.Second:		tt2
-*.Bind.022.Third:			wtx2
-*.Bind.022.Fourth:		wtt2
-*.Bind.023.Key:			3
-*.Bind.023.First:			tx3
-*.Bind.023.Second:		tt3
-*.Bind.023.Third:			wtx3
-*.Bind.023.Fourth:		wtt3
-*.Bind.024.Key:			4
-*.Bind.024.First:			tx4
-*.Bind.024.Second:		tt4
-*.Bind.024.Third:			wtx4
-*.Bind.024.Fourth:		wtt4
+*.Bind.91.Key:			1
+*.Bind.91.First:		tx1
+*.Bind.91.Second:		tt1
+*.Bind.91.Third:		wtx1
+*.Bind.91.Fourth:		wtt1
+*.Bind.92.Key:			2
+*.Bind.92.First:		tx2
+*.Bind.92.Second:		tt2
+*.Bind.92.Third:		wtx2
+*.Bind.92.Fourth:		wtt2
+*.Bind.93.Key:			3
+*.Bind.93.First:		tx3
+*.Bind.93.Second:		tt3
+*.Bind.93.Third:		wtx3
+*.Bind.93.Fourth:		wtt3
+*.Bind.94.Key:			4
+*.Bind.94.First:		tx4
+*.Bind.94.Second:		tt4
+*.Bind.94.Third:		wtx4
+*.Bind.94.Fourth:		wtt4
 
 
 !-------------------------------------------------------------------!
