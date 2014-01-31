@@ -135,8 +135,11 @@ int mod_container(const char *s) {
 		case 's': t = &m->split; r = conf.split; break;
 		case 'g': t = &m->gap; r = conf.gap; break;
 	}
-	if (s[2]) n = atoi(&s[2]);
-	switch (s[1]) {
+	if (s[1]) {
+		n = atoi(&s[1]);
+		*t = n;
+	}
+	else switch (s[1]) {
 		case 'i': *t += 1; break;
 		case 'd': *t -= 1; break;
 		case 'r': *t = r; break;

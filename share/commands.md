@@ -67,7 +67,55 @@ tag number to the current monitor
 
 Select rstack, bstack, monocle, or cycle through modes
 
+**Quit** close the current client, or alopex itself
 
+>q
 
+Close the focused client window
 
+>Q
+
+Exit alopex
+
+**View** Toggle views
+
+>v
+
+Toggle between two alternative views (coming soon)
+
+**Mark** Mark the focused client window
+
+>z#
+
+Set the specified mark number to the currently focused client window
+
+**Congigurable Tile Options**
+
+>n# ni nd nr
+
+Set the maximum number of clients for the current container to the
+specified numer, increase by one, decrease by one, or reset to the
+default setting
+
+>s# si sd sr
+
+Set the monitor split value to the specified number, increase by one,
+decrease by one, or reset to the default setting
+
+>g# gi gd gr
+
+Set the monitor gap to the specified number, increase by one, decrease
+by one, or reset to the default value.
+
+**Bar Options**
+
+>bs bh bx bt bb
+
+Adjust the currently focused container bar to show, hide, toggle
+visibility, place on top, or place on bottom
+
+>bS bH bX bT bB
+
+Adjust all bars to show, hide, toggle visibility, place on top, or place
+on bottom
 
