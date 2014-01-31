@@ -5,10 +5,10 @@
 extern int command(const char *);
 extern int focus(Client *, const char *);
 extern int killclient(Client *);
+extern int layout(const char *);
 extern int mod_bar(const char *);
 extern int mod_container(const char *);
 extern int move(Client *, const char *);
-extern int ordering(const char *);
 extern int pull_client(Client *);
 extern int push_client(Client *, Client *);
 extern int spawn(const char *);

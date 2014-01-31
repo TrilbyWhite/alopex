@@ -103,9 +103,14 @@ struct Container {
 	Client *top;
 };
 
+typedef struct Margin {
+	int top, bottom, left, right;
+} Margin;
+
 typedef struct Monitor Monitor;
 struct Monitor {
 	Monitor *next;
+	Margin margin;
 	int x, y, w, h, gap;
 	int tags, occ, mode, split;
 	Container *container, *focus;
@@ -120,6 +125,7 @@ typedef union Theme {
 typedef struct Config {
 	cairo_font_face_t *font, *bfont;
 	Theme theme[ThemeLast];
+	Margin margin;
 	int nkeys;
 	Key *key;
 	int nrules;

@@ -44,12 +44,12 @@ int icons_free() {
 int round_rect(Bar *b, int x, int y, int w, int h,
 		int off, int bg, int brd, int txt) {
 	const Theme *q = &conf.theme[off];
-	cairo_new_sub_path(b->ctx);
 	if (b->opts & BAR_BOTTOM) {
 		cairo_save(b->ctx);
 		cairo_scale(b->ctx, 1, -1);
 		cairo_translate(b->ctx, 0, -1 * (b->opts & BAR_HEIGHT));
 	}
+	cairo_new_sub_path(b->ctx);
 	x += q->x; y += q->y; w += q->w; h += q->h;
 	cairo_arc(b->ctx, x + w - q->e, y + q->e, q->e, -0.5 * M_PI, 0);
 	cairo_arc(b->ctx, x + w - q->e, y + h - q->e, q->e, 0, 0.5 * M_PI);

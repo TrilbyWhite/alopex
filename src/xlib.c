@@ -113,6 +113,7 @@ int get_mons(const char *bg, const char *cont) {
 		M->focus = mons[i].container;
 		M->mode = conf.mode;
 		M->bg = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,M->w,M->h);
+		M->margin = conf.margin;
 		/* paint monitor bg */
 		ctx = cairo_create(M->bg);
 		cairo_scale(ctx, M->w / (float) imgw, M->h / (float) imgh);

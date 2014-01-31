@@ -80,7 +80,6 @@ int tile() {
 	/* paint bar buffers to windows */
 	for (M = mons; M; M = M->next) {
 		for (numC = 0, C = M->container; C; C = C->next, numC++) {
-cairo_surface_flush(C->bar->buf);
 			cairo_set_source_surface(C->ctx, C->bar->buf, 0, 0);
 			cairo_paint(C->ctx);
 		}
@@ -92,30 +91,34 @@ cairo_surface_flush(C->bar->buf);
 
 int resize_container(Monitor *M, Container *C, int numC, int ord) {
 	/* calcualte size based on mode */
+	int x = M->x + M->margin.left;
+	int y = M->y + M->margin.top;
+	int w = M->w - M->margin.left - M->margin.right;
+	int h = M->h - M->margin.top - M->margin.bottom;
 	int stack_size;
 	if (numC == 1) { /* only one container */
-		C->x = M->x + M->gap;
-		C->y = M->y + M->gap;
-		C->w = M->w - 2 * M->gap;
-		C->h = M->h - 2 * M->gap;
+		C->x = x + M->gap;
+		C->y = y + M->gap;
+		C->w = w - 2 * M->gap;
+		C->h = h - 2 * M->gap;
 	}
 	else if (M->mode == RSTACK) {
-		stack_size = (M->h - M->gap) / (numC - 1) - M->gap;
-		C->x = M->x + M->gap + (ord ? (M->w -  M->gap) / 2 + M->split: 0);
-		C->y = M->y + M->gap + (stack_size + M->gap) * (ord ? ord - 1 : 0);
-		C->w = (ord ? M->w - M->gap - C->x :
-				(M->w - M->gap) / 2 - M->gap + M->split);
-		C->h = (ord ? stack_size : M->h - 2 * M->gap);
-		if (ord == numC - 1) C->h = M->h - M->gap - C->y + M->y;
+		stack_size = (h - M->gap) / (numC - 1) - M->gap;
+		C->x = x + M->gap + (ord ? (w -  M->gap) / 2 + M->split: 0);
+		C->y = y + M->gap + (stack_size + M->gap) * (ord ? ord - 1 : 0);
+		C->w = (ord ? x + w - M->gap - C->x :
+				(w - M->gap) / 2 - M->gap + M->split);
+		C->h = (ord ? stack_size : h - 2 * M->gap);
+		if (ord == numC - 1) C->h = h - M->gap - C->y + y;
 	}
 	else if (M->mode == BSTACK) {
-		stack_size = (M->w - M->gap) / (numC - 1) - M->gap;
-		C->x = M->x + M->gap + (stack_size + M->gap) * (ord ? ord - 1 : 0);
-		C->y = M->y + M->gap + (ord ? (M->h -  M->gap) / 2 + M->split: 0);
-		C->w = (ord ? stack_size : M->w - 2 * M->gap);
-		C->h = (ord ? M->h - M->gap - C->y :
-				(M->h - M->gap) / 2 - M->gap + M->split);
-		if (ord == numC - 1) C->w = M->w - M->gap - C->x + M->x;
+		stack_size = (w - M->gap) / (numC - 1) - M->gap;
+		C->x = x + M->gap + (stack_size + M->gap) * (ord ? ord - 1 : 0);
+		C->y = y + M->gap + (ord ? (h -  M->gap) / 2 + M->split: 0);
+		C->w = (ord ? stack_size : w - 2 * M->gap);
+		C->h = (ord ? y + h - M->gap - C->y :
+				(h - M->gap) / 2 - M->gap + M->split);
+		if (ord == numC - 1) C->w = w - M->gap - C->x + x;
 	}
 	/* adjust for bar space */
 	if (!(C->bar->opts & BAR_HIDE)) {

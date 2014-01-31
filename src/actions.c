@@ -87,6 +87,23 @@ int killclient(Client *c) {
 	return send_message(c, WM_PROTOCOLS, WM_DELETE_WINDOW);
 }
 
+int layout(const char *s) {
+	switch (s[0]) {
+		case 'r': m->mode = RSTACK; break;
+		case 'b': m->mode = BSTACK; break;
+		case 'm': m->mode = MONOCLE; break;
+		case 'x': m->mode = conf.mode; break;
+		default: if ( (++m->mode) == LAST_MODE ) m->mode = 0;
+	}
+}
+
+int mark_client(Client *t, const char *s) {
+	int n = atoi(s);
+	if (n > 1 && n < 10) winmarks[n] = t;
+	else if (n == 1) { winmarks[0] = winmarks[1]; winmarks[1] = t; }
+	return 0;
+}
+
 int mod_bar(const char *s) {
 	Container *C;
 	Bar *b;
@@ -107,7 +124,6 @@ int mod_bar(const char *s) {
 			C->bar->opts &= ~BAR_BOTTOM; break;
 		case 'B': for (C = m->container; C; C = C->next)
 			C->bar->opts |= BAR_BOTTOM; break;
-		/* TODO allow for space for second bar */
 	}
 }
 
@@ -127,6 +143,30 @@ int mod_container(const char *s) {
 		default: *t += atoi(&s[1]); break;
 	}
 	/* TODO boundary checks */
+}
+
+int monitor(const char *s) {
+	int n1, n2, n3, n4;
+	if (*s == 'm') { /* margins */
+		if (s[1] == 'r')
+			m->margin = conf.margin;
+		else {
+			sscanf(s,"%d,%d,%d,%d", &n1, &n2, &n3, &n4);
+			m->margin.top = n1;
+			m->margin.bottom = n2;
+			m->margin.left = n3;
+			m->margin.right = n4;
+		}
+	}
+	else { /* focus another monitor */
+		/* TODO needs testing */
+		int n;
+		if (!(n=atoi(s))) return 1;
+		Monitor *M;
+		for (M = mons; n > 1 && M; n--, M = M->next);
+		if (M) m = M;
+	}
+	return 0;
 }
 
 int move(Client *t, const char *s) {
@@ -158,16 +198,6 @@ int move(Client *t, const char *s) {
 				break;
 			case 'l': pull_client(c); push_client(c, NULL); break;
 		}
-	}
-}
-
-int ordering(const char *s) {
-	switch (s[0]) {
-		case 'r': m->mode = RSTACK; break;
-		case 'b': m->mode = BSTACK; break;
-		case 'm': m->mode = MONOCLE; break;
-		case 'x': m->mode = conf.mode; break;
-		default: if ( (++m->mode) == LAST_MODE ) m->mode = 0;
 	}
 }
 
@@ -251,17 +281,15 @@ Value:
 a cde  -i---  op r  u -xy
 A CDE  HIJKLM OP R TUV XY
 
-target: [0-9](h|j|k|l|w)
-	[target] verb [options]
-
 	verb
+d display monitor ...
 f focus		target focus
 f focus		focus (left|right|up|down|prev/alt) (h|j|k|l|p|a)
 m move		target move-focused (before|after|swap) (b|a|s)
 m move		move-focused (left|right|up|down) (h|j|k|l)
 t tag		target tag (move|add|remove|toggle) (x|a|r|t)#
 t tag		tag (single|add|remove|toggle) (x|a|r|t)#
-o ordering  mode (mono,rstack,bstack)
+l layout  mode (mono,rstack,bstack)
 q quit		target kill
 q quit		kill-focused
 Q Quit		kill wm (quit)
@@ -271,9 +299,7 @@ g gap		gap (up|down|reset) (i|d|r|#)
 b bar		bar (show|hide|top|bottom) (s|h|x|t|b)
 v view		view-swap
 z Windowmark num
-		monitor ...
 
-F get-focused
 N get-nclients
 S get-split
 G get-gap
@@ -284,32 +310,28 @@ Z get-window-num
 int word(const char *word) {
 	const char *s = word;
 	/* get target */
-	Client *t = NULL, *dt = NULL;
-	if (m->focus && m->focus->top) dt = m->focus->top;
-	int n = atoi(s);
-	if (!n) n = 1;
-	while (*s >= '0' && *s <= '9') s++;
-	switch (s[0]) {
-		// TODO
-		case 'j': s++; break;
-		case 'k': s++; break;
-		case 'h': s++; break;
-		case 'l': s++; break;
-		case 'w': t = winmarks[n]; s++; break;
+	Client *t = NULL, *wt = NULL;
+	int n;
+	if (s[0] == 'w') {
+		s++;
+		if ( !(n = atoi(s)) ) n = 1;
+		if (n > 0 && n < 10) wt = winmarks[n];
+		if (!wt) return 1;
+		while (*s >= '0' && *s <= '9') s++;
 	}
-	if (t) dt = t;
 	/* process command */
 	switch (s[0]) {
-		case 'f': focus(t, &s[1]); break;
-		case 'm': move(t, &s[1]); break;
-		case 't': tag(t, &s[1]); break;
-		case 'o': ordering(&s[1]); break;
-		case 'q': killclient(dt); break;
+		case 'd': monitor(&s[1]); break;
+		case 'f': focus(wt, &s[1]); break;
+		case 'm': move(wt, &s[1]); break;
+		case 't': tag(wt, &s[1]); break;
+		case 'l': layout(&s[1]); break;
+		case 'q': killclient(t); break;
 		case 'Q': running = False; break;
 		case 'n': case 's': case 'g': mod_container(s);  break;
 		case 'b': mod_bar(&s[1]); break;
 		case 'v': break;
-		case 'z': break;
+		case 'z': mark_client(t, &s[1]); break;
 	}
 	tile();
 	return 0;

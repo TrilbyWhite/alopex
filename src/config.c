@@ -73,7 +73,7 @@ int reconfigure() {
 enum {
 	STR_Font, STR_BoldFont, STR_IconFile, STR_Options, STR_Background,
 	STR_Containers, STR_Names, STR_Icons, STR_FollowMouse, STR_Attach,
-	STR_StatIn, STR_Mode,
+	STR_StatIn, STR_Mode, STR_Margin,
 	STR_Last
 };
 enum { TYPE_S, TYPE_D };
@@ -107,6 +107,7 @@ int config_general(XrmDatabase xrdb, const char *base) {
 		{ RES_Tiling, RES_Padding,    TYPE_D, &conf.gap},
 		{ RES_Tiling, "Containers",   TYPE_S, &s[STR_Containers]},
 		{ RES_Tiling, "Mode",         TYPE_S, &s[STR_Mode]},
+		{ RES_Tiling, "Margin",       TYPE_S, &s[STR_Margin]},
 		{ RES_Tags,   "Names",        TYPE_S, &s[STR_Names]},
 		{ RES_Tags,   "Icons",        TYPE_S, &s[STR_Icons]},
 		{ RES_Tags,   RES_Padding,    TYPE_D, &conf.bar_pad},
@@ -148,6 +149,9 @@ int config_general(XrmDatabase xrdb, const char *base) {
 	if (strcasestr(s[STR_Attach],"above")) conf.attach = ATTACH_ABOVE;
 	if (strcasestr(s[STR_Attach],"below")) conf.attach = ATTACH_BELOW;
 	if (strcasestr(s[STR_Attach],"bottom")) conf.attach = ATTACH_BOTTOM;
+	if (s[STR_Margin]) sscanf(s[STR_Margin],"%d %d %d %d",
+			&conf.margin.top, &conf.margin.bottom,
+			&conf.margin.left, &conf.margin.right);
 	/* get tag names and icon numbers */
 	conf.tag_name = NULL;
 	char *name = strtok((char *) s[STR_Names]," ");
