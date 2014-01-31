@@ -142,7 +142,6 @@ int mod_container(const char *s) {
 		case 'r': *t = r; break;
 		default: *t += atoi(&s[1]); break;
 	}
-	/* TODO boundary checks */
 }
 
 int monitor(const char *s) {
@@ -310,11 +309,11 @@ Z get-window-num
 int word(const char *word) {
 	const char *s = word;
 	/* get target */
-	Client *t = NULL, *wt = NULL;
+	Client *t = winmarks[1], *wt = NULL;
 	int n;
 	if (s[0] == 'w') {
 		s++;
-		if ( !(n = atoi(s)) ) n = 1;
+		if ( !(n=atoi(s)) ) n = 1;
 		if (n > 0 && n < 10) wt = winmarks[n];
 		if (!wt) return 1;
 		while (*s >= '0' && *s <= '9') s++;

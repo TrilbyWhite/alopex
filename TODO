@@ -1,5 +1,5 @@
 
-margins - test
+margins - key bindings to config
 bug: bars "freeze" and stop getting redrawn after some time
 	- C->bar->buf is painted to C->win, but buf isn't updated.
 	- only the buf in use at the time is affected

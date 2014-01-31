@@ -22,23 +22,16 @@
 *.Tiling.Padding:			8
 *.Tiling.Containers:		1 3 3
 *.Tiling.Mode:				rstack
+*.Tiling.Margin:			0 0 0 0
 
 !----- Tags -----!
 *.Tags.Names:				one two three four five
 *.Tags.Icons:				1 2 3 4 5
 *.Tags.Padding:			5
 
-!----- Chains -----!
-*.Chains.Delay:			500
-
 !----- Clients -----!
 *.Clients.FollowMouse:	false
 *.Clients.Attach:			top
-
-!----- Macros -----!
-*.Macro.m:					!interrobang
-*.Macro.t:					!urxvt
-*.Macro.w:					!firefox
 
 !----- Rules -----!
 *.Rule.00.Name:			Float
@@ -65,64 +58,71 @@
 *.Bind.03.Key:			F4
 *.Bind.03.Fifth:		wq
 ! Tiling mode
-*.Bind.60.Key:			space
-*.Bind.60.First:		o
-*.Bind.60.Second:		ox
-*.Bind.60.Third:		om
+*.Bind.50.Key:			space
+*.Bind.50.First:		l
+*.Bind.50.Second:		lx
+*.Bind.50.Third:		lm
 ! Focus / Move
-*.Bind.70.Key:			Tab
-*.Bind.70.First:		fp
-*.Bind.71.Key:			h
-*.Bind.71.First:		fh
-*.Bind.71.Second:		mh
-*.Bind.72.Key:			j
-*.Bind.72.First:		fj
-*.Bind.72.Second:		mj
-*.Bind.73.Key:			k
-*.Bind.73.First:		fk
-*.Bind.73.Second:		mk
-*.Bind.74.Key:			l
-*.Bind.74.First:		fl
-*.Bind.74.Second:		ml
+*.Bind.60.Key:			Tab
+*.Bind.60.First:		fp
+*.Bind.61.Key:			h
+*.Bind.61.First:		fh
+*.Bind.61.Second:		mh
+*.Bind.62.Key:			j
+*.Bind.62.First:		fj
+*.Bind.62.Second:		mj
+*.Bind.63.Key:			k
+*.Bind.63.First:		fk
+*.Bind.63.Second:		mk
+*.Bind.64.Key:			l
+*.Bind.64.First:		fl
+*.Bind.64.Second:		ml
 ! Modify Settings
-*.Bind.80.Key:			x
-*.Bind.80.First:		bx
-*.Bind.80.Second:		bS
-*.Bind.80.Third:		bX
-*.Bind.80.Fourth:		bH
-*.Bind.81.Key:			i
-*.Bind.81.First:		si
-*.Bind.81.Second:		gi
-*.Bind.81.Third:		ni
-*.Bind.82.Key:			d
-*.Bind.82.First:		sd
-*.Bind.82.Second:		gd
-*.Bind.82.Third:		nd
-*.Bind.83.Key:			r
-*.Bind.83.First:		sr
-*.Bind.83.Second:		gr
-*.Bind.83.Third:		nr
+*.Bind.70.Key:			x
+*.Bind.70.First:		bx
+*.Bind.70.Second:		bS
+*.Bind.70.Third:		bX
+*.Bind.70.Fourth:		bH
+*.Bind.71.Key:			i
+*.Bind.71.First:		si
+*.Bind.71.Second:		gi
+*.Bind.71.Third:		ni
+*.Bind.72.Key:			d
+*.Bind.72.First:		sd
+*.Bind.72.Second:		gd
+*.Bind.72.Third:		nd
+*.Bind.73.Key:			r
+*.Bind.73.First:		sr
+*.Bind.73.Second:		gr
+*.Bind.73.Third:		nr
 ! Tag bindings
-*.Bind.91.Key:			1
-*.Bind.91.First:		tx1
-*.Bind.91.Second:		tt1
-*.Bind.91.Third:		wtx1
-*.Bind.91.Fourth:		wtt1
-*.Bind.92.Key:			2
-*.Bind.92.First:		tx2
+*.Bind.81.Key:			1
+*.Bind.81.First:		tx1
+*.Bind.81.Second:		tt1
+*.Bind.81.Third:		wtx1
+*.Bind.81.Fourth:		wtt1
+*.Bind.82.Key:			2
+*.Bind.82.First:		tx2
+*.Bind.82.Second:		tt2
+*.Bind.82.Third:		wtx2
+*.Bind.82.Fourth:		wtt2
+*.Bind.83.Key:			3
+*.Bind.83.First:		tx3
+*.Bind.83.Second:		tt3
+*.Bind.83.Third:		wtx3
+*.Bind.83.Fourth:		wtt3
+*.Bind.84.Key:			4
+*.Bind.84.First:		tx4
+*.Bind.84.Second:		tt4
+*.Bind.84.Third:		wtx4
+*.Bind.84.Fourth:		wtt4
+! Window marks:
+*.Bind.92.Key:			F2
+*.Bind.92.First:		w2f
 *.Bind.92.Second:		tt2
-*.Bind.92.Third:		wtx2
-*.Bind.92.Fourth:		wtt2
-*.Bind.93.Key:			3
-*.Bind.93.First:		tx3
+*.Bind.93.Key:			F3
+*.Bind.93.First:		w3f
 *.Bind.93.Second:		tt3
-*.Bind.93.Third:		wtx3
-*.Bind.93.Fourth:		wtt3
-*.Bind.94.Key:			4
-*.Bind.94.First:		tx4
-*.Bind.94.Second:		tt4
-*.Bind.94.Third:		wtx4
-*.Bind.94.Fourth:		wtt4
 
 
 !-------------------------------------------------------------------!
