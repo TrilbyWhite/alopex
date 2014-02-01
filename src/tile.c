@@ -1,6 +1,9 @@
 
 #include "alopex.h"
 
+extern int draw_bars(Bool);
+extern int sbar_tags(Monitor *M);
+
 Bool tile_check(Monitor *, Client *);
 
 static int resize_container(Monitor *, Container *, int, int);
@@ -20,18 +23,24 @@ int tile() {
 		if (M->mode == MONOCLE) {
 			M->focus = M->container;
 			numC = 1;
-			for (c = clients; c; c = c->next) if (tile_check(M, c)) {
-				if (!winmarks[1]) winmarks[1] = c;
-				if (c == winmarks[1]) M->container->top = c;
+			M->occ = 0;
+			for (c = clients; c; c = c->next) {
+				M->occ |= (c->tags & 0xFFFF);
+				if (tile_check(M, c)) {
+					if (!winmarks[1]) winmarks[1] = c;
+					if (c == winmarks[1]) M->container->top = c;
+				}
 			}
 		}
 		else { /* {r/b}stack: */
 			c = clients;
+			M->occ = 0;
 			for (numC = 0, C = M->container; C; C = C->next, numC++) {
 				cn = (M->mode == MONOCLE ? 1024 : (C->n > 0 ? C->n : 1024));
 				t = NULL;
 				for (num = 0, pc = c; c && num < cn; c = c->next) {
-				/* fill C up to max clients */
+					/* fill C up to max clients */
+					M->occ |= (c->tags & 0xFFFF);
 					if (tile_check(M, c)) {
 						num++;
 						/* set C->top */
@@ -48,6 +57,7 @@ int tile() {
 				C->top = t;
 			}
 		}
+		sbar_tags(M);
 		/* tile each used container, hide others */
 		c = clients;
 		for (ord = 0, C = M->container; C && c; C = C->next, ord++) {
@@ -58,13 +68,18 @@ int tile() {
 			resize_container(M, C, numC, ord);
 			tile_container(M, C, pc, num);
 		}
-		for (C; C; C = C->next) purgatory(C->win);
+		for (C; C; C = C->next) {
+			purgatory(C->win);
+			C->top = NULL;
+		}
 		/* show bar if no containers are visible */
 		if (!numC && !(conf.bar_opts & BAR_HIDE)) {
 			C = M->container;
-			int y = M->y + (conf.bar_opts & BAR_BOTTOM ? M->h-C->bar->h : 0);
-			XMoveResizeWindow(dpy, C->win, M->x, y, M->w, C->bar->h);
-			cairo_set_source_surface(C->bar->ctx, M->bg, -C->x, -y);
+			C->x = M->x;
+			C->y = M->y + (conf.bar_opts & BAR_BOTTOM ? M->h-C->bar->h : 0);
+			C->w = M->w;
+			XMoveResizeWindow(dpy, C->win, C->x, C->y, C->w, C->bar->h);
+			cairo_set_source_surface(C->bar->ctx, M->bg, -C->x, -C->y);
 			cairo_paint(C->bar->ctx);
 		}
 		/* sort floating windows */
@@ -77,25 +92,25 @@ int tile() {
 		}
 		if (!M->focus) M->focus = M->container;
 	}
-	/* paint bar buffers to windows */
-	for (M = mons; M; M = M->next) {
-		for (numC = 0, C = M->container; C; C = C->next, numC++) {
-			cairo_set_source_surface(C->ctx, C->bar->buf, 0, 0);
-			cairo_paint(C->ctx);
-		}
-	}
+	draw_bars(False);
 	set_focus();
 	return 0;
 }
 
 
 int resize_container(Monitor *M, Container *C, int numC, int ord) {
-	/* calcualte size based on mode */
+	/* get tileable region */
 	int x = M->x + M->margin.left;
 	int y = M->y + M->margin.top;
 	int w = M->w - M->margin.left - M->margin.right;
 	int h = M->h - M->margin.top - M->margin.bottom;
 	int stack_size;
+	/* pad for status bars */
+	if (!ord) C->left_pad = sbar[0].w + sbar[1].w + M->tbar.w;
+	C->right_pad = 0;
+	if (ord == 1 || numC == 1) C->right_pad += sbar[2].w;
+	if (ord == numC - 1 || numC == 1) C->right_pad += sbar[3].w;
+	/* calculate for each tiling mode */
 	if (numC == 1) { /* only one container */
 		C->x = x + M->gap;
 		C->y = y + M->gap;

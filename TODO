@@ -1,12 +1,11 @@
 
-margins - key bindings to config
 bug: bars "freeze" and stop getting redrawn after some time
 	- C->bar->buf is painted to C->win, but buf isn't updated.
 	- only the buf in use at the time is affected
-	- very rare - hard to replicate to learn more
-		- rare: several hours of running and no issue yet
-finish actions.c
-floating window interactions (e.g. focus fullscreen window)
-status input reader
+	- *very* rare - hard to replicate to learn more
+	- more common when running firefox??
+floating window interactions
+	focusing
+	fullscreen key bindings
 icons
 switch from configdb to config

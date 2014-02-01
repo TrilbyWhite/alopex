@@ -13,7 +13,8 @@
 
 extern int config_init(const char *);
 extern int config_free();
-extern Bool input(char *);
+extern int draw_bars(Bool);
+extern int sbar_parse(Bar *, const char *);
 
 static int apply_rules(Client *);
 static int get_hints(Client *);
@@ -45,6 +46,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 };
 
 int free_mons(const char *bg, const char *cont) {
+	int i;
 	Monitor *M;
 	Container *C;
 	for (M = mons; M; M = M->next) {
@@ -55,8 +57,14 @@ int free_mons(const char *bg, const char *cont) {
 			cairo_destroy(C->ctx);
 			XDestroyWindow(dpy, C->win);
 		}
+		cairo_destroy(M->tbar.ctx);
+		cairo_surface_destroy(M->tbar.buf);
 		free(M->container);
 		cairo_surface_destroy(M->bg);
+	}
+	for (i = 0; i < MAX_STATUS; i++) {
+		cairo_destroy(sbar[i].ctx);
+		cairo_surface_destroy(sbar[i].buf);
 	}
 	free(mons);
 	return 0;
@@ -150,6 +158,20 @@ int get_mons(const char *bg, const char *cont) {
 			cairo_surface_destroy(t);
 			XMapWindow(dpy, C->win);
 		}
+		M->tbar.buf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+				mons->w / 2, conf.bar_opts & BAR_HEIGHT);
+		M->tbar.ctx = cairo_create(M->tbar.buf);
+		M->tbar.h = conf.bar_opts & BAR_HEIGHT;
+		cairo_set_font_face(M->tbar.ctx, conf.font);
+		cairo_set_font_size(M->tbar.ctx, conf.font_size);
+	}
+	for (i = 0; i < MAX_STATUS; i++) {
+		sbar[i].buf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+				mons->w / 2, conf.bar_opts & BAR_HEIGHT);
+		sbar[i].ctx = cairo_create(sbar[i].buf);
+		sbar[i].h = conf.bar_opts & BAR_HEIGHT;
+		cairo_set_font_face(sbar[i].ctx, conf.font);
+		cairo_set_font_size(sbar[i].ctx, conf.font_size);
 	}
 	cairo_surface_destroy(src);
 	cairo_surface_destroy(dest);
@@ -163,19 +185,25 @@ int get_mons(const char *bg, const char *cont) {
 
 #define MAX_LINE	256
 int main_loop() {
-	char line[MAX_LINE];
+	char line[MAX_LINE], *c;
 	fd_set fds;
+	int n, redraw, ret;
 	int xfd = ConnectionNumber(dpy);
 	int nfd = (conf.statfd > xfd ? conf.statfd : xfd) + 1;
 	XEvent ev;
 	while (running) {
 		FD_ZERO(&fds);
-		FD_SET(xfd,&fds);
-		FD_SET(conf.statfd,&fds);
-		select(nfd+1, &fds, 0, 0, NULL);
+		FD_SET(xfd, &fds);
+		FD_SET(conf.statfd, &fds);
+		select(nfd, &fds, 0, 0, NULL);
 		if (conf.statfd && FD_ISSET(conf.statfd, &fds)) {
 			fgets(line, MAX_LINE, conf.stat);
-			// TODO draw_status(line);
+			redraw = sbar_parse(&sbar[(n=0)], (c=line));
+			while ( (c=strchr(c, '&')) && (++n) < MAX_STATUS)
+				redraw += sbar_parse(&sbar[n], (++c));
+			if (redraw) tile();
+			else draw_bars(True);
+			XFlush(dpy);
 		}
 		if (FD_ISSET(xfd, &fds)) while (XPending(dpy)) {
 			XNextEvent(dpy, &ev);

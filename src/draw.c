@@ -3,13 +3,68 @@
 
 static int round_rect(Bar *, int, int, int, int, int, int, int, int);
 static int set_color(cairo_t *, int);
+static int sbar_icon(Bar *, int);
+static int sbar_text(Bar *, const char *);
 
-// TODO draw_bar to incorporate statuses
+int draw_bar_sub(Monitor *M, Container *C, Bar *S, int x, Bool bg) {
+	if (C->bar->opts & BAR_HIDE) return 0;
+	cairo_rectangle(C->bar->ctx, x, 0, S->w, C->bar->h);
+	cairo_clip(C->bar->ctx);
+	if (bg) { /* draw background as needed */
+		int y = (C->bar->opts & BAR_BOTTOM ? C->y+C->h : C->y-C->bar->h);
+		if (C->top)
+			cairo_set_source_surface(C->bar->ctx, M->bg, -C->x, -y);
+		else
+			cairo_set_source_surface(C->bar->ctx, M->bg, -C->x, 0);
+		cairo_paint(C->bar->ctx);
+	}
+	cairo_set_source_surface(C->bar->ctx, S->buf, x, 0);
+	cairo_paint(C->bar->ctx);
+	cairo_reset_clip(C->bar->ctx);
+	return 0;
+}
+
+int draw_bars(Bool bg) {
+	Monitor *M; Container *C;
+	int n, count;;
+	for (M = mons; M; M = M->next) {
+		count = n = 0;
+		for (C = M->container; C; C = C->next) if (C->top) count++;
+		for (C = M->container; C; C = C->next) {
+			/* paint status to buf */
+			if (n == 0) {
+				draw_bar_sub(M, C, &sbar[0], 0, bg);
+				draw_bar_sub(M, C, &M->tbar, sbar[0].w, bg);
+				draw_bar_sub(M, C, &sbar[1], sbar[0].w + M->tbar.w, bg);
+				if (count < 2) {
+					draw_bar_sub(M, C, &sbar[2], C->w-sbar[2].w-sbar[3].w, bg);
+					draw_bar_sub(M, C, &sbar[3], C->w - sbar[3].w, bg);
+				}
+			}
+			else if (n == 1) {
+				if (count == 2) {
+					draw_bar_sub(M, C, &sbar[2], C->w-sbar[2].w-sbar[3].w, bg);
+					draw_bar_sub(M, C, &sbar[3], C->w - sbar[3].w, bg);
+				}
+				else  {
+					draw_bar_sub(M, C, &sbar[2], C->w - sbar[2].w, bg);
+				}
+			}
+			else if (n == count - 1) {
+				draw_bar_sub(M, C, &sbar[3], C->w - sbar[3].w, bg);
+			}
+			/* paint buf to win */
+			cairo_set_source_surface(C->ctx, C->bar->buf, 0, 0);
+			cairo_paint(C->ctx);
+			if ( (++n) >= count ) break;
+		}
+	}
+}
 
 int draw_tab(Container *C, Client *c, int n, int count) {
 	Bar *b = C->bar;
-	int w = C->w / count;
-	int x = w * n;
+	int w = (C->w - C->left_pad - C->right_pad)/ count;
+	int x = w * n + C->left_pad;
 	int h = C->bar->opts & BAR_HEIGHT;
 	int theme = 0;
 	if (m->focus == C && C->top == c) theme = 3;
@@ -63,6 +118,91 @@ int round_rect(Bar *b, int x, int y, int w, int h,
 	cairo_stroke(b->ctx);
 	if (b->opts & BAR_BOTTOM) cairo_restore(b->ctx);
 	set_color(b->ctx, txt);
+	return 0;
+}
+
+int sbar_icon(Bar *S, int n) {
+	if ( (--n) < 0 || n > 99) return 1;
+	cairo_save(S->ctx);
+	//cairo_set_source_surface(S->ctx, icon_img[n], S->xoff, 2);
+	//cairo_paint(S->ctx);
+	//S->xoff += icon_size;
+	cairo_restore(S->ctx);
+	return 0;
+}
+
+int sbar_parse(Bar *S, const char *s) {
+	cairo_save(S->ctx);
+	cairo_set_operator(S->ctx, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(S->ctx);
+	cairo_restore(S->ctx);
+	S->xoff = 0;
+	set_color(S->ctx, StatusText);
+	const char *c; char *t1, *t2, *str;
+	double r, g, b, a;
+	for (c = s; c && *c != '&' && *c != '\0' && *c != '\n'; c++) {
+		if (*c == '{') {
+			if (*(++c) == 'i') sbar_icon(S, atoi((++c)));
+			else if (*c == 'f') cairo_set_font_face(S->ctx, conf.font);
+			else if (*c == 'F') cairo_set_font_face(S->ctx, conf.bfont);
+			else if (sscanf(c, "%lf %lf %lf %lf", &r, &g, &b, &a) == 4)
+				cairo_set_source_rgba(S->ctx, r, g, b, a);
+			c = strchr(c, '}');
+		}
+		else {
+			str = strdup(c);
+			t1 = strchr(str,'{');
+			t2 = strchr(str,'&');
+			if (t1 && t2 && t1 > t2) t1 = t2;
+			else if (!t1 && t2) t1 = t2;
+			if (!t1) t1 = strchr(str,'\n');
+			*t1 = '\0';
+			c += t1 - str - 1;
+			sbar_text(S, str);
+			free(str);
+		}
+	}
+	if (S->w != S->xoff) {
+		S->w = S->xoff;
+		return 1;
+	}
+	else return 0;
+}
+
+int sbar_tags(Monitor *M) {
+	if (M->container->bar->opts & BAR_HIDE) return 0;
+	Bar *S = &M->tbar;
+	cairo_save(S->ctx);
+	cairo_set_operator(S->ctx, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(S->ctx);
+	cairo_restore(S->ctx);
+	S->xoff = 0;
+	int i;
+	for (i = 0; conf.tag_name[i]; i++) {
+		set_color(S->ctx, TagOccupied);
+		if (M->occ & (1<<i)) cairo_set_font_face(S->ctx, conf.bfont);
+		else cairo_set_font_face(S->ctx, conf.font);
+		if ( (M->tags & (1<<i)) && (M->tags & (1<<(1+16))) )
+			set_color(S->ctx, TagBoth);
+		else if (M->tags & (1<<i))
+			set_color(S->ctx, TagView);
+		else if (M->tags & (1<<(i+16)))
+			set_color(S->ctx, TagAlt);
+		else if (!(M->occ & (1<<i)))
+			continue;
+		sbar_text(S, conf.tag_name[i]);
+		S->xoff += conf.bar_pad;
+	}
+	S->w = S->xoff;
+	return 0;
+}
+
+int sbar_text(Bar *S, const char *str) {
+	cairo_move_to(S->ctx, S->xoff, S->h - 4);
+	cairo_show_text(S->ctx, str);
+	cairo_text_extents_t ext;
+	cairo_text_extents(S->ctx, str, &ext);
+	S->xoff += ext.x_advance;
 	return 0;
 }
 

@@ -180,7 +180,6 @@ int move(Client *t, const char *s) {
 		switch (s[0]) {
 			case 'a': pull_client(c); push_client(c, t); break;
 			case 'b': pull_client(c); push_client(c, t->next); break;
-			case 's': /* TODO swap */ break;
 		}
 	}
 	else { /* move focused in direction */
@@ -252,62 +251,13 @@ int tag(Client *t, const char *s) {
 	if (!t) n = &m->tags;
 	else n = &t->tags;
 	switch (*s) {
-		case 'x': *n = tag; break;
+		case 'x': *n = (*n & 0xFFFF0000) | tag; break;
 		case 't': *n ^= tag; break;
 		case 'a': *n |= tag; break;
 		case 'r': *n &= ~tag; break;
 		default: return 1;
 	}
 }
-
-/*
-Command:
-	word [word [word [word...]]]
-Word:
-	[target]verb[options]
-	(expression?word:word)
-	{expression?word}
-Target:
-	[0-9]+(h|j|k|l|w)
-Verb:  (TODO add monitor controls)
-	(f|m|t|q|Q|n|s|g|b|v|z)
-Options:
-	<depend on verb>
-Expression:
-	getter(=<>)value
-Getter:
-	(F|N|S|G|B|Z)
-Value:
-	w[0-9]+
-
-a cde  -i---  op r  u -xy
-A CDE  HIJKLM OP R TUV XY
-
-	verb
-d display monitor ...
-f focus		target focus
-f focus		focus (left|right|up|down|prev/alt) (h|j|k|l|p|a)
-m move		target move-focused (before|after|swap) (b|a|s)
-m move		move-focused (left|right|up|down) (h|j|k|l)
-t tag		target tag (move|add|remove|toggle) (x|a|r|t)#
-t tag		tag (single|add|remove|toggle) (x|a|r|t)#
-l layout  mode (mono,rstack,bstack)
-q quit		target kill
-q quit		kill-focused
-Q Quit		kill wm (quit)
-n nclient		nclients (up|down|one|many) (i|d|r|#)
-s split		split (up|down|reset) (i|d|r|#)
-g gap		gap (up|down|reset) (i|d|r|#)
-b bar		bar (show|hide|top|bottom) (s|h|x|t|b)
-v view		view-swap
-z Windowmark num
-
-N get-nclients
-S get-split
-G get-gap
-B get-bar (show|top)
-Z get-window-num
-*/
 
 int word(const char *word) {
 	const char *s = word;
@@ -332,7 +282,10 @@ int word(const char *word) {
 		case 'Q': running = False; break;
 		case 'n': case 's': case 'g': mod_container(s);  break;
 		case 'b': mod_bar(&s[1]); break;
-		case 'v': break;
+		case 'v': n = (m->tags<<16) & 0xFFFF0000;
+			n |= (m->tags>>16) & 0xFFFF;
+			m->tags = n;
+			break;
 		case 'z': mark_client(t, &s[1]); break;
 	}
 	tile();

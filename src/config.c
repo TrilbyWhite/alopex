@@ -40,6 +40,7 @@ int config_free() {
 	XrmDestroyDatabase(xrdb);
 	if (conf.statfd) {
 		fclose(conf.stat);
+		close(conf.statfd);
 		conf.statfd = 0;
 		kill(pid, SIGKILL);
 		wait(pid);
@@ -174,17 +175,20 @@ int config_general(XrmDatabase xrdb, const char *base) {
 	/* status input */
 	if (s[STR_StatIn]) {
 		int fd[2];
+		int flags;
 		pipe(fd);
 		if ( (pid=fork()) ) {
+			close(fd[1]);
+			flags = fcntl(fd[0], F_GETFL, 0);
+			fcntl(fd[0], F_SETFL, flags | O_NONBLOCK);
 			conf.statfd = fd[0];
 			conf.stat = fdopen(fd[0],"r");
-//			close(fd[1]);
 		}
 		else {
 			close(ConnectionNumber(dpy));
 			close(fd[0]);
 			dup2(fd[1], 1);
-			close(fd[1]);
+		//	close(fd[1]);
 			execlp(s[STR_StatIn], s[STR_StatIn], NULL);
 		}
 	}

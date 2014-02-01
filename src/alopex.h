@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <locale.h>
 #include <math.h>
 #include <signal.h>
@@ -42,7 +43,10 @@
 #define WIN_FOCUS       0x0010
 #define WIN_URGENT      0x0020
 
-#define NWINMARKS			11
+#define NWINMARKS			10
+
+#define MAX_STATUS 4
+/* pre-tags, post-tags, 2nd right, last right */
 
 enum {
 	TabOffset,
@@ -99,6 +103,7 @@ struct Container {
 	Window win;
 	cairo_t *ctx;
 	int x, y, w, h, n, nn;
+	int left_pad, right_pad;
 	Bar *bar;
 	Client *top;
 };
@@ -109,6 +114,7 @@ typedef struct Margin {
 
 typedef struct Monitor Monitor;
 struct Monitor {
+	Bar tbar;
 	Monitor *next;
 	Margin margin;
 	int x, y, w, h, gap;
@@ -150,7 +156,7 @@ Atom atom[ATOM_LAST];
 Bool running;
 FT_Library ftlib;
 Config conf;
-Bar sbar[2];
+Bar sbar[MAX_STATUS];
 
 extern void die(const char *, ...);
 extern int tile();
