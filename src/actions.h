@@ -3,6 +3,7 @@
 #define __ACTIONS_H__
 
 extern int command(const char *);
+extern int float_full(Client *);
 extern int focus(Client *, const char *);
 extern int killclient(Client *);
 extern int layout(const char *);

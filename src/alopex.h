@@ -38,6 +38,7 @@
 #define LAST_MODE			0x0003
 
 #define WIN_FLOAT       0x0001
+#define WIN_FULL_TEST   0x0002
 #define WIN_FULL        0x0003
 #define WIN_TRANS       0x0005
 #define WIN_FOCUS       0x0010

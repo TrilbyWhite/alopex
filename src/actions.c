@@ -16,6 +16,21 @@ int command(const char *cmd) {
 	return 0;
 }
 
+int float_full(Client *t) {
+	if (t) {
+		if (t->flags & WIN_FLOAT) t->flags &= ~WIN_FULL;
+		else t->flags |= WIN_FLOAT;
+	}
+	else if ( (t=winmarks[1]) ) {
+		if (t->flags & WIN_FULL_TEST) t->flags &= ~WIN_FULL;
+		else t->flags |= WIN_FULL;
+	}
+	else {
+		return 1;
+	}
+	return 0;
+}
+
 int focus(Client *t, const char *s) {
 	if (t) {
 		winmarks[0] = winmarks[1];
@@ -26,6 +41,15 @@ int focus(Client *t, const char *s) {
 	Client *c, *a, *b;
 	if (!(c=winmarks[1])) return 1;
 	switch (*s) {
+		case 'f':
+			for (a = winmarks[1]->next; a; a = a->next)
+				if (a->flags & WIN_FLOAT) break;
+			if (!a) for (a = clients; a; a = a->next)
+				if (a->flags & WIN_FLOAT) break;
+			if (!a) return 1;
+			winmarks[0] = winmarks[1];
+			winmarks[1] = a;
+			break;
 		case 'h':
 			for (C = m->container; C && C->next; C = C->next) {
 				if (C->next == m->focus) {
@@ -128,6 +152,7 @@ int mod_bar(const char *s) {
 }
 
 int mod_container(const char *s) {
+fprintf(stderr,"MOD CONTAINER %s\n",s);
 	if (!m->focus) return 1;
 	int n, *t, r;
 	switch (s[0]) {
@@ -135,15 +160,11 @@ int mod_container(const char *s) {
 		case 's': t = &m->split; r = conf.split; break;
 		case 'g': t = &m->gap; r = conf.gap; break;
 	}
-	if (s[1]) {
-		n = atoi(&s[1]);
-		*t = n;
-	}
-	else switch (s[1]) {
+	switch (s[1]) {
 		case 'i': *t += 1; break;
 		case 'd': *t -= 1; break;
 		case 'r': *t = r; break;
-		default: *t += atoi(&s[1]); break;
+		default: n = atoi(&s[1]); *t = n; break;
 	}
 }
 
@@ -259,6 +280,11 @@ int tag(Client *t, const char *s) {
 	}
 }
 
+
+/*
+a c e  hijk   opqr  u wxy
+ABCDE GHIJKLMNOP RSTUVWXYZ
+*/
 int word(const char *word) {
 	const char *s = word;
 	/* get target */
@@ -273,15 +299,16 @@ int word(const char *word) {
 	}
 	/* process command */
 	switch (s[0]) {
+		case 'b': mod_bar(&s[1]); break;
 		case 'd': monitor(&s[1]); break;
 		case 'f': focus(wt, &s[1]); break;
-		case 'm': move(wt, &s[1]); break;
-		case 't': tag(wt, &s[1]); break;
+		case 'F': float_full(wt); break;
+		case 'g': case 'n': case 's': mod_container(s);  break;
 		case 'l': layout(&s[1]); break;
+		case 'm': move(wt, &s[1]); break;
 		case 'q': killclient(t); break;
 		case 'Q': running = False; break;
-		case 'n': case 's': case 'g': mod_container(s);  break;
-		case 'b': mod_bar(&s[1]); break;
+		case 't': tag(wt, &s[1]); break;
 		case 'v': n = (m->tags<<16) & 0xFFFF0000;
 			n |= (m->tags>>16) & 0xFFFF;
 			m->tags = n;

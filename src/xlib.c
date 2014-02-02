@@ -289,13 +289,13 @@ int xlib_init(const char *theme_name) {
 				XGrabKey(dpy, code, key->mod|mod[j], root, True, GRABMODE);
 		}
 	}
-	//code = XKeysymToKeycode(dpy, XK_Super_L);
-	//for (j = 0; j < 4; j++) {
-	//	XGrabKey(dpy, code, mod[j], root, True, GRABMODE);
-	//	XGrabButton(dpy,1,Mod4Mask|mod[j],root,True,GRABMODE2);
-	//	XGrabButton(dpy,2,Mod4Mask|mod[j],root,True,GRABMODE2);
-	//	XGrabButton(dpy,3,Mod4Mask|mod[j],root,True,GRABMODE2);
-	//}
+//	code = XKeysymToKeycode(dpy, XK_Super_L);
+	for (j = 0; j < 4; j++) {
+//		XGrabKey(dpy, code, mod[j], root, True, GRABMODE);
+		XGrabButton(dpy,1,Mod4Mask|mod[j],root,True,GRABMODE2);
+		XGrabButton(dpy,2,Mod4Mask|mod[j],root,True,GRABMODE2);
+		XGrabButton(dpy,3,Mod4Mask|mod[j],root,True,GRABMODE2);
+	}
 	memset(winmarks, 0, 10*sizeof(Client *));
 	tile();
 	XFlush(dpy);
@@ -373,6 +373,7 @@ void buttonpress(XEvent *ev) {
 	if (c != winmarks[1]) {
 		winmarks[0] = winmarks[1];
 		winmarks[1] = c;
+		tile();
 	}
 	int b = e->button;
 	if (b > 3) return;
@@ -386,13 +387,22 @@ void buttonpress(XEvent *ev) {
 	XEvent ee;
 	int dx, dy;
 	int xx = e->x_root, yy = e->y_root;
-	c->flags |= WIN_FLOAT;
-	tile();
 	while (True) {
-		XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
-	expose(ev);
+		//XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
+		expose(ev);
 		XMaskEvent(dpy, PointerMotionMask | ButtonReleaseMask, &ee);
 		if (ee.type == ButtonRelease) break;
+		XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
+if (!(c->flags & WIN_FLOAT)) {
+	c->flags |= WIN_FLOAT;
+	tile();
+c->x = xx - c->w / 2;
+c->y = yy - c->h / 2;
+if (c->x + c->w > m->x + m->w) c->w = m->x + m->w - c->x;
+if (c->y + c->h > m->y + m->h) c->h = m->y + m->h - c->y;
+if (c->x < m->x) c->x = m->x;
+if (c->y < m->y) c->y = m->y;
+}
 		dx = ee.xbutton.x_root - xx; xx = ee.xbutton.x_root;
 		dy = ee.xbutton.y_root - yy; yy = ee.xbutton.y_root;
 		if (b == 1) { c->x += dx; c->y += dy; }
