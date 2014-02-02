@@ -244,10 +244,10 @@ int push_client(Client *insert, Client *before) {
 int spawn(const char *cmd) {
 	if (cmd[0] == '\0') return 0;
 	if (!fork()) {
+		setsid();
 		close(ConnectionNumber(dpy));
 		if (conf.stat) fclose(conf.stat);
 		if (conf.statfd) close(conf.statfd);
-		setsid();
 		char **arg = NULL, *tok = NULL, *tmp = strdup(cmd);
 		tok = strtok(tmp," ");
 		int i;
