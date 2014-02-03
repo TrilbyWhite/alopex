@@ -52,11 +52,10 @@
 enum {
 	TabOffset,
 	TabBackground, TabBorder, TabText,
-	TabFocusBackgorund, TabFocusBorder, TabFocusText,
+	TabFocusBackground, TabFocusBorder, TabFocusText,
 	TabTopBackground, TabTopBorder, TabTopText,
 	StatusOffset,
 	StatusBackground, StatusBorder, StatusText,
-	StatusInput,
 	TagOccupied, TagView, TagAlt, TagBoth,
 	ThemeLast
 };
@@ -68,6 +67,8 @@ enum {
 	NET_WM_WINDOW_TYPE, NET_WM_TYPE_DIALOG, NET_CLIENT_LIST,
 	ATOM_LAST
 };
+
+enum { TAG_ICON_TEXT, TAG_TEXT_ICON, TAG_TEXT, TAG_ICON };
 
 typedef struct Key {
 	unsigned short int mod;
@@ -140,8 +141,8 @@ typedef struct Config {
 	int statfd;
 	FILE *stat;
 	const char *macro[26];
-	char **tag_name, *stat_fmt;
-	int *tag_icon;
+	char **tag_name;
+	int *tag_icon, tag_count, tag_mode;
 	int gap, split, mode, bar_pad, chain_delay, bar_opts, attach;
 	int font_size;
 	Bool focus_follow;

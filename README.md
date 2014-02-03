@@ -1,12 +1,6 @@
-28 Nov 2013: The previous code is still available in the "version2" branch, but the master branch will now be devoted to a version 3 of alopex which is being rewritten from scratch.  Standby for announcements of when v3 will be ready for testing.
--J. McClure
 
-04 Dec 2013: Version three is ready for testing!  Documentation will be
-coming soon.
-
-29 Jan 2014: Version three time of death, now.  v4 in progress as a
-replacement.
-
+3 Feb 2014: Version 4 is ready for testing - icons still need to be
+implemented, but everything else seems stable.
 
 Alopex
 ======

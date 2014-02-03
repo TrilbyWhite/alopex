@@ -1,0 +1,9 @@
+!! Alopex resource database: themes
+!! By: Jesse McClure (c) 2014
+!! License: CC-BY-SA
+
+#include "/usr/share/alopex/icecap"
+#include "/usr/share/alopex/tundra"
+#include "/usr/share/alopex/taiga"
+
+!! vim: ft=xdefaults

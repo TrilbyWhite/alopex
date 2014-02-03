@@ -2,38 +2,63 @@
 !! By: Jesse McClure (c) 2014
 !! License: CC-BY-SA
 
-!-------------------------------------------------------------------!
-! SETTINGS FOR ALL THEMES
-!-------------------------------------------------------------------!
+! including a specific theme file (rather than all three) will
+!  slghtly reduce memory use.  By default all three are included
+#include "/usr/share/alopex/themes"
+
+!----- Theme name -----!
+! Used to apply theme specific settings, defaults to icecap
+! Can be overriden by passing a theme name on the command line
+Alopex.Theme:           icecap
 
 !----- Bar -----!
-*.Bar.StatFmt:				"%i%I& %1 "
-*.Bar.StatInput:			/path/to/status-script
+! A program or script that sends status strings to it's stdout
+*.Bar.StatInput:			/path/to/stat
+! Font info
 *.Bar.Font:					/usr/share/fonts/TTF/DroidSansMono.ttf
 *.Bar.BoldFont:			/usr/share/fonts/TTF/DroidSans-Bold.ttf
 *.Bar.FontSize:			14
+! PNG file with 10x10 grid of icons 0-99
 *.Bar.Icons:				/path/to/icons.png
+! Height of bars: "default" bases height on font extents
 *.Bar.Height:           default
+! Options: visible/hidden top/bottom
 *.Bar.Options:				visible top
 
 !----- Tiling -----!
-*.Tiling.Background:		/path/to/image.png
+! PNG for wallpaper
+*.Tiling.Background:		/path/to/background.png
+! Pixel count for how much larger the first container is than others
 *.Tiling.Split:			0
-*.Tiling.Padding:			8
+! Padding between tiles (e.g. "useless gap")
+*.Tiling.Padding:			0
+! Number of clients per container, there will always be one more
+!  container than specified here to hold any/all overflow
 *.Tiling.Containers:		1 3 3
+! rstack bstack or monocle
 *.Tiling.Mode:				rstack
+! pixels for the top bottom left and right of monitor that will not
+!  be used: space can be reserved for external bars/trays/docks
 *.Tiling.Margin:			0 0 0 0
 
 !----- Tags -----!
+! icon-tex text-icon icon text to specify what shows in tags
+*.Tags.Mode:            icon-text
+! specify a single '-' for a name to not show a name for tag
 *.Tags.Names:				one two three four five
+! specify a -1 for a tag to now show an icon
 *.Tags.Icons:				1 2 3 4 5
+! space between tags
 *.Tags.Padding:			5
 
 !----- Clients -----!
 *.Clients.FollowMouse:	false
+! top bottom above or below
 *.Clients.Attach:			top
 
 !----- Rules -----!
+! Each rule needs either a name, class, or both plus a specification
+!  for flags (float fullscreen) and/or tags (list for multiple)
 *.Rule.00.Name:			Float
 *.Rule.00.Flags:			float
 *.Rule.01.Class:			Float
@@ -42,6 +67,11 @@
 *.Rule.02.Tags:			2
 
 !----- Binds -----!
+! Each key can have up to five bindings using different modifiers
+! TODO allow for no modifiers? (for media keys)
+! Each key is numbered from 00-99
+! See "Commands" description in a man page or github wiki for
+!  a description of the command language used for bindings
 ! Modifier definitions
 *.Bind.Mod.First:			Super
 *.Bind.Mod.Second:		Super Alt
@@ -62,9 +92,15 @@
 *.Bind.50.First:		l
 *.Bind.50.Second:		lx
 *.Bind.50.Third:		lm
+! Floating / Fullscren:
+*.Bind.51.Key:			f
+*.Bind.51.First:		F
+*.Bind.51.Third:		wF
 ! Focus / Move
 *.Bind.60.Key:			Tab
 *.Bind.60.First:		fp
+*.Bind.60.Third:		ff
+*.Bind.60.Fifth:		v
 *.Bind.61.Key:			h
 *.Bind.61.First:		fh
 *.Bind.61.Second:		mh
@@ -119,40 +155,9 @@
 ! Window marks:
 *.Bind.92.Key:			F2
 *.Bind.92.First:		w2f
-*.Bind.92.Second:		tt2
+*.Bind.92.Second:		z2
 *.Bind.93.Key:			F3
 *.Bind.93.First:		w3f
-*.Bind.93.Second:		tt3
+*.Bind.93.Second:		z3
 
-
-!-------------------------------------------------------------------!
-! THEME SPECIFIC SETTINGS AND OVERRIDES
-!-------------------------------------------------------------------!
-! icecap
-icecap.Tab.Offset:				2.00 1.00 -4.0 10.0 6.0
-icecap.Tab.Background:			0.04 0.04 0.04 0.60 0.0
-icecap.Tab.Border:				0.00 0.20 1.00 0.45 0.8
-icecap.Tab.Text:					0.25 0.45 1.00 0.40 0.5
-icecap.TabFocus.Background:	0.14 0.14 0.14 1.00 0.0
-icecap.TabFocus.Border:			0.60 0.90 1.00 0.95 1.2
-icecap.TabFocus.Text:			0.90 0.95 1.00 0.90 -10
-icecap.TabTop.Background:		0.14 0.14 0.14 1.00 0.0
-icecap.TabTop.Border:			0.00 0.40 1.00 0.80 1.0
-icecap.TabTop.Text:				0.25 0.65 1.00 0.70 0.5
-icecap.Status.Offset:			2.00 2.00 -4.0 -8.0 5.0
-icecap.Status.Background:		0.14 0.14 0.14 0.40 0.0
-icecap.Status.Border:			1.00 1.00 1.00 0.60 1.0
-icecap.Status.Text:				0.80 0.80 0.80 1.00 0.0
-icecap.Status.Input:				0.00 0.75 0.00 1.00 1.0
-icecap.Tag.Occupied:				0.00 0.00 1.00 1.00 0.0
-icecap.Tag.View:					1.00 1.00 1.00 1.00 0.0
-icecap.Tag.Alt:					0.80 0.00 0.00 1.00 0.0
-icecap.Tag.Both:					0.80 0.00 0.80 1.00 0.0
-! tundra
-!tundra.background:           /some/other/file
-!tundra.padding:              0
-!! coming soon
-! taiga
-!! coming soon
-
-! vim: ft=xdefaults
+!! vim: ft=xdefaults

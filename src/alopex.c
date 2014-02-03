@@ -1,6 +1,5 @@
 
 #include "alopex.h"
-#define DEFAULT_THEME	"icecap"
 
 extern int xlib_init(const char *);
 extern int xlib_free();
@@ -25,7 +24,7 @@ void die(const char *fmt, ...) {
 int main(int argc, const char **argv) {
 	signal(SIGCHLD, &handler);
 	if (argc > 1) xlib_init(argv[1]);
-	else xlib_init(DEFAULT_THEME);
+	else xlib_init(NULL);
 	main_loop();
 	xlib_free();
 	return 0;

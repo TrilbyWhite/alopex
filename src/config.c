@@ -19,14 +19,18 @@ static XrmDatabase xrdb;
 int config_init(const char *theme) {
 	const char *pwd = getenv("PWD");
 	XrmInitialize();
-	xrdb = XrmGetFileDatabase("/usr/share/alopex/configdb");
 	if ( (!chdir(getenv("XDG_CONFIG_HOME")) && !chdir("alopex")) ||
 			(!chdir(getenv("HOME")) && !chdir(".config/alopex")) )
-		XrmCombineFileDatabase("configdb", &xrdb, True);
+		xrdb = XrmGetFileDatabase("config");
+	if (!xrdb) xrdb = XrmGetFileDatabase("/usr/share/alopex/config");
 	if (!xrdb) die("cannot find a configuration resource database");
-	char *_base = "icecap";
-	const char *base = _base;
+	char *_base = "icecap", *class = "Alopex.Theme", *type;
+	const char *base;
+	XrmValue val;
 	if (theme) base = theme;
+	else if (XrmGetResource(xrdb, class, class, &type, &val))
+		base = val.addr;
+	else base = _base;
 	config_binds(xrdb, base);
 	config_general(xrdb, base);
 	config_macros(xrdb, base);
@@ -74,7 +78,7 @@ int reconfigure() {
 enum {
 	STR_Font, STR_BoldFont, STR_IconFile, STR_Options, STR_Background,
 	STR_Containers, STR_Names, STR_Icons, STR_FollowMouse, STR_Attach,
-	STR_StatIn, STR_Mode, STR_Margin,
+	STR_StatIn, STR_Mode, STR_Margin, STR_TagMode,
 	STR_Last
 };
 enum { TYPE_S, TYPE_D };
@@ -90,12 +94,12 @@ int config_general(XrmDatabase xrdb, const char *base) {
 	int bar_height = 0;
 	const char *RES_Bar = "Bar";
 	const char *RES_Background = "Background";
+	const char *RES_Mode = "Mode";
 	const char *RES_Tags = "Tags";
 	const char *RES_Tiling = "Tiling";
 	const char *RES_Padding = "Padding";
 	const char *RES_Clients = "Clients";
 	Res res[] = {
-		{ RES_Bar,    "StatFmt",      TYPE_S, &conf.stat_fmt},
 		{ RES_Bar,    "StatInput",    TYPE_S, &s[STR_StatIn]},
 		{ RES_Bar,    "Font",         TYPE_S, &s[STR_Font]},
 		{ RES_Bar,    "BoldFont",     TYPE_S, &s[STR_BoldFont]},
@@ -107,8 +111,9 @@ int config_general(XrmDatabase xrdb, const char *base) {
 		{ RES_Tiling, "Split",        TYPE_D, &conf.split},
 		{ RES_Tiling, RES_Padding,    TYPE_D, &conf.gap},
 		{ RES_Tiling, "Containers",   TYPE_S, &s[STR_Containers]},
-		{ RES_Tiling, "Mode",         TYPE_S, &s[STR_Mode]},
+		{ RES_Tiling, RES_Mode,       TYPE_S, &s[STR_Mode]},
 		{ RES_Tiling, "Margin",       TYPE_S, &s[STR_Margin]},
+		{ RES_Tags,   RES_Mode,       TYPE_S, &s[STR_TagMode]},
 		{ RES_Tags,   "Names",        TYPE_S, &s[STR_Names]},
 		{ RES_Tags,   "Icons",        TYPE_S, &s[STR_Icons]},
 		{ RES_Tags,   RES_Padding,    TYPE_D, &conf.bar_pad},
@@ -153,6 +158,14 @@ int config_general(XrmDatabase xrdb, const char *base) {
 	if (s[STR_Margin]) sscanf(s[STR_Margin],"%d %d %d %d",
 			&conf.margin.top, &conf.margin.bottom,
 			&conf.margin.left, &conf.margin.right);
+	if (!strcasecmp(s[STR_TagMode],"icon-text"))
+		conf.tag_mode = TAG_ICON_TEXT;
+	else if (!strcasecmp(s[STR_TagMode],"text-icon"))
+		conf.tag_mode = TAG_TEXT_ICON;
+	else if (!strcasecmp(s[STR_TagMode],"text"))
+		conf.tag_mode = TAG_TEXT;
+	else if (!strcasecmp(s[STR_TagMode],"icon"))
+		conf.tag_mode = TAG_ICON;
 	/* get tag names and icon numbers */
 	conf.tag_name = NULL;
 	char *name = strtok((char *) s[STR_Names]," ");
@@ -161,6 +174,7 @@ int config_general(XrmDatabase xrdb, const char *base) {
 		conf.tag_name[i] = strdup(name);
 		name = strtok(NULL," ");
 	}
+	conf.tag_count = i;
 	conf.tag_name = realloc(conf.tag_name, (i+1) * sizeof(char *));
 	conf.tag_name[i] = NULL;
 	conf.tag_icon = NULL;
@@ -170,6 +184,7 @@ int config_general(XrmDatabase xrdb, const char *base) {
 		conf.tag_icon[i] = atoi(name);
 		name = strtok(NULL," ");
 	}
+	if (conf.tag_count < i) conf.tag_count = i;
 	conf.tag_icon = realloc(conf.tag_icon, (i+1) * sizeof(int));
 	conf.tag_icon[i] = -1;
 	/* status input */
@@ -320,25 +335,24 @@ int config_theme(XrmDatabase xrdb, const char *base) {
 	const char *RES_Border = "Border";
 	const char *RES_Text = "Text";
 	Res res[] = {
-		{ RES_Tab,       RES_Offset,     0, NULL},
-		{ RES_Tab,       RES_Background, 0, NULL},
-		{ RES_Tab,       RES_Border,     0, NULL},
-		{ RES_Tab,       RES_Text,       0, NULL},
-		{ RES_TabFocus,  RES_Background, 0, NULL},
-		{ RES_TabFocus,  RES_Border,     0, NULL},
-		{ RES_TabFocus,  RES_Text,       0, NULL},
-		{ RES_TabTop,    RES_Background, 0, NULL},
-		{ RES_TabTop,    RES_Border,     0, NULL},
-		{ RES_TabTop,    RES_Text,       0, NULL},
-		{ RES_Status,    RES_Offset,     0, NULL},
-		{ RES_Status,    RES_Background, 0, NULL},
-		{ RES_Status,    RES_Border,     0, NULL},
-		{ RES_Status,    RES_Text,       0, NULL},
-		{ RES_Status,    "Input",        0, NULL},
-		{ RES_Tag,       "Occupied",     0, NULL},
-		{ RES_Tag,       "View",         0, NULL},
-		{ RES_Tag,       "Alt",          0, NULL},
-		{ RES_Tag,       "Both",         0, NULL},
+		{ RES_Tab,       RES_Offset,     TabOffset,          NULL},
+		{ RES_Tab,       RES_Background, TabBackground,      NULL},
+		{ RES_Tab,       RES_Border,     TabBorder,          NULL},
+		{ RES_Tab,       RES_Text,       TabText,            NULL},
+		{ RES_TabFocus,  RES_Background, TabFocusBackground, NULL},
+		{ RES_TabFocus,  RES_Border,     TabFocusBorder,     NULL},
+		{ RES_TabFocus,  RES_Text,       TabFocusText,       NULL},
+		{ RES_TabTop,    RES_Background, TabTopBackground,   NULL},
+		{ RES_TabTop,    RES_Border,     TabTopBorder,       NULL},
+		{ RES_TabTop,    RES_Text,       TabTopText,         NULL},
+		{ RES_Status,    RES_Offset,     StatusOffset,       NULL},
+		{ RES_Status,    RES_Background, StatusBackground,   NULL},
+		{ RES_Status,    RES_Border,     StatusBorder,       NULL},
+		{ RES_Status,    RES_Text,       StatusText,         NULL},
+		{ RES_Tag,       "Occupied",     TagOccupied,        NULL},
+		{ RES_Tag,       "View",         TagView,            NULL},
+		{ RES_Tag,       "Alt",          TagAlt,             NULL},
+		{ RES_Tag,       "Both",         TagBoth,            NULL},
 	};
 	char class[256], *type;
 	XrmValue val;
@@ -347,7 +361,7 @@ int config_theme(XrmDatabase xrdb, const char *base) {
 	for (i = 0; i < sizeof(res)/sizeof(res[0]); i++) {
 		sprintf(class,"%s.%s.%s", base, res[i].elem, res[i].opt);
 		if (!XrmGetResource(xrdb, class, class, &type, &val)) continue;
-		q = &conf.theme[i];
+		q = &conf.theme[res[i].type];
 		sscanf(val.addr,"%lf %lf %lf %lf %lf",
 			&q->R, &q->G, &q->B, &q->A, &q->e);
 	}

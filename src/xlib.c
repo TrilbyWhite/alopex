@@ -451,7 +451,9 @@ void enternotify(XEvent *ev) {
 }
 
 void expose(XEvent *ev) {
+	/* TODO: fix this! */
 	Monitor *M; Container *C;
+	//draw_bars(True);
 	for (M = mons; M; M = M->next) {
 		for (C = M->container; C; C = C->next){
 			cairo_set_source_surface(C->ctx, C->bar->buf, 0, 0);

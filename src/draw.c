@@ -74,9 +74,6 @@ int draw_tab(Container *C, Client *c, int n, int count) {
 	double off = conf.theme[TabText+theme].r;
 	cairo_text_extents_t ext;
 	cairo_text_extents(b->ctx, c->title, &ext);
-fprintf(stderr,"TITLE: %s\nSTATUS: %s\n",
-c->title,
-cairo_status_to_string(cairo_status(b->ctx)));
 	if (off < 0) off *= -1;
 	else {
 		off *= w - ext.x_advance;
@@ -172,6 +169,26 @@ int sbar_parse(Bar *S, const char *s) {
 	else return 0;
 }
 
+static int sbar_tag_icon(Monitor *M, Bar *S, int i) {
+	if (conf.tag_icon[i] == -1) return 1;
+	else return sbar_icon(S, conf.tag_icon[i]);
+}
+
+static int sbar_tag_text(Monitor *M, Bar *S, int i) {
+	if (conf.tag_name[i][0] == '-') return 1;
+	set_color(S->ctx, TagOccupied);
+	if (M->occ & (1<<i)) cairo_set_font_face(S->ctx, conf.bfont);
+	else cairo_set_font_face(S->ctx, conf.font);
+	if ( (M->tags & (1<<i)) && (M->tags & (1<<(1+16))) )
+		set_color(S->ctx, TagBoth);
+	else if (M->tags & (1<<i)) set_color(S->ctx, TagView);
+	else if (M->tags & (1<<(i+16))) set_color(S->ctx, TagAlt);
+	else if (!(M->occ & (1<<i))) return 1;
+	sbar_text(S, conf.tag_name[i]);
+	S->xoff += conf.bar_pad;
+	return 0;
+}
+
 int sbar_tags(Monitor *M) {
 	if (M->container->bar->opts & BAR_HIDE) return 0;
 	Bar *S = &M->tbar;
@@ -182,19 +199,12 @@ int sbar_tags(Monitor *M) {
 	S->xoff = 0;
 	int i;
 	for (i = 0; conf.tag_name[i]; i++) {
-		set_color(S->ctx, TagOccupied);
-		if (M->occ & (1<<i)) cairo_set_font_face(S->ctx, conf.bfont);
-		else cairo_set_font_face(S->ctx, conf.font);
-		if ( (M->tags & (1<<i)) && (M->tags & (1<<(1+16))) )
-			set_color(S->ctx, TagBoth);
-		else if (M->tags & (1<<i))
-			set_color(S->ctx, TagView);
-		else if (M->tags & (1<<(i+16)))
-			set_color(S->ctx, TagAlt);
-		else if (!(M->occ & (1<<i)))
-			continue;
-		sbar_text(S, conf.tag_name[i]);
-		S->xoff += conf.bar_pad;
+		switch (conf.tag_mode) {
+			case TAG_ICON_TEXT: sbar_tag_icon(M, S, i);
+			case TAG_TEXT: sbar_tag_text(M, S, i); break;
+			case TAG_TEXT_ICON: sbar_tag_text(M, S, i);
+			case TAG_ICON: sbar_tag_icon(M, S, i); break;
+		}
 	}
 	S->w = S->xoff;
 	return 0;

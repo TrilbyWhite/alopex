@@ -1,0 +1,24 @@
+!! Alopex resource database: theme tundra
+!! By: Jesse McClure (c) 2014
+!! License: CC-BY-SA
+
+tundra.Tab.Offset:				1.00 1.00 -2.0 2.00 3.0
+tundra.Tab.Background:			0.08 0.08 0.08 1.00 0.0
+tundra.Tab.Border:				0.40 0.40 0.34 1.00 0.8
+tundra.Tab.Text:					0.40 0.40 0.34 1.00 0.5
+tundra.TabFocus.Background:	0.14 0.14 0.14 1.00 0.0
+tundra.TabFocus.Border:			0.82 0.68 0.44 1.00 1.2
+tundra.TabFocus.Text:			0.94 0.80 0.68 0.90 -10
+tundra.TabTop.Background:		0.14 0.14 0.14 1.00 0.0
+tundra.TabTop.Border:			0.80 0.53 0.28 1.00 1.0
+tundra.TabTop.Text:				0.40 0.40 0.34 1.00 0.5
+tundra.Status.Offset:			0.00 0.00 0.00 0.00 0.0
+tundra.Status.Background:		0.12 0.10 0.08 1.00 0.0
+tundra.Status.Border:			0.12 0.10 0.08 1.00 0.0
+tundra.Status.Text:				0.94 0.80 0.68 1.00 0.0
+tundra.Tag.Occupied:				0.40 0.40 0.34 1.00 0.0
+tundra.Tag.View:					0.86 0.80 0.50 1.00 0.0
+tundra.Tag.Alt:					1.00 0.15 0.00 1.00 0.0
+tundra.Tag.Both:					0.94 0.50 0.25 1.00 0.0
+
+!! vim: ft=xdefaults
