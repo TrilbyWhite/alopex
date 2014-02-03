@@ -74,6 +74,9 @@ int draw_tab(Container *C, Client *c, int n, int count) {
 	double off = conf.theme[TabText+theme].r;
 	cairo_text_extents_t ext;
 	cairo_text_extents(b->ctx, c->title, &ext);
+fprintf(stderr,"TITLE: %s\nSTATUS: %s\n",
+c->title,
+cairo_status_to_string(cairo_status(b->ctx)));
 	if (off < 0) off *= -1;
 	else {
 		off *= w - ext.x_advance;

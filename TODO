@@ -1,7 +1,3 @@
 
-bug: bars "freeze" and stop getting redrawn after some time
-	- C->bar->buf is painted to C->win, but buf isn't updated.
-	- only the buf in use at the time is affected
-	- *very* rare - hard to replicate to learn more
 icons
 switch from configdb to config

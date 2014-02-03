@@ -15,6 +15,7 @@ extern int config_init(const char *);
 extern int config_free();
 extern int draw_bars(Bool);
 extern int sbar_parse(Bar *, const char *);
+extern char *get_text(Client *, int);
 
 static int apply_rules(Client *);
 static int get_hints(Client *);
@@ -357,9 +358,11 @@ int get_icon(Client *c) {
 int get_name(Client *c) {
 	static const char *noname = "(no name)";
 	Client *p;
-	if (c->title) XFree(c->title);
-	XFetchName(dpy, c->win, &c->title);
-	if (!c->title) c->title = strdup(noname);
+	if (c->title && c->title != noname) XFree(c->title);
+	if ( !(c->title=get_text(c,NET_WM_NAME)) )
+		if ( !(c->title=get_text(c,XA_WM_NAME)) )
+			c->title = strdup(noname);
+	return 0;
 }
 
 

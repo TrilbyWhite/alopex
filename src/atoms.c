@@ -11,7 +11,7 @@ int atoms_init() {
 	atom[WM_STATE] = make_atom("WM_STATE");
 	atom[WM_TAKE_FOCUS] = make_atom("WM_TAKE_FOCUS");
 //	atom[NET_SUPPORTED] = make_atom("_NET_SUPPORTED");
-//	atom[NET_WM_NAME] = make_atom("_NET_WM_NAME");
+	atom[NET_WM_NAME] = make_atom("_NET_WM_NAME");
 //	atom[NET_WM_STATE] = make_atom("_NET_WM_STATE");
 //	atom[NET_WM_STATE_FULLSCREEN] = make_atom("_NET_WM_STATE_FULLSCREEN");
 //	atom[NET_ACTIVE_WINDOW] = make_atom("_NET_ACTIVE_WINDOW");
@@ -33,6 +33,22 @@ Atom get_atom(Client *c, int type) {
 	XFree(uc);
 	return at;
 }
+
+char *get_text(Client *c, int type) {
+	char **strs = NULL;
+	int n;
+	XTextProperty text;
+	XGetTextProperty(dpy, c->win, &text, atom[type]);
+	if (!text.nitems) return NULL;
+	if (text.encoding == XA_STRING) return (char *) text.value;
+	else if (XmbTextPropertyToTextList(dpy, &text, &strs, &n)>=Success) {
+		char *tmp = strdup(*strs);
+		XFreeStringList(strs);
+		XFree(text.value);
+		return tmp;
+	}
+}
+
 
 int send_message(Client *c, int type, int msg) {
 	XEvent ev;
