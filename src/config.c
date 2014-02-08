@@ -8,7 +8,6 @@ extern int icons_free();
 
 static int config_general(XrmDatabase, const char *);
 static int config_binds(XrmDatabase, const char *);
-static int config_macros(XrmDatabase, const char *);
 static int config_rules(XrmDatabase, const char *);
 static int config_theme(XrmDatabase, const char *);
 
@@ -33,7 +32,6 @@ int config_init(const char *theme) {
 	else base = _base;
 	config_binds(xrdb, base);
 	config_general(xrdb, base);
-	config_macros(xrdb, base);
 	config_rules(xrdb, base);
 	config_theme(xrdb, base);
 	chdir(pwd);
@@ -266,19 +264,6 @@ int config_binds(XrmDatabase xrdb, const char *base) {
 			conf.key[conf.nkeys].arg = val.addr;
 			conf.nkeys++;
 		}
-	}
-	return 0;
-}
-
-int config_macros(XrmDatabase xrdb, const char *base) {
-	char class[256], *type;
-	XrmValue val;
-	char i;
-	memset(conf.macro,0,26);
-	for (i = 'a'; i < '{'; i++) {
-		sprintf(class,"%s.Macro.%c",base,i);
-		if (XrmGetResource(xrdb, class, class, &type, &val))
-		conf.macro[i - 'a'] = val.addr;
 	}
 	return 0;
 }

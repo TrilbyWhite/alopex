@@ -140,7 +140,6 @@ typedef struct Config {
 	Rule *rule;
 	int statfd;
 	FILE *stat;
-	const char *macro[26];
 	char **tag_name;
 	int *tag_icon, tag_count, tag_mode;
 	int gap, split, mode, bar_pad, chain_delay, bar_opts, attach;

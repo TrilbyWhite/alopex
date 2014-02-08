@@ -8,6 +8,7 @@ static int sbar_text(Bar *, const char *);
 
 int draw_bar_sub(Monitor *M, Container *C, Bar *S, int x, Bool bg) {
 	if (C->bar->opts & BAR_HIDE) return 0;
+	if (S->w < 1) return 0;
 	cairo_rectangle(C->bar->ctx, x, 0, S->w, C->bar->h);
 	cairo_clip(C->bar->ctx);
 	if (bg) { /* draw background as needed */
@@ -18,6 +19,8 @@ int draw_bar_sub(Monitor *M, Container *C, Bar *S, int x, Bool bg) {
 			cairo_set_source_surface(C->bar->ctx, M->bg, -C->x, 0);
 		cairo_paint(C->bar->ctx);
 	}
+	round_rect(C->bar, x, 0, S->w, S->h, StatusOffset,
+			StatusBackground, StatusBorder, StatusText);
 	cairo_set_source_surface(C->bar->ctx, S->buf, x, 0);
 	cairo_paint(C->bar->ctx);
 	cairo_reset_clip(C->bar->ctx);
@@ -26,7 +29,7 @@ int draw_bar_sub(Monitor *M, Container *C, Bar *S, int x, Bool bg) {
 
 int draw_bars(Bool bg) {
 	Monitor *M; Container *C;
-	int n, count;;
+	int n, count;
 	for (M = mons; M; M = M->next) {
 		count = n = 0;
 		for (C = M->container; C; C = C->next) if (C->top) count++;
@@ -183,10 +186,10 @@ static int sbar_tag_text(Monitor *M, Bar *S, int i) {
 		set_color(S->ctx, TagBoth);
 	else if (M->tags & (1<<i)) set_color(S->ctx, TagView);
 	else if (M->tags & (1<<(i+16))) set_color(S->ctx, TagAlt);
-	else if (!(M->occ & (1<<i))) return 1;
+	else if (!(M->occ & (1<<i))) return 0;
 	sbar_text(S, conf.tag_name[i]);
 	S->xoff += conf.bar_pad;
-	return 0;
+	return 1;
 }
 
 int sbar_tags(Monitor *M) {
@@ -196,16 +199,17 @@ int sbar_tags(Monitor *M) {
 	cairo_set_operator(S->ctx, CAIRO_OPERATOR_CLEAR);
 	cairo_paint(S->ctx);
 	cairo_restore(S->ctx);
-	S->xoff = 0;
-	int i;
+	S->xoff = conf.bar_pad;
+	int i, count = 0;
 	for (i = 0; conf.tag_name[i]; i++) {
 		switch (conf.tag_mode) {
-			case TAG_ICON_TEXT: sbar_tag_icon(M, S, i);
-			case TAG_TEXT: sbar_tag_text(M, S, i); break;
-			case TAG_TEXT_ICON: sbar_tag_text(M, S, i);
-			case TAG_ICON: sbar_tag_icon(M, S, i); break;
+			case TAG_ICON_TEXT: count += sbar_tag_icon(M, S, i);
+			case TAG_TEXT: count += sbar_tag_text(M, S, i); break;
+			case TAG_TEXT_ICON: count += sbar_tag_text(M, S, i);
+			case TAG_ICON: count += sbar_tag_icon(M, S, i); break;
 		}
 	}
+	if (!count) S->xoff = 0;
 	S->w = S->xoff;
 	return 0;
 }

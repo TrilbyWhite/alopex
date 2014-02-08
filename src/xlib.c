@@ -153,6 +153,7 @@ int get_mons(const char *bg, const char *cont) {
 			cairo_set_font_face(C->bar->ctx, conf.font);
 			cairo_set_font_size(C->bar->ctx, conf.font_size);
 			C->win = XCreateSimpleWindow(dpy,root,0,0,M->w,C->bar->h,0,0,0);
+			XSelectInput(dpy, C->win, SELECT_EVENTS);
 			t = cairo_xlib_surface_create(dpy, C->win,
 					DefaultVisual(dpy,scr), M->w, C->bar->h);
 			C->ctx = cairo_create(t);
@@ -276,6 +277,9 @@ int xlib_init(const char *theme_name) {
 	}
 	XClearWindow(dpy,root);
 	/* BINDING + GRABS */
+//XSetWindowAttributes wa;
+//wa.event_mask = SELECT_EVENTS;
+//XChangeWindowAttributes(dpy,root,CWEventMask,&wa);
 	XSelectInput(dpy, root, SELECT_EVENTS);
 	unsigned int mod[] = {0, LockMask, Mod2Mask, LockMask|Mod2Mask};
 	KeyCode code;
@@ -451,9 +455,8 @@ void enternotify(XEvent *ev) {
 }
 
 void expose(XEvent *ev) {
-	/* TODO: fix this! */
 	Monitor *M; Container *C;
-	//draw_bars(True);
+//	draw_bars(True);
 	for (M = mons; M; M = M->next) {
 		for (C = M->container; C; C = C->next){
 			cairo_set_source_surface(C->ctx, C->bar->buf, 0, 0);
