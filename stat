@@ -1,4 +1,4 @@
 #!/bin/bash
 # ridiculously simple example status script
 
-while :; do echo "&& $(date +%H:%M) &"; sleep 60; done
+while :; do echo "&& {I 11} $(date +%H:%M) &"; sleep 60; done

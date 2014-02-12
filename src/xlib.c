@@ -355,7 +355,32 @@ int get_hints(Client *c) {
 }
 
 int get_icon(Client *c) {
-	// TODO
+	// TODO: needs testing
+	XWMHints *hint;
+	if (!(hint=XGetWMHints(dpy,c->win))) return;
+	if (!(hint->flags & (IconPixmapHint | IconMaskHint))) return;
+	if (c->icon) { cairo_surface_destroy(c->icon); c->icon = NULL; }
+	int w, h, ig, sz = conf.font_size;
+	Window wig;
+	XGetGeometry(dpy, hint->icon_pixmap, &wig, &ig, &ig, &w, &h, &ig, &ig);
+	if (c->icon) cairo_surface_destroy(c->icon);
+	cairo_surface_t *icon, *mask = NULL;
+	icon = cairo_xlib_surface_create(dpy, hint->icon_pixmap,
+			DefaultVisual(dpy,scr), w, h);
+	if (hint->flags & IconMaskHint)
+	//mask = cairo_xlib_surface_create(dpy, hint->icon_mask,
+	//		DefaultVisual(dpy,scr), w, h);
+	mask = cairo_xlib_surface_create_for_bitmap(dpy,
+			hint->icon_mask, DefaultScreenOfDisplay(dpy), w, h);
+	c->icon = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, sz, sz);
+	cairo_t *ctx = cairo_create(c->icon);
+	cairo_scale(ctx, sz / (double) w, sz / (double) h);
+	cairo_set_source_surface(ctx, icon, 0, 0);
+	if (mask) cairo_mask_surface(ctx, mask, 0, 0);
+	else cairo_paint(ctx);
+	cairo_destroy(ctx);
+	cairo_surface_destroy(icon);
+	if (mask) cairo_surface_destroy(mask);
 	return 0;
 }
 

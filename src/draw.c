@@ -3,8 +3,10 @@
 
 static int round_rect(Bar *, int, int, int, int, int, int, int, int);
 static int set_color(cairo_t *, int);
-static int sbar_icon(Bar *, int);
+static int sbar_icon(Bar *, int, Bool);
 static int sbar_text(Bar *, const char *);
+
+static cairo_surface_t *icon_img[100];
 
 int draw_bar_sub(Monitor *M, Container *C, Bar *S, int x, Bool bg) {
 	if (C->bar->opts & BAR_HIDE) return 0;
@@ -77,13 +79,20 @@ int draw_tab(Container *C, Client *c, int n, int count) {
 	double off = conf.theme[TabText+theme].r;
 	cairo_text_extents_t ext;
 	cairo_text_extents(b->ctx, c->title, &ext);
+if (c->icon) ext.x_advance += conf.font_size + conf.bar_pad;
 	if (off < 0) off *= -1;
 	else {
 		off *= w - ext.x_advance;
 		if (off < 0) off = 0;
 	}
-	// if icon, adjust off
-	// TODO icons
+if (c->icon) {
+	cairo_save(b->ctx);
+	cairo_set_source_surface(b->ctx, c->icon, x + off,
+			(b->h - conf.font_size) / 2.0);
+	cairo_paint(b->ctx);
+	off += conf.font_size + conf.bar_pad;
+	cairo_restore(b->ctx);
+}
 	cairo_rectangle(b->ctx, x+off, 0, w-off, h);
 	cairo_clip(b->ctx);
 	cairo_move_to(b->ctx, x+off, h - 4); // - 4 ?
@@ -92,10 +101,28 @@ int draw_tab(Container *C, Client *c, int n, int count) {
 }
 
 int icons_init(const char *fname) {
+	double iw, ih;
+	int i, j, fs = conf.font_size;
+	cairo_surface_t *img = cairo_image_surface_create_from_png(fname);
+	iw = cairo_image_surface_get_width(img) / 10.0;
+	ih = cairo_image_surface_get_height(img) / 10.0;
+	cairo_t *ctx;
+	for (j = 0; j < 10; j++) for (i = 0; i < 10; i++) {
+		icon_img[j*10+i] = cairo_image_surface_create(0, fs, fs);
+		ctx = cairo_create(icon_img[j*10+i]);
+		cairo_scale(ctx, fs/iw, fs/ih);
+		cairo_set_source_surface(ctx, img, -1 * i * iw, -1 * j * ih);
+		cairo_paint(ctx);
+		cairo_destroy(ctx);
+	}
+	cairo_surface_destroy(img);
 	return 0;
 }
 
 int icons_free() {
+	int i;
+	for (i = 0; i < 100; i++)
+		cairo_surface_destroy(icon_img[i]);
 	return 0;
 }
 
@@ -124,12 +151,18 @@ int round_rect(Bar *b, int x, int y, int w, int h,
 	return 0;
 }
 
-int sbar_icon(Bar *S, int n) {
+int sbar_icon(Bar *S, int n, Bool col) {
+// TODO fix the "2"
 	if ( (--n) < 0 || n > 99) return 1;
 	cairo_save(S->ctx);
-	//cairo_set_source_surface(S->ctx, icon_img[n], S->xoff, 2);
-	//cairo_paint(S->ctx);
-	//S->xoff += icon_size;
+	if (col) {
+		cairo_set_source_surface(S->ctx, icon_img[n], S->xoff, 2);
+		cairo_paint(S->ctx);
+	}
+	else {
+		cairo_mask_surface(S->ctx, icon_img[n], S->xoff, 2);
+	}
+	S->xoff += conf.font_size;
 	cairo_restore(S->ctx);
 	return 0;
 }
@@ -145,7 +178,8 @@ int sbar_parse(Bar *S, const char *s) {
 	double r, g, b, a;
 	for (c = s; c && *c != '&' && *c != '\0' && *c != '\n'; c++) {
 		if (*c == '{') {
-			if (*(++c) == 'i') sbar_icon(S, atoi((++c)));
+			if (*(++c) == 'i') sbar_icon(S, atoi((++c)), True);
+			else if (*c == 'I') sbar_icon(S, atoi((++c)), False);
 			else if (*c == 'f') cairo_set_font_face(S->ctx, conf.font);
 			else if (*c == 'F') cairo_set_font_face(S->ctx, conf.bfont);
 			else if (sscanf(c, "%lf %lf %lf %lf", &r, &g, &b, &a) == 4)
@@ -174,19 +208,11 @@ int sbar_parse(Bar *S, const char *s) {
 
 static int sbar_tag_icon(Monitor *M, Bar *S, int i) {
 	if (conf.tag_icon[i] == -1) return 1;
-	else return sbar_icon(S, conf.tag_icon[i]);
+	else return sbar_icon(S, conf.tag_icon[i], True); //TODO: True -> conf
 }
 
 static int sbar_tag_text(Monitor *M, Bar *S, int i) {
 	if (conf.tag_name[i][0] == '-') return 1;
-	set_color(S->ctx, TagOccupied);
-	if (M->occ & (1<<i)) cairo_set_font_face(S->ctx, conf.bfont);
-	else cairo_set_font_face(S->ctx, conf.font);
-	if ( (M->tags & (1<<i)) && (M->tags & (1<<(1+16))) )
-		set_color(S->ctx, TagBoth);
-	else if (M->tags & (1<<i)) set_color(S->ctx, TagView);
-	else if (M->tags & (1<<(i+16))) set_color(S->ctx, TagAlt);
-	else if (!(M->occ & (1<<i))) return 0;
 	sbar_text(S, conf.tag_name[i]);
 	S->xoff += conf.bar_pad;
 	return 1;
@@ -202,6 +228,14 @@ int sbar_tags(Monitor *M) {
 	S->xoff = conf.bar_pad;
 	int i, count = 0;
 	for (i = 0; conf.tag_name[i]; i++) {
+		set_color(S->ctx, TagOccupied);
+		if (M->occ & (1<<i)) cairo_set_font_face(S->ctx, conf.bfont);
+		else cairo_set_font_face(S->ctx, conf.font);
+		if ( (M->tags & (1<<i)) && (M->tags & (1<<(1+16))) )
+			set_color(S->ctx, TagBoth);
+		else if (M->tags & (1<<i)) set_color(S->ctx, TagView);
+		else if (M->tags & (1<<(i+16))) set_color(S->ctx, TagAlt);
+		else if (!(M->occ & (1<<i))) continue;
 		switch (conf.tag_mode) {
 			case TAG_ICON_TEXT: count += sbar_tag_icon(M, S, i);
 			case TAG_TEXT: count += sbar_tag_text(M, S, i); break;
