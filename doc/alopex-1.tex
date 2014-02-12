@@ -10,11 +10,58 @@
 xinit alopex \oArg{theme}
 
 \section{Description}
-\Prog{Alopex} is ...
 
+\Prog{Alopex} is a dynamic tiling window manager with a container
+concept inspired by i3 but implemented quite differently.  Client
+windows are not statically assigned to a given container, instead,
+containers each have a configurable maximum number of clients, and
+clients fill each container in sequence.  Within containers, multiple
+clients are displayed as tabs.
+
+There are three container layouts: rstack, bstack, and
+monocle.  Stack modes divide the screen into two sections, the master
+region and the stack.  Monocle uses the full area for one container.
+All layouts stack clients within containers displaying a tab for each
+client in the container's title bar.  These layouts are supplimented by
+per-client floating and full-screen modes.
+
+\Prog{Alopex} uses a tag concept rather than the more common
+workspace/desktop metaphor.  The default configuration, however, is
+optimized for a workspace-like work flow.  This can be modified as
+desired.
+
+\section{Configuration}
+
+Configuration is implemented via an X resources data base file which is
+read on startup.  A well-commented example configuration file is
+distributed with \Prog{alopex} and can be found at
+\File{/usr/share/alopex/config}.  Further information on customizing and
+configuring alopex can be found on the github wiki.
+
+
+\section{Status Input}
+
+A child process specified in the configuration file can be launched to
+provide status input to be displayed along side the tabs in containers'
+bars.  This child process should send text information to its standard
+output which will then be read in by \Prog{alopex}.
+
+Each line must contain three ampersands which delineate four text
+segments.  The first two segments are always displayed in the first
+container's bar: the first before the tag indicators, the second
+immediately after the tag indicators.  The third segment is displayed at
+the right side of the second container's bar (or the right of the first
+container if there is only one visible).  The fourth segment is
+displayed at the right side of the last visible container.
+
+Plain text is printed as is into the above-specified status bar region.
+Text within curly-braces is interpreted as a special indicator.  These
+indicators can specify a foreground color, set a font, display an icon
+or paint the foreground color with an icon mask.  Further documentation
+and examples can be found on the github wiki.
 
 \section{Author}
-Copyright \copyright 2012-2013 Jesse McClure \\
+Copyright \copyright 2012-2014 Jesse McClure \\
 License GPLv3: GNU GPL version 3 \URL{http://gnu.org/licenses/gpl.html} \\
 This is free software: you are free to change and redistribute it. \\
 There is NO WARRANTY, to the extent permitted by law.
