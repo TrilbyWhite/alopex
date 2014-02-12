@@ -7,6 +7,7 @@ static int sbar_icon(Bar *, int, Bool);
 static int sbar_text(Bar *, const char *);
 
 static cairo_surface_t *icon_img[100];
+static cairo_format_t icon_fmt = 0;
 
 int draw_bar_sub(Monitor *M, Container *C, Bar *S, int x, Bool bg) {
 	if (C->bar->opts & BAR_HIDE) return 0;
@@ -104,11 +105,12 @@ int icons_init(const char *fname) {
 	double iw, ih;
 	int i, j, fs = conf.font_size;
 	cairo_surface_t *img = cairo_image_surface_create_from_png(fname);
+	icon_fmt = cairo_image_surface_get_format(img);
 	iw = cairo_image_surface_get_width(img) / 10.0;
 	ih = cairo_image_surface_get_height(img) / 10.0;
 	cairo_t *ctx;
 	for (j = 0; j < 10; j++) for (i = 0; i < 10; i++) {
-		icon_img[j*10+i] = cairo_image_surface_create(0, fs, fs);
+		icon_img[j*10+i] = cairo_image_surface_create(icon_fmt, fs, fs);
 		ctx = cairo_create(icon_img[j*10+i]);
 		cairo_scale(ctx, fs/iw, fs/ih);
 		cairo_set_source_surface(ctx, img, -1 * i * iw, -1 * j * ih);
@@ -155,7 +157,7 @@ int sbar_icon(Bar *S, int n, Bool col) {
 // TODO fix the "2"
 	if ( (--n) < 0 || n > 99) return 1;
 	cairo_save(S->ctx);
-	if (col) {
+	if (col && icon_fmt != CAIRO_FORMAT_A1) {
 		cairo_set_source_surface(S->ctx, icon_img[n], S->xoff, 2);
 		cairo_paint(S->ctx);
 	}

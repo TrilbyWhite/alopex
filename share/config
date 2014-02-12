@@ -18,7 +18,7 @@ Alopex.Theme:           icecap
 *.Bar.Font:					/usr/share/fonts/TTF/DroidSansMono.ttf
 *.Bar.BoldFont:			/usr/share/fonts/TTF/DroidSans-Bold.ttf
 *.Bar.FontSize:			14
-! PNG file with 10x10 grid of icons 0-99
+! PNG file with 10x10 grid of icons 1-100
 *.Bar.Icons:				/path/to/icons.png
 ! Height of bars: "default" bases height on font extents
 *.Bar.Height:           default
