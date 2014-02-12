@@ -8,8 +8,17 @@
 
 !----- Theme name -----!
 ! Used to apply theme specific settings, defaults to icecap
-! Can be overriden by passing a theme name on the command line
+! Thi can be overriden by passing a theme name on the command line
 Alopex.Theme:           icecap
+! Other config settings can be set differently for different themes.
+! For example the following three entries could all be sepcified:
+!    *.Tiling.Split:           0
+!    icecap.Tiling.Split:      10
+!    tundra.Tiling.Split:      -10
+! This would allow the split to be set on a per theme basis, so simply
+!   changing the them name here, or on the command line, would load a
+!   different subset of settings.  As can be read in the xrdb docs,
+!   a matching implicitly named specifier takes precident over wildcards.
 
 !----- Bar -----!
 ! A program or script that sends status strings to it's stdout

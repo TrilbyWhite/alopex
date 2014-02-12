@@ -25,8 +25,8 @@ icons.png: ${ICONS:%=%.svg}
 
 install: ${PROG}
 	@install -Dm755 ${PROG} ${DESTDIR}${PREFIX}/bin/${PROG}
-	@install -Dm644 share/config ${DESTDIR}${PREFIX}/share/${PROG}/config
-	#@install -Dm644 doc/alopex.1 ${DESTDIR}${PREFIX}/share/man/man1/alopex.1
+	@install -Dm644 -t ${DESTDIR}${PREFIX}/share/${PROG}/ share/*
+	@install -Dm644 doc/alopex.1 ${DESTDIR}${PREFIX}/share/man/man1/alopex.1
 
 ${MANPAGES}: alopex.%: alopex-%.tex
 	@latex2man $< doc/$@
