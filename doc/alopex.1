@@ -1,0 +1,110 @@
+'\" t
+.\" Manual page created with latex2man on Thu Feb 13 14:02:38 EST 2014
+.\" NOTE: This file is generated, DO NOT EDIT.
+.de Vb
+.ft CW
+.nf
+..
+.de Ve
+.ft R
+
+.fi
+..
+.TH "ALOPEX" "1" "13 February 2014" "window manager " "window manager "
+.SH NAME
+
+.PP
+Alopex
+\- A Tabbed, Tiling Window Manager with Fur 
+.PP
+.SH SYNOPSIS
+
+xinit alopex [\fItheme\fP]
+.PP
+.SH DESCRIPTION
+
+.PP
+Alopex
+is a dynamic tiling window manager with a container 
+concept inspired by i3 but implemented quite differently. Client 
+windows are not statically assigned to a given container, instead, 
+containers each have a configurable maximum number of clients, and 
+clients fill each container in sequence. Within containers, multiple 
+clients are displayed as tabs. 
+.PP
+There are three container layouts: rstack, bstack, and 
+monocle. Stack modes divide the screen into two sections, the master 
+region and the stack. Monocle uses the full area for one container. 
+All layouts stack clients within containers displaying a tab for each 
+client in the container\&'s title bar. These layouts are supplimented by 
+per\-client floating and full\-screen modes. 
+.PP
+Alopex
+uses a tag concept rather than the more common 
+workspace/desktop metaphor. The default configuration, however, is 
+optimized for a workspace\-like work flow. This can be modified as 
+desired. 
+.PP
+.SH CONFIGURATION
+
+.PP
+Configuration is implemented via an X resources data base file which is 
+read on startup. A well\-commented example configuration file is 
+distributed with alopex
+and can be found at 
+/usr/share/alopex/config\&.
+Further information on customizing and 
+configuring alopex can be found on the github wiki. 
+.PP
+.SH STATUS INPUT
+
+.PP
+A child process specified in the configuration file can be launched to 
+provide status input to be displayed along side the tabs in containers\&' 
+bars. This child process should send text information to its standard 
+output which will then be read in by alopex\&.
+.PP
+Each line must contain three ampersands which delineate four text 
+segments. The first two segments are always displayed in the first 
+container\&'s bar: the first before the tag indicators, the second 
+immediately after the tag indicators. The third segment is displayed at 
+the right side of the second container\&'s bar (or the right of the first 
+container if there is only one visible). The fourth segment is 
+displayed at the right side of the last visible container. 
+.PP
+Plain text is printed as is into the above\-specified status bar region. 
+Text within curly\-braces is interpreted as a special indicator. These 
+indicators can specify a foreground color, set a font, display an icon 
+or paint the foreground color with an icon mask. Further documentation 
+and examples can be found on the github wiki. 
+.PP
+.SH AUTHOR
+
+Copyright (C)2012\-2014 Jesse McClure 
+.br
+License GPLv3: GNU GPL version 3 \fBhttp://gnu.org/licenses/gpl.html\fP
+.br
+This is free software: you are free to change and redistribute it. 
+.br
+There is NO WARRANTY, to the extent permitted by law. 
+.PP
+Submit bug reports via github: 
+.br
+\fBhttp://github/com/TrilbyWhite/alopex.git\fP
+.PP
+I would like your feedback. If you enjoy Alopex
+see the bottom 
+of the site below for detauls on submitting comments: 
+.br
+\fBhttp://mccluresk9.com/software.html\fP
+.PP
+Documentation added and edited collaboratively by Jesse McClure and Sam 
+Stuewe. Any concerns or comments regarding documentation may be 
+submitted to \fBhalosghost@archlinux.info\fP\&.
+.PP
+.SH SEE ALSO
+
+The most up to date documentation can be found at 
+\fBhttps://github.com/TrilbyWhite/alopex/wiki\fP
+.PP
+.\" NOTE: This file is generated, DO NOT EDIT.
