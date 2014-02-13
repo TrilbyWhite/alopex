@@ -37,7 +37,6 @@ man: ${MANPAGES}
 clean:
 	@rm -f ${PROG} ${PROG}-${VER}.tar.gz
 	@cd src && rm -f ${MODULES:%=%.o}
-	@rm -f doc/alopex.1
 
 dist: clean
 	@tar -czf ${PROG}-${VER}.tar.gz *
