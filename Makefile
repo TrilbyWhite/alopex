@@ -12,8 +12,6 @@ MANPAGES =  alopex.1
 VPATH    =  src:doc
 
 ${PROG}: ${MODULES:%=%.o}
-	@echo CFLAGS ${CFLAGS}
-	@echo LDFLAGS ${LDFLAGS}
 	@echo -e "\033[1;34m  ->\033[0m Linking alopex"
 	@cd src && ${CC} -o ../${PROG} ${MODULES:%=%.o} ${LDFLAGS}
 

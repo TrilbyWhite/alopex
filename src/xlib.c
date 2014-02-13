@@ -88,7 +88,7 @@ int get_mons(const char *bg, const char *cont) {
 	/* get monitor geometries */
 	mons = NULL;
 	XineramaScreenInfo *geom = XineramaQueryScreens(dpy, &n);
-	int minX, minY, maxX, maxY;
+	int minX = 0, minY = 0, maxX = 0, maxY = 0;
 	for(i = 0; i < n; i++) {
 		mons = realloc(mons, (i+1) * sizeof(Monitor));
 		memset(&mons[i], 0, sizeof(Monitor));
