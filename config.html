@@ -1,0 +1,245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+
+<head>
+<title>
+Alopex
+</title>
+<meta name="description" content="Alopex - Tiling Window Manager" />
+<meta name="keywords" content="window manager, tiling, tagging, x11" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link href="res/style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+<div id="subbody">
+
+<div id="header">
+<div class="Visual">
+<table style="border: 0px;"><tr><td>
+<h1>Alopex</h1>
+</td>
+<td valign="bottom" style="padding-bottom: 4px;">
+<h1 style="font-size: 12pt;">
+&nbsp;&nbsp;&nbsp;&nbsp;
+Don't be a lagopus</h1>
+</td>
+</table>
+<br/>
+<ul>
+	<li><a href="./index.html">Home
+		<span>Introduction to Alopex</span></a></li>
+	<li><a href="./install.html">Install
+		<span>Installation Guide</span></a></li>
+	<li><a href="./config.html">Config
+		<span>Configuration Instructions &amp; Examples</span></a></li>
+</ul>
+</div>
+</div>
+
+<div id="content">
+<h2>Configuration</h2>
+<div id="text">
+	<p>
+	More configuration information coming soon.
+	</p>
+	<p>
+	For now, see the well commented default config distributed with
+	alopex or read about the command strings below
+	</p>
+<h4 style="margin-bottom: -12px;">Configuration Table of Contents:</h4>
+<ul id="submenu">
+	<li><a href="#ResourceDatabases">Resource Databases
+		<span>Understanding X resource database formating</span></a></li>
+	<li><a href="#GeneralSettings">General Settings
+		<span>Something here</span></a></li>
+	<li><a href="#WindowRules">Window Rules
+		<span>Something here</span></a></li>
+	<li><a href="#KeyBinding">Key Binding
+		<span>Something here</span></a></li>
+	<li><a href="#Theming">Theming
+		<span>Something here</span></a></li>
+	<li><a href="#Commands">Commands
+		<span>Syntax for command strings</span></a></li>
+</ul>
+</div>
+
+<a name="ResourceDatabases"></a>
+<h2>Resource Databases</h2>
+<div id="text">
+</div>
+
+<a name="GeneralSettings"></a>
+<h2>General Settings</h2>
+<div id="text">
+<h3>Alopex</h3>
+<h3>Bar</h3>
+<h3>Tiling</h3>
+<h3>Tags</h3>
+<h3>Clients</h3>
+</div>
+
+
+<a name="WindowRules"></a>
+<h2>Window Rules</h2>
+<div id="text">
+</div>
+
+<a name="KeyBinding"></a>
+<h2>Key Bindings</h2>
+<div id="text">
+</div>
+
+<a name="Theming"></a>
+<h2>Theming</h2>
+<div id="text">
+</div>
+
+<a name="Commands"></a>
+<h2>Commands</h2>
+<div id="text">
+<p>
+Alopex commands are made up of strings of <i>words</i>.
+</p><p>
+Each <i>word</i> is a string of non-whitespace characters that
+represents a single action.  A word can specify an optional target
+window, an action, and any optional parameters for that action.
+</p><p>
+Target windows are specified by starting the word with a <i>w</i>
+followed by a number from 0 to 9 to specify a marked window.  In the
+absence of a targetted window, the currently focused client is used as a
+default target.  Some actions will behave differently if provided with
+the focused window as a target or provided no explicit target (e.g., see
+tag actions). A <i>w1</i> followed by an action and <i>w</i> followed by
+the action are equivalent: they specify the currently focused window as
+an explicit target.
+</p><p>
+
+<b>Display:</b> set/reset margins or focus a specified monitor
+
+<pre><tt>dm#,#,#,#</tt></pre>
+Sets the margins to the numbers specified for a margin on the
+top,bottom,left,right
+
+<pre><tt>d#</tt></pre>
+Focuses the monitor specified (counting starts from 1)
+
+
+</p><p>
+<b>Focus:</b> sets focus to a client window
+
+<pre><tt>w#f</tt></pre>
+
+Focuses the window at the specified mark number
+
+<pre><tt>fh fj fk fl</tt></pre>
+
+Focuses the first,next,previous,last window currently displayed
+
+</p><p>
+<b>Move:</b> Move a window in the stack
+
+<pre><tt>w#mb w#ma</tt></pre>
+
+Moves the focused window relative to the window at the specified mark,
+moves focused window before or after the marked window
+
+<pre><tt>mh mj mk ml</tt></pre>
+
+Moves the focused window to the top,up,down,bottom of the client stack
+
+</p><p>
+<b>Tag:</b> Control tag display and window occupancy
+
+<pre><tt>w#tx# w#tt# w#ta# w#tr#</tt></pre>
+
+Modify the tag placement of the specified window to be
+exclusive,toggle,add,remove the specified tag number
+
+<pre><tt>tx# tt# ta# tr#</tt></pre>
+
+Modify the tag visibility to exclusive,toggle,add,remove the specified
+tag number to the current monitor
+
+</p><p>
+<b>Layout:</b> Select a tiling layout
+
+<pre><tt>lr lb lm lx</tt></pre>
+
+Select rstack, bstack, monocle, or cycle through modes
+
+</p><p>
+<b>Quit:</b> close the current client, or alopex itself
+
+<pre><tt>q</tt></pre>
+
+Close the focused client window
+
+<pre><tt>Q</tt></pre>
+
+Exit alopex
+
+</p><p>
+<b>View:</b> Toggle views
+
+<pre><tt>v</tt></pre>
+
+Toggle between two alternative views (coming soon)
+
+</p><p>
+<b>Mark:</b> Mark the focused client window
+
+<pre><tt>z#</tt></pre>
+
+Set the specified mark number to the currently focused client window
+
+</p><p>
+<b>Congigurable Tile Options:</b>
+
+<pre><tt>n# ni nd nr</tt></pre>
+
+Set the maximum number of clients for the current container to the
+specified numer, increase by one, decrease by one, or reset to the
+default setting
+
+<pre><tt>s# si sd sr</tt></pre>
+
+Set the monitor split value to the specified number, increase by one,
+decrease by one, or reset to the default setting
+
+<pre><tt>g# gi gd gr</tt></pre>
+
+Set the monitor gap to the specified number, increase by one, decrease
+by one, or reset to the default value.
+
+</p><p>
+<b>Bar Options:</b>
+
+<pre><tt>bs bh bx bt bb</tt></pre>
+
+Adjust the currently focused container bar to show, hide, toggle
+visibility, place on top, or place on bottom
+
+<pre><tt>bS bH bX bT bB</tt></pre>
+
+Adjust all bars to show, hide, toggle visibility, place on top, or place
+on bottom
+
+
+</div></div>
+
+<div id="footer">
+<div id="links">
+	<p>
+	<a href="./index.html">Home</a> &bull;
+	<a href="mailto:jesse@mccluresk9.com">Email</a> &bull;
+	<a href="./faq.html">FAQ</a>
+	</p>
+	<p>Jesse McClure &copy; 2014</p>
+</div>
+<br/><br/>
+</div>
+
+</div>
+</body>
+</html>
