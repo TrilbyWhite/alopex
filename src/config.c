@@ -186,9 +186,10 @@ int config_general(XrmDatabase xrdb, const char *base) {
 	conf.tag_icon = realloc(conf.tag_icon, (i+1) * sizeof(int));
 	conf.tag_icon[i] = -1;
 	/* status input */
-	if (s[STR_StatIn]) {
-		int fd[2];
-		int flags;
+	int fd[2], flags;
+	struct stat stbuf;
+	if (s[STR_StatIn] && !stat(s[STR_StatIn],&stbuf) &&
+			(stbuf.st_mode & S_IXUSR) ){
 		pipe(fd);
 		if ( (pid=fork()) ) {
 			close(fd[1]);

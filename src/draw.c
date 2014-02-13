@@ -105,6 +105,7 @@ int icons_init(const char *fname) {
 	double iw, ih;
 	int i, j, fs = conf.font_size;
 	cairo_surface_t *img = cairo_image_surface_create_from_png(fname);
+if (cairo_surface_status(img) != CAIRO_STATUS_SUCCESS) return 1;
 	icon_fmt = cairo_image_surface_get_format(img);
 	iw = cairo_image_surface_get_width(img) / 10.0;
 	ih = cairo_image_surface_get_height(img) / 10.0;
@@ -124,7 +125,7 @@ int icons_init(const char *fname) {
 int icons_free() {
 	int i;
 	for (i = 0; i < 100; i++)
-		cairo_surface_destroy(icon_img[i]);
+		if (icon_img[i]) cairo_surface_destroy(icon_img[i]);
 	return 0;
 }
 
@@ -156,6 +157,7 @@ int round_rect(Bar *b, int x, int y, int w, int h,
 int sbar_icon(Bar *S, int n, Bool col) {
 // TODO fix the "2"
 	if ( (--n) < 0 || n > 99) return 1;
+	if (!icon_img[n]) return 1;
 	cairo_save(S->ctx);
 	if (col && icon_fmt != CAIRO_FORMAT_A1) {
 		cairo_set_source_surface(S->ctx, icon_img[n], S->xoff, 2);

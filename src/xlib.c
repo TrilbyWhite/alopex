@@ -104,6 +104,13 @@ int get_mons(const char *bg, const char *cont) {
 	/* create monitors and set background */
 	cairo_surface_t *src, *dest;
 	src = cairo_image_surface_create_from_png(bg);
+if (cairo_surface_status(src) != CAIRO_STATUS_SUCCESS) {
+	src = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, maxX, maxY);
+	cairo_t *blank = cairo_create(src);
+	cairo_set_source_rgba(blank, 0, 0, 0, 1);
+	cairo_paint(blank);
+	cairo_destroy(blank);
+}
 	int imgw = cairo_image_surface_get_width(src);
 	int imgh = cairo_image_surface_get_height(src);
 	Pixmap pix = XCreatePixmap(dpy, root, maxX-minX, maxY-minY,
