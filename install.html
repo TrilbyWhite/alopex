@@ -3,57 +3,123 @@
 
 <head>
 <title>
-Alopex - a tabbed tiling window manager
+Alopex
 </title>
-<meta name="description" content="Alopex WM"/>
-<meta name="keywords" content="Tiling window manager with tabs"/>
+<meta name="description" content="Alopex - Tiling Window Manager" />
+<meta name="keywords" content="window manager, tiling, tagging, x11" />
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<link href="res/styles.css" rel="stylesheet" type="text/css" />
+<link href="res/style.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
+<div id="subbody">
 
-<div id="visual">
-	<br/><h1>&nbsp;Alopex</h1><h2>Don't be a lagopus!</h2>
-</div>
 <div id="header">
-	<ul>
-	<li><a href="./index.html">Home</a></li>
-	<li><a href="./install.html">Installation</a></li>
-	<li><a href="./screens.html">Screen Shots</a></li>
-	<li><a href="./config.html">Configuration</a></li>
-	</ul>
+<div class="Visual">
+<table style="border: 0px;"><tr><td>
+<h1>Alopex</h1>
+</td>
+<td valign="bottom" style="padding-bottom: 4px;">
+<h1 style="font-size: 12pt;">
+&nbsp;&nbsp;&nbsp;&nbsp;
+Don't be a lagopus</h1>
+</td>
+</table>
+<br/>
+<ul>
+	<li><a href="./index.html">Home
+		<span>Introduction to Alopex</span></a></li>
+	<li><a href="./install.html">Install
+		<span>Installation Guide</span></a></li>
+	<li><a href="./config.html">Config
+		<span>Configuration Instructions &amp; Examples</span></a></li>
+</ul>
+</div>
 </div>
 
 <div id="content">
-<h3>Installation</h3>
+<h2>Installation</h2>
+<div id="text">
+<h3>General</h3>
 
-<h5>Build from source:</h5>
+<p>
+The most recent code can be pulled from git.  The included Makefile will
+use any PREFIX or DESTDIR variables passed to it for installation.  The
+default's are shown below but `sudo make install` would be sufficient to
+use these defaults.
+</p><p>
+Alopex depends on libxinerama and cairo and all of their dependencies.
+If you are using a distro that splits development packages, you'll need
+the *-dev libraries as well in order to build alopex.
+</p>
 
-<p class="code">
-git clone http://github.com/TrilbyWhite/alopex.git<br/>
+<pre><tt>git clone http<font color="#990000">:</font>//github<font color="#990000">.</font>com/TrilbyWhite/alopex<font color="#990000">.</font>git
 cd alopex
+make
+sudo make <font color="#009900">PREFIX</font><font color="#990000">=</font>/usr <font color="#009900">DESTDIR</font><font color="#990000">=/</font> install
+</tt></pre>
+
+<hr/>
+
+<h3>Arch Linux</h3>
+
+<p>
+The PKGBUILD in the AUR is for version 2.0.  Version 4.0 will be
+uploaded after a bit more testing.  For now, the following package build
+will get the most up to date code.
 </p>
-Edit config.h to <a href="./config.html">customize colors and keybindings</a> and/or select one of the included themes with the MOLT environment variable
-<p class="code">
-MOLT=WinterCoat make</br>
-sudo make install
-</p>
 
+<pre><tt><i><font color="#9A1900"># Maintainer: Jesse McClure AKA "Trilby" &lt;jmcclure [at] cns [dot] umass [dot] edu&gt;</font></i>
+<font color="#009900">_gitname</font><font color="#990000">=</font><font color="#FF0000">"alopex"</font>
+<font color="#009900">pkgname</font><font color="#990000">=</font><font color="#FF0000">"${_gitname}-git"</font>
+<font color="#009900">pkgver</font><font color="#990000">=</font><font color="#993399">4.387</font><font color="#990000">.</font>0c62077
+<font color="#009900">pkgrel</font><font color="#990000">=</font><font color="#993399">1</font>
+<font color="#009900">pkgdesc</font><font color="#990000">=</font><font color="#FF0000">"A Tabbed, Tiling Window Manager with Fur"</font>
+<font color="#009900">url</font><font color="#990000">=</font><font color="#FF0000">"http://trilbywhite.github.io/alopex/"</font>
+<font color="#009900">arch</font><font color="#990000">=(</font><font color="#FF0000">'x86_64'</font> <font color="#FF0000">'i686'</font><font color="#990000">)</font>
+<font color="#009900">license</font><font color="#990000">=(</font><font color="#FF0000">'GPL3'</font><font color="#990000">)</font>
+<font color="#009900">depends</font><font color="#990000">=(</font><font color="#FF0000">'libxinerama'</font> <font color="#FF0000">'cairo'</font><font color="#990000">)</font>
+<font color="#009900">makedepends</font><font color="#990000">=(</font><font color="#FF0000">'git'</font><font color="#990000">)</font>
+<b><font color="#0000FF">source</font></b><font color="#990000">=(</font><font color="#FF0000">"${_gitname}::git://github.com/TrilbyWhite/alopex.git"</font><font color="#990000">)</font>
+<font color="#009900">sha256sums</font><font color="#990000">=(</font><font color="#FF0000">'SKIP'</font><font color="#990000">)</font>
 
-<h5>Archlinux (AUR):</h5>
-<a href="https://aur.archlinux.org/packages/alopex-git/">alopex-git</a>
+<b><font color="#000000">pkgver()</font></b> {
+	cd <font color="#FF0000">"${_gitname}"</font><font color="#990000">;</font>
+	echo <font color="#FF0000">"4.$(git rev-list --count HEAD).$(git describe --always )"</font>
+}
 
-<h5>Other distros</h5>
-I'll gladly host packages for other distros.  Submit them to the email in the footer.
+<b><font color="#000000">build()</font></b> {
+	cd <font color="#FF0000">"${_gitname}"</font>
+	make
+}
 
+<b><font color="#000000">package()</font></b> {
+	cd <font color="#FF0000">"${_gitname}"</font>
+	make <font color="#009900">PREFIX</font><font color="#990000">=</font>/usr <font color="#009900">DESTDIR</font><font color="#990000">=</font><font color="#FF0000">"${pkgdir}"</font> install
+}
+</tt></pre>
+
+<hr/>
+
+<h3>Other Distros</h3>
+
+<p>I will happily host any build scripts for other distros if/when they
+are submitted to the email address below.</p>
+
+</div></div>
+
+<div id="footer">
+<div id="links">
+	<p>
+	<a href="./index.html">Home</a> &bull;
+	<a href="mailto:jesse@mccluresk9.com">Email</a> &bull;
+	<a href="./faq.html">FAQ</a>
+	</p>
+	<p>Jesse McClure &copy; 2014</p>
+</div>
+<br/><br/><br/>
 </div>
 
-<div id="footer"/>
-	<hr/>
-	<a href="./index.html">Home</a> &bull;
-	<a href="mailto:jmcclure@cns.umass.edu">Email</a> &bull;
-	<a href="./faq.html">FAQ</a>
 </div>
 </body>
 </html>

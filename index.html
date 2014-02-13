@@ -3,73 +3,91 @@
 
 <head>
 <title>
-Alopex - a tabbed tiling window manager
+Alopex
 </title>
-<meta name="description" content="Alopex WM"/>
-<meta name="keywords" content="Tiling window manager with tabs"/>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<link href="res/styles.css" rel="stylesheet" type="text/css" />
+<meta name="description" content="Alopex - Tiling Window Manager" />
+<meta name="keywords" content="window manager, tiling, tagging, x11" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link href="res/style.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
+<div id="subbody">
 
-<div id="visual">
-	<br/><h1>&nbsp;Alopex</h1><h2>Don't be a lagopus!</h2>
-</div>
 <div id="header">
-	<ul>
-	<li><a href="./index.html">Home</a></li>
-	<li><a href="./install.html">Installation</a></li>
-	<li><a href="./screens.html">Screen Shots</a></li>
-	<li><a href="./config.html">Configuration</a></li>
-	</ul>
+<div class="Visual">
+<table style="border: 0px;"><tr><td>
+<h1>Alopex</h1>
+</td>
+<td valign="bottom" style="padding-bottom: 4px;">
+<h1 style="font-size: 12pt;">
+&nbsp;&nbsp;&nbsp;&nbsp;
+Don't be a lagopus</h1>
+</td>
+</table>
+<br/>
+<ul>
+	<li><a href="./index.html">Home
+		<span>Introduction to Alopex</span></a></li>
+	<li><a href="./install.html">Install
+		<span>Installation Guide</span></a></li>
+	<li><a href="./config.html">Config
+		<span>Configuration Instructions &amp; Examples</span></a></li>
+</ul>
+</div>
 </div>
 
 <div id="content">
-<h3>Alopex</h3>
-
-Alopex is a tiling, tagging, window manager with status bar tabs.
-
-<a href="http:/github.com/TrilbyWhite/alopex.git">code</a>
-
-<p style="color: red">
-Under consruction
--J. M. 26 Apr 2013
-</p>
-
+<h2>Alopex - A Tabbed, Tagging, Tiling Window Manager With Fur</h2>
+<div id="text">
+<h3>Description</h3>
+	<p>
+	Alopex is a dynamic tiling window manager with a container concept
+	inspired by i3 but implemented very differently.  Client windows are
+	not statically assigned to a given container, instead, containers
+	each have a configurable maximum number of clients and clients fill
+	each container in sequence.  Within containers, mulitple clients are
+	displayed as tabs in the container's title bar.
+	</p>
+	<p>
+	Containers are tiled in common layouts (currently rstack, bstack, or
+	monocle).  Alopex uses a tag concept rather than the more common
+	workspace mechanism.  The default key bindings, however, are tailored
+	for a workspace-like interaction.  These bindings can easily be
+	modified in the configuration file.
+	</p>
 <h3>Acknowledgements</h3>
-Alopex would never have continued if it weren't for its users.  While many have contributed useful feedback, the following are users from the archlinux community who stand out as providing substantial and continued input that has helped shape and polish alopex.
+	<p>
+	Alopex would never have continued if it weren't for its users. While
+	many have contributed useful feedback, the following are users from
+	the archlinux community who stand out as providing substantial and
+	continued input that has helped shape and polish alopex.
+	</p>
+	<h4>Contributors</h4>
+	<ul>
+	<li>HalosGhost - icon artwork, and documentation.</li>
+	</ul>
+	<h4>Beta testers</h4>
+	<ul>
+	<li>bgc1954 (ver 1.0-2.0)</li>
+	<li>2ManyDogs (ver 1.0)</li>
+	<li>Doomcide (ver 1.0)</li>
+	<li>HalosGhost (ver 2.0)</li>
+	</ul>
+</div></div>
 
-<h5>Contributors</h5>
-<ul><li>
-HalosGhost - icon artwork, manual pages, and <a href="https://wiki.archlinux.org/index.php/Alopex">wiki</a> page.
-</li></ul>
-
-<h5>Beta testers</h5>
-<ul><li>
-bgc1954 (1.0-2.0)
-</li><li>
-2ManyDogs (1.0)
-</li><li>
-Doomcide (1.0)
-</li><li>
-HalosGhost (2.0)
-</li></ul>
-
-
-
-
-
-
-
-
+<div id="footer">
+<div id="links">
+	<p>
+	<a href="./index.html">Home</a> &bull;
+	<a href="mailto:jesse@mccluresk9.com">Email</a> &bull;
+	<a href="./faq.html">FAQ</a>
+	</p>
+	<p>Jesse McClure &copy; 2014</p>
+</div>
+<br/><br/><br/>
 </div>
 
-<div id="footer"/>
-	<hr/>
-	<a href="./index.html">Home</a> &bull;
-	<a href="mailto:jmcclure@cns.umass.edu">Email</a> &bull;
-	<a href="./faq.html">FAQ</a>
 </div>
 </body>
 </html>
