@@ -26,10 +26,13 @@ ${MANPAGES}: alopex.%: alopex-%.tex
 man: ${MANPAGES}
 
 clean:
-	@rm -f ${PROG} ${PROG}-${VER}.tar.gz
+	@rm -f ${PROG}-${VER}.tar.gz
 	@rm -f ${MODULES:%=%.o}
 
-dist: clean
+distclean: clean
+	@rm -f ${PROG}
+
+dist: distclean
 	@tar -czf ${PROG}-${VER}.tar.gz *
 
-.PHONY: clean dist man
+.PHONY: clean dist distclean man
