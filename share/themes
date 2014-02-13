@@ -3,6 +3,7 @@
 !! License: CC-BY-SA
 
 #include "/usr/share/alopex/icecap"
+#include "/usr/share/alopex/polar"
 #include "/usr/share/alopex/tundra"
 #include "/usr/share/alopex/taiga"
 

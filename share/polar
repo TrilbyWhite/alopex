@@ -1,0 +1,24 @@
+!! Alopex resource database: theme polar
+!! By: Jesse McClure (c) 2014
+!! License: CC-BY-SA
+
+polar.Tab.Offset:					1.50 1.00 -3.0 2.00 3.0
+polar.Tab.Background:			0.06 0.06 0.06 1.00 0.0
+polar.Tab.Border:					0.00 0.20 1.00 0.45 0.8
+polar.Tab.Text:					0.25 0.45 1.00 0.40 0.5
+polar.TabFocus.Background:		0.14 0.14 0.14 1.00 0.0
+polar.TabFocus.Border:			0.60 0.90 1.00 0.95 1.2
+polar.TabFocus.Text:				0.90 0.95 1.00 0.90 -10
+polar.TabTop.Background:		0.14 0.14 0.14 1.00 0.0
+polar.TabTop.Border:				0.00 0.40 1.00 0.80 1.0
+polar.TabTop.Text:				0.25 0.65 1.00 0.70 0.5
+polar.Status.Offset:				1.50 -2.0 -3.0 1.00 3.0
+polar.Status.Background:		0.14 0.14 0.14 1.00 0.0
+polar.Status.Border:				1.00 1.00 1.00 0.60 1.0
+polar.Status.Text:				0.80 0.80 0.80 1.00 0.0
+polar.Tag.Occupied:				0.00 0.00 1.00 1.00 0.0
+polar.Tag.View:					1.00 1.00 1.00 1.00 0.0
+polar.Tag.Alt:						0.80 0.00 0.00 1.00 0.0
+polar.Tag.Both:					0.80 0.00 0.80 1.00 0.0
+
+!! vim: ft=xdefaults
