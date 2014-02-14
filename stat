@@ -1,4 +1,7 @@
 #!/bin/bash
 # ridiculously simple example status script
+# for a better example written in C, see:
+#   https://github.com/TrilbyWhite/junkdrawer/blob/master/lagopus.c
 
-while :; do echo "&& {I 11} $(date +%H:%M) &"; sleep 60; done
+
+while :; do echo "&& {i 11} $(date +%H:%M) &"; sleep 60; done
