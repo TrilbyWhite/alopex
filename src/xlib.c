@@ -561,9 +561,10 @@ void propertynotify(XEvent *ev) {
 	Client *c;
 	if (e->window == root) {
 		char *cmd;
-		XFetchName(dpy, root, &cmd);
+		if (!XFetchName(dpy, root, &cmd)) return;
 		if (strncmp("ALOPEX: ", cmd, 8) == 0) command(cmd + 8);
 		if (cmd) XFree(cmd);
+		return;
 	}
 	if ( !(c=wintoclient(e->window)) ) return;
 	if (e->atom == XA_WM_NAME) get_name(c);
