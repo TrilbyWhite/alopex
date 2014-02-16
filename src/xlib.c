@@ -233,6 +233,8 @@ int set_focus() {
 	Window win; int rev;
 	/* raise window */
 	if (c->flags & WIN_FLOAT) {
+// TESTING A WORKAROUND FOR SDL GAMES:
+if (c->flags & WIN_FOCUS)
 		XRaiseWindow(dpy, c->win);
 	}
 	else {
@@ -431,17 +433,15 @@ void buttonpress(XEvent *ev) {
 		expose(ev);
 		XMaskEvent(dpy, PointerMotionMask | ButtonReleaseMask, &ee);
 		if (ee.type == ButtonRelease) break;
-		XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
 if (!(c->flags & WIN_FLOAT)) {
 	c->flags |= WIN_FLOAT;
 	tile();
-c->x = xx - c->w / 2;
-c->y = yy - c->h / 2;
-if (c->x + c->w > m->x + m->w) c->w = m->x + m->w - c->x;
-if (c->y + c->h > m->y + m->h) c->h = m->y + m->h - c->y;
-if (c->x < m->x) c->x = m->x;
-if (c->y < m->y) c->y = m->y;
+if (xx < c->x) c->x = xx;
+if (xx > c->x + c->w) c->x = xx - c->w;
+if (yy < c->y) c->y = yy;
+if (yy > c->y + c->h) c->y = yy - c->h;
 }
+		XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
 		dx = ee.xbutton.x_root - xx; xx = ee.xbutton.x_root;
 		dy = ee.xbutton.y_root - yy; yy = ee.xbutton.y_root;
 		if (b == 1) { c->x += dx; c->y += dy; }

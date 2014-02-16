@@ -3,5 +3,6 @@
 # for a better example written in C, see:
 #   https://github.com/TrilbyWhite/junkdrawer/blob/master/lagopus.c
 
-
-while :; do echo "&& {i 11} $(date +%H:%M) &"; sleep 60; done
+echo
+sleep 10
+while :; do echo "&& {i 11} $(date +%H:%M) &"; sleep 10; done
