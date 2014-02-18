@@ -233,8 +233,7 @@ int set_focus() {
 	Window win; int rev;
 	/* raise window */
 	if (c->flags & WIN_FLOAT) {
-// TESTING A WORKAROUND FOR SDL GAMES:
-if (c->flags & WIN_FOCUS)
+//if (!(conditional for 0ad type windows))
 		XRaiseWindow(dpy, c->win);
 	}
 	else {
@@ -451,6 +450,7 @@ if (yy > c->y + c->h) c->y = yy - c->h;
 }
 
 void configurerequest(XEvent *ev) {
+fprintf(stderr,"CONFIGURE\n");
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	Client *c;
 	if ( (c=wintoclient(e->window)) ) {
@@ -467,6 +467,9 @@ void configurerequest(XEvent *ev) {
 		}
 	}
 	if (!c || (c->flags & WIN_FLOAT) ) {
+fprintf(stderr,"-- CONFIGURE\n");
+if (e->window == root) return;
+fprintf(stderr,">> CONFIGURE\n");
 		XWindowChanges wc;
 		wc.x=e->x; wc.y=e->y; wc.width=e->width; wc.height=e->height;
 		wc.sibling = e->above; wc.stack_mode = e->detail;
