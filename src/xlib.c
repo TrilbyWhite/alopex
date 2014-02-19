@@ -228,13 +228,23 @@ int purgatory(Window w) {
 }
 
 int set_focus() {
-	Client *c = winmarks[1];
+	Client *cc, *c = winmarks[1];
 	if (!c) return 1;
 	Window win; int rev;
 	/* raise window */
 	if (c->flags & WIN_FLOAT) {
-//if (!(conditional for 0ad type windows))
-		XRaiseWindow(dpy, c->win);
+		//XRaiseWindow(dpy, c->win);
+		/* work around for fullscreen SDL windows */
+		XWindowChanges wc;
+		wc.stack_mode = Above;
+		wc.sibling = m->container->win;
+		XConfigureWindow(dpy, c->win, CWSibling | CWStackMode, &wc);
+		for (cc = clients; cc; cc = cc->next) {
+			if (cc->tags & m->tags && (cc->flags & WIN_FLOAT)) {
+				wc.sibling = cc->win;
+				XConfigureWindow(dpy, c->win, CWSibling | CWStackMode, &wc);
+			}
+		}
 	}
 	else {
 		XWindowChanges wc;
