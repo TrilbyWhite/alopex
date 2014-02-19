@@ -22,13 +22,14 @@ int tile() {
 		/* calculate how many containers will be used: */
 		if (M->mode == MONOCLE) {
 			M->focus = M->container;
-			numC = 1;
+			numC = 0;
 			M->occ = 0;
 			for (c = clients; c; c = c->next) {
 				M->occ |= (c->tags & 0xFFFF);
 				if (tile_check(M, c)) {
 					if (!winmarks[1]) winmarks[1] = c;
 					if (c == winmarks[1]) M->container->top = c;
+					numC = 1;
 				}
 			}
 		}
