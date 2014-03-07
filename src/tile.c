@@ -83,7 +83,7 @@ int tile() {
 			C->y = M->y + (conf.bar_opts & BAR_BOTTOM ? M->h-C->bar->h : 0);
 			C->w = M->w;
 			XMoveResizeWindow(dpy, C->win, C->x, C->y, C->w, C->bar->h);
-			cairo_set_source_surface(C->bar->ctx, M->bg, -C->x, -C->y);
+			cairo_set_source_surface(C->bar->ctx, M->bg, M->x - C->x, M->y - C->y);
 			cairo_paint(C->bar->ctx);
 		}
 		/* sort floating windows */
@@ -157,7 +157,7 @@ int resize_container(Monitor *M, Container *C, int numC, int ord) {
 	else {
 		int y = (C->bar->opts & BAR_BOTTOM ? C->y+C->h : C->y-C->bar->h);
 		XMoveResizeWindow(dpy, C->win, C->x, y, C->w, C->bar->h);
-		cairo_set_source_surface(C->bar->ctx, M->bg, -C->x, -y);
+		cairo_set_source_surface(C->bar->ctx, M->bg, M->x - C->x, M->y - y);
 		cairo_paint(C->bar->ctx);
 	}
 }
