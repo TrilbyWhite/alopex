@@ -2,8 +2,8 @@
 PROG     =  alopex
 VER      =  4.0a
 CC       ?= gcc
-CFLAGS   += `pkg-config --cflags x11 cairo freetype2 xinerama`
-LDLIBS   += `pkg-config --libs x11 cairo freetype2 xinerama`
+CFLAGS   += $(shell pkg-config --cflags x11 cairo freetype2 xinerama)
+LDLIBS   += $(shell pkg-config --libs x11 cairo freetype2 xinerama)
 PREFIX   ?= /usr
 MODULES  =  actions alopex atoms config draw tile xlib
 HEADERS  =  alopex.h actions.h

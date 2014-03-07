@@ -15,11 +15,11 @@ int draw_bar_sub(Monitor *M, Container *C, Bar *S, int x, Bool bg) {
 	cairo_rectangle(C->bar->ctx, x, 0, S->w, C->bar->h);
 	cairo_clip(C->bar->ctx);
 	if (bg) { /* draw background as needed */
-		int y = (C->bar->opts & BAR_BOTTOM ? C->y+C->h : C->y-C->bar->h);
+		int y = M->y - (C->bar->opts & BAR_BOTTOM ? C->y+C->h : C->y-C->bar->h);
 		if (C->top)
-			cairo_set_source_surface(C->bar->ctx, M->bg, -C->x, -y);
+			cairo_set_source_surface(C->bar->ctx, M->bg, M->x - C->x, y);
 		else
-			cairo_set_source_surface(C->bar->ctx, M->bg, -C->x, 0);
+			cairo_set_source_surface(C->bar->ctx, M->bg, M->x - C->x, 0);
 		cairo_paint(C->bar->ctx);
 	}
 	round_rect(C->bar, x, 0, S->w, S->h, StatusOffset,

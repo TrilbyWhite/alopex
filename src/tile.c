@@ -18,7 +18,10 @@ int tile() {
 	Container *C;
 	Client *c, *pc, *t;
 	int num, cn, numC, ord;
+	int mview = 0;
 	for (M = mons; M; M = M->next) {
+		M->tags &= ~mview;
+		mview |= M->tags;
 		/* calculate how many containers will be used: */
 		if (M->mode == MONOCLE) {
 			M->focus = M->container;
@@ -85,8 +88,6 @@ int tile() {
 		}
 		/* sort floating windows */
 		// TODO: needs testing
-		for (c = clients; c; c = c->next)
-			if (!(M->tags & c->tags)) purgatory(c->win);
 		for (c = clients; c; c = c->next) {
 			if (!(M->tags & c->tags)) continue;
 			else if (c->flags & WIN_FULL_TEST) {
@@ -98,6 +99,9 @@ int tile() {
 				XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
 		}
 		if (!M->focus) M->focus = M->container;
+	}
+	for (c = clients; c; c = c->next) {
+		if (!(c->tags & mview)) purgatory(c->win);
 	}
 	draw_bars(False);
 	set_focus();

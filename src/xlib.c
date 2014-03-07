@@ -5,7 +5,7 @@
 #define SELECT_EVENTS	\
 	ExposureMask | FocusChangeMask | ButtonReleaseMask | \
 	SubstructureNotifyMask | SubstructureRedirectMask | \
-	StructureNotifyMask | PropertyChangeMask
+	StructureNotifyMask | PropertyChangeMask | EnterWindowMask
 
 #define GRABMODE	GrabModeAsync, GrabModeAsync
 #define GRABMODE2	ButtonPressMask, GrabModeAsync, GrabModeAsync, \
@@ -138,8 +138,8 @@ if (cairo_surface_status(src) != CAIRO_STATUS_SUCCESS) {
 		cairo_destroy(ctx);
 		/* paint root pixmap */
 		cairo_save(rctx);
-		cairo_scale(rctx, M->w / (float) imgw, M->h / (float) imgh);
 		cairo_translate(rctx, M->x, M->y);
+		cairo_scale(rctx, M->w / (float) imgw, M->h / (float) imgh);
 		cairo_set_source_surface(rctx, src, 0, 0);
 		cairo_paint(rctx);
 		cairo_restore(rctx);
@@ -152,7 +152,7 @@ if (cairo_surface_status(src) != CAIRO_STATUS_SUCCESS) {
 			C->nn = C->n;
 			C->bar = calloc(1, sizeof(Bar));
 			C->bar->opts = conf.bar_opts;
-			C->bar->w = mons[i].w;
+			C->bar->w = M->w;
 			C->bar->h = conf.bar_opts & BAR_HEIGHT;
 			C->bar->buf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
 					C->bar->w, C->bar->h);
@@ -489,7 +489,15 @@ fprintf(stderr,">> CONFIGURE\n");
 }
 
 void enternotify(XEvent *ev) {
-	// TODO check monitors
+	if (mons->next) {
+		int x = ev->xcrossing.x_root;
+		int y = ev->xcrossing.y_root;
+		Monitor *M;
+		for (M = mons; M; M = M->next) {
+			if (M->x < x && M->x + M->w > x && M->y < y && M->y + M->h > y)
+				m = M;
+		}
+	}
 	if (!conf.focus_follow) return;
 	Client *c = wintoclient(ev->xcrossing.window);
 	if (!c) return;
@@ -547,7 +555,15 @@ void maprequest(XEvent *ev) {
 	get_icon(c);
 	get_name(c);
 	apply_rules(c);
-	if (!c->tags && !(c->tags=m->tags)) c->tags = m->tags = 1;
+	if (!c->tags && !(c->tags=m->tags)) {
+		Monitor *M;
+		int i, tags = 0;
+		for (M = mons; M; M = M->next) tags |= M->tags;
+fprintf(stderr,"ADD TAG tags=%X\n",tags);
+		for (i = 0; ((1<<i) & tags) && i < 9; i++)
+fprintf(stderr," -- %d\n",i);
+		c->tags = m->tags = (1<<i);
+	}
 	if (XGetTransientForHint(dpy, c->win, &c->parent))
 		c->flags |= WIN_TRANS;
 	else

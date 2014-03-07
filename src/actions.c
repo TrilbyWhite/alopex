@@ -174,20 +174,34 @@ int monitor(const char *s) {
 		if (s[1] == 'r')
 			m->margin = conf.margin;
 		else {
-			sscanf(s,"%d,%d,%d,%d", &n1, &n2, &n3, &n4);
+			sscanf(s,"m%d,%d,%d,%d", &n1, &n2, &n3, &n4);
 			m->margin.top = n1;
 			m->margin.bottom = n2;
 			m->margin.left = n3;
 			m->margin.right = n4;
 		}
 	}
+	else if (*s == 's') { /* swap tags */
+		sscanf(s,"s%d,%d", &n1, &n2);
+		Monitor *M, *a = NULL, *b = NULL;
+		for (M = mons, n3 = 1; M; n3++, M = M->next) {
+			if (n1 == n3) a = M;
+			else if (n2 == n3) b = M;
+		}
+		if (a && b) {
+			n4 = a->tags;
+			a->tags = b->tags;
+			b->tags = n4;
+		}
+	}
+	else if (*s == 'c') { /* cycle through monitors */
+		m = m->next;
+		if (!m) m = mons;
+	}
 	else { /* focus another monitor */
-		/* TODO needs testing */
-		int n;
-		if (!(n=atoi(s))) return 1;
+		n1 = atoi(s);
 		Monitor *M;
-		for (M = mons; n > 1 && M; n--, M = M->next);
-		if (M) m = M;
+		for (M = mons; n1 > 0 && M; n1--, M = M->next) m = M;
 	}
 	return 0;
 }
