@@ -245,7 +245,7 @@ int set_focus() {
 				XConfigureWindow(dpy, c->win, CWSibling | CWStackMode, &wc);
 			}
 		}
-		wc.sibling = cc->win;
+		wc.sibling = c->win;
 		for (cc = clients; cc; cc = cc->next) {
 			if (cc->parent == c->win)
 				XConfigureWindow(dpy, cc->win, CWSibling | CWStackMode, &wc);
