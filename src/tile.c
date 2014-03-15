@@ -79,16 +79,19 @@ int tile() {
 		/* show bar if no containers are visible */
 		if (!numC && !(conf.bar_opts & BAR_HIDE)) {
 			C = M->container;
-			C->x = M->x;
-			C->y = M->y + (conf.bar_opts & BAR_BOTTOM ? M->h-C->bar->h : 0);
-			C->w = M->w;
+			C->x = M->x + M->margin.left;
+			C->y = M->y + (conf.bar_opts & BAR_BOTTOM ?
+					M->h - C->bar->h - M->margin.bottom :
+					M->margin.top);
+			C->w = M->w - M->margin.left - M->margin.right;
 			XMoveResizeWindow(dpy, C->win, C->x, C->y, C->w, C->bar->h);
-			cairo_set_source_surface(C->bar->ctx, M->bg, M->x - C->x, M->y - C->y);
+			cairo_set_source_surface(C->bar->ctx, M->bg,
+					M->x - C->x, M->y - C->y);
 			cairo_paint(C->bar->ctx);
 		}
 		/* sort floating windows */
 		// TODO: needs testing
-		for (c = clients; c; c = c->next) {
+		for (c = clients ; c; c = c->next) {
 			if (!(M->tags & c->tags)) continue;
 			else if (c->flags & WIN_FULL_TEST) {
 				if ( !winmarks[1] || !(winmarks[1]->flags & WIN_FULL_TEST) )
