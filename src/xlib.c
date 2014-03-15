@@ -245,6 +245,11 @@ int set_focus() {
 				XConfigureWindow(dpy, c->win, CWSibling | CWStackMode, &wc);
 			}
 		}
+		wc.sibling = cc->win;
+		for (cc = clients; cc; cc = cc->next) {
+			if (cc->parent == c->win)
+				XConfigureWindow(dpy, cc->win, CWSibling | CWStackMode, &wc);
+		}
 	}
 	else {
 		XWindowChanges wc;
@@ -559,9 +564,9 @@ void maprequest(XEvent *ev) {
 		Monitor *M;
 		int i, tags = 0;
 		for (M = mons; M; M = M->next) tags |= M->tags;
-fprintf(stderr,"ADD TAG tags=%X\n",tags);
-		for (i = 0; ((1<<i) & tags) && i < 9; i++)
-fprintf(stderr," -- %d\n",i);
+//fprintf(stderr,"ADD TAG tags=%X\n",tags);
+		for (i = 0; ((1<<i) & tags) && i < 9; i++);
+//fprintf(stderr," -- %d\n",i);
 		c->tags = m->tags = (1<<i);
 	}
 	if (XGetTransientForHint(dpy, c->win, &c->parent))
