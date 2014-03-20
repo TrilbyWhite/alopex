@@ -134,6 +134,7 @@ void layout(Client *c, const char **arg) {
 
 void mark_client(Client *t, const char **arg) {
 	int n = atoi(arg[0]);
+	if (!(t=winmarks[1])) return;
 	if (n > 1 && n < 10) winmarks[n] = t;
 	else if (n == 1) { winmarks[0] = winmarks[1]; winmarks[1] = t; }
 }
@@ -299,7 +300,7 @@ void word(const char *word) {
 	arg[i] = NULL;
 	parg = (const char **) arg;
 	/* get target */
-	Client *t = winmarks[1], *wt = NULL;
+	Client *wt = NULL;
 	if ( (strncasecmp(arg[0],"win",3)==0) && arg[1] ) {
 		if ( !(n=atoi(arg[1])) ) {
 			n = 1;
