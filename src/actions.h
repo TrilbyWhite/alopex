@@ -3,17 +3,17 @@
 #define __ACTIONS_H__
 
 extern int command(const char *);
-extern int float_full(Client *);
-extern int focus(Client *, const char *);
-extern int killclient(Client *);
-extern int layout(const char *);
-extern int mod_bar(const char *);
-extern int mod_container(const char *);
-extern int move(Client *, const char *);
-extern int pull_client(Client *);
-extern int push_client(Client *, Client *);
-extern int spawn(const char *);
-extern int tag(Client *, const char *);
-extern int word(const char *);
+extern void conftile(Client *, const char **);
+extern void float_full(Client *, const char **);
+extern void focus(Client *, const char **);
+extern void killclient(Client *, const char **);
+extern void layout(Client *, const char **);
+extern void mod_bar(Client *, const char **);
+extern void move(Client *, const char **);
+extern void pull_client(Client *);
+extern void push_client(Client *, Client *);
+extern void spawn(Client *, const char **);
+extern void tag(Client *, const char **);
+extern void word(const char *);
 
 #endif /* __ACTIONS_H__ */

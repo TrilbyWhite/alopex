@@ -1,5 +1,5 @@
 '\" t
-.\" Manual page created with latex2man on Thu Feb 13 14:02:38 EST 2014
+.\" Manual page created with latex2man on Thu Mar 20 14:23:46 EDT 2014
 .\" NOTE: This file is generated, DO NOT EDIT.
 .de Vb
 .ft CW
@@ -10,7 +10,7 @@
 
 .fi
 ..
-.TH "ALOPEX" "1" "13 February 2014" "window manager " "window manager "
+.TH "ALOPEX" "1" "20 March 2014" "window manager " "window manager "
 .SH NAME
 
 .PP
@@ -72,11 +72,29 @@ the right side of the second container\&'s bar (or the right of the first
 container if there is only one visible). The fourth segment is 
 displayed at the right side of the last visible container. 
 .PP
-Plain text is printed as is into the above\-specified status bar region. 
-Text within curly\-braces is interpreted as a special indicator. These 
-indicators can specify a foreground color, set a font, display an icon 
-or paint the foreground color with an icon mask. Further documentation 
-and examples can be found on the github wiki. 
+Plain text is printed as\-is into the above\-specified status bar region. 
+Text within curly\-braces is interpreted as a special command. These 
+commands can specify a foreground color, set a font, display an icon 
+or paint the foreground color with an icon mask. 
+.PP
+.SS STATUS COMMANDS
+.PP
+.TP
+\fBR G B A\fP
+ Set color with Red Green Blue and Alpha values specified as floating 
+point numbers from 0 to 1 
+.TP
+\fBi\fP\fI#\fP
+ Draw icon number # in full color 
+.TP
+\fBI\fP\fI#\fP
+ Use icon number # as mask for the currently selected color 
+.TP
+\fBf\fP
+ Select default font 
+.TP
+\fBF\fP
+ Select bold font 
 .PP
 .SH AUTHOR
 

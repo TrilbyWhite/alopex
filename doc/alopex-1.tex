@@ -54,11 +54,25 @@ the right side of the second container's bar (or the right of the first
 container if there is only one visible).  The fourth segment is
 displayed at the right side of the last visible container.
 
-Plain text is printed as is into the above-specified status bar region.
-Text within curly-braces is interpreted as a special indicator.  These
-indicators can specify a foreground color, set a font, display an icon
-or paint the foreground color with an icon mask.  Further documentation
-and examples can be found on the github wiki.
+Plain text is printed as-is into the above-specified status bar region.
+Text within curly-braces is interpreted as a special command.  These
+commands can specify a foreground color, set a font, display an icon
+or paint the foreground color with an icon mask.
+
+\subsection{Status Commands}
+
+\begin{description}
+\item[\Opt{R G B A}]
+	Set color with Red Green Blue and Alpha values specified as floating
+	point numbers from 0 to 1
+\item[\OptArg{i}{#}]
+	Draw icon number # in full color
+\item[\OptArg{I}{#}]
+	Use icon number # as mask for the currently selected color
+\item[\Opt{f}]
+	Select default font
+\item[\Opt{F}]
+	Select bold font
 
 \section{Author}
 Copyright \copyright 2012-2014 Jesse McClure \\

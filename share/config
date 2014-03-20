@@ -78,10 +78,10 @@ Alopex.Theme:           icecap
 
 !----- Binds -----!
 ! Each key can have up to five bindings using different modifiers
-! TODO allow for no modifiers? (for media keys)
 ! Each key is numbered from 00-99
 ! See "Commands" description in a man page or github wiki for
 !  a description of the command language used for bindings
+!  NOTE: the wiki is currently outdated
 ! Modifier definitions
 *.Bind.Mod.First:			Super
 *.Bind.Mod.Second:		Super Alt
@@ -90,84 +90,90 @@ Alopex.Theme:           icecap
 *.Bind.Mod.Fifth:			Alt
 ! General bindings
 *.Bind.00.Key:			q
-*.Bind.00.Third:		Q
+*.Bind.00.Third:		quit
 *.Bind.01.Key:			Return
-*.Bind.01.First:		!urxvt
+*.Bind.01.First:		exec urxvt
 *.Bind.02.Key:			w
-*.Bind.02.First:		!firefox
+*.Bind.02.First:		exec firefox
 *.Bind.03.Key:			F4
-*.Bind.03.Fifth:		wq
+*.Bind.03.Fifth:		kill
 ! Tiling mode
 *.Bind.50.Key:			space
-*.Bind.50.First:		l
-*.Bind.50.Second:		lx
-*.Bind.50.Third:		lm
+*.Bind.50.First:		layout
+*.Bind.50.Second:		layout default
+*.Bind.50.Third:		layout monocle
 ! Floating / Fullscren:
 *.Bind.51.Key:			f
-*.Bind.51.First:		F
-*.Bind.51.Third:		wF
+*.Bind.51.First:		float
+*.Bind.51.Third:		fullscreen
 ! Focus / Move
+! focus (top|bottom|up|down)
+! move (top|bottom|up|down)
+! win # move (above|below)
 *.Bind.60.Key:			Tab
-*.Bind.60.First:		fp
-*.Bind.60.Third:		ff
-*.Bind.60.Fifth:		v
+*.Bind.60.First:		focus previous
+*.Bind.60.Third:		focus floater
+*.Bind.60.Fifth:		view
 *.Bind.61.Key:			h
-*.Bind.61.First:		fh
-*.Bind.61.Second:		mh
+*.Bind.61.First:		focus top
+*.Bind.61.Third:		move top
 *.Bind.62.Key:			j
-*.Bind.62.First:		fj
-*.Bind.62.Second:		mj
+*.Bind.62.First:		focus down
+*.Bind.62.Third:		move down
 *.Bind.63.Key:			k
-*.Bind.63.First:		fk
-*.Bind.63.Second:		mk
+*.Bind.63.First:		focus up
+*.Bind.63.Third:		move up
 *.Bind.64.Key:			l
-*.Bind.64.First:		fl
-*.Bind.64.Second:		ml
+*.Bind.64.First:		focus bottom
+*.Bind.64.Third:		move bottom
 ! Modify Settings
+! bar (top|bottom|show|hide|toggle) [all]
 *.Bind.70.Key:			x
-*.Bind.70.First:		bx
-*.Bind.70.Second:		bS
-*.Bind.70.Third:		bX
-*.Bind.70.Fourth:		bH
+*.Bind.70.First:		bar toggle
+*.Bind.70.Second:		bar show all
+*.Bind.70.Third:		bar toggle all
+*.Bind.70.Fourth:		bar hide all
+! (split|gap|number) (increase|decrease|set|reset) [#]
 *.Bind.71.Key:			i
-*.Bind.71.First:		si
-*.Bind.71.Second:		gi
-*.Bind.71.Third:		ni
+*.Bind.71.First:		split increase 1
+*.Bind.71.Second:		gap increase 1
+*.Bind.71.Third:		number increase 1
 *.Bind.72.Key:			d
-*.Bind.72.First:		sd
-*.Bind.72.Second:		gd
-*.Bind.72.Third:		nd
+*.Bind.72.First:		split decrease 1
+*.Bind.72.Second:		gap decrease 1
+*.Bind.72.Third:		number decrease 1
 *.Bind.73.Key:			r
-*.Bind.73.First:		sr
-*.Bind.73.Second:		gr
-*.Bind.73.Third:		nr
+*.Bind.73.First:		split reset
+*.Bind.73.Second:		gap reset
+*.Bind.73.Third:		number reset
 ! Tag bindings
+! [win [#]] tag (toggle|set|add|remove) #
 *.Bind.81.Key:			1
-*.Bind.81.First:		tx1
-*.Bind.81.Second:		tt1
-*.Bind.81.Third:		wtx1
-*.Bind.81.Fourth:		wtt1
+*.Bind.81.First:		tag set 1
+*.Bind.81.Second:		tag toggle 1
+*.Bind.81.Third:		win tag set 1
+*.Bind.81.Fourth:		win tag toggle 1
 *.Bind.82.Key:			2
-*.Bind.82.First:		tx2
-*.Bind.82.Second:		tt2
-*.Bind.82.Third:		wtx2
-*.Bind.82.Fourth:		wtt2
+*.Bind.82.First:		tag set 2
+*.Bind.82.Second:		tag toggle 2
+*.Bind.82.Third:		win tag set 2
+*.Bind.82.Fourth:		win tag toggle 2
 *.Bind.83.Key:			3
-*.Bind.83.First:		tx3
-*.Bind.83.Second:		tt3
-*.Bind.83.Third:		wtx3
-*.Bind.83.Fourth:		wtt3
+*.Bind.83.First:		tag set 3
+*.Bind.83.Second:		tag toggle 3
+*.Bind.83.Third:		win tag set 3
+*.Bind.83.Fourth:		win tag toggle 3
 *.Bind.84.Key:			4
-*.Bind.84.First:		tx4
-*.Bind.84.Second:		tt4
-*.Bind.84.Third:		wtx4
-*.Bind.84.Fourth:		wtt4
+*.Bind.84.First:		tag set 4
+*.Bind.84.Second:		tag toggle 4
+*.Bind.84.Third:		win tag set 4
+*.Bind.84.Fourth:		win tag toggle 4
 ! Window marks:
 *.Bind.92.Key:			F2
 *.Bind.92.First:		w2f
 *.Bind.92.Second:		z2
 *.Bind.93.Key:			F3
-*.Bind.93.First:		w3f
+*.Bind.93.First:		win 3f
 *.Bind.93.Second:		z3
 
 !! vim: ft=xdefaults

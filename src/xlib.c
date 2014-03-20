@@ -336,7 +336,7 @@ int xlib_init(const char *theme_name) {
 
 int xlib_free() {
 	Client *c;
-	for (c = clients; c; c = c->next) killclient(c);
+	for (c = clients; c; c = c->next) killclient(c, NULL);
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
 	XUngrabButton(dpy, AnyButton, AnyModifier, root);
 	XFlush(dpy);
