@@ -120,6 +120,8 @@ if (cairo_surface_status(src) != CAIRO_STATUS_SUCCESS) {
 	cairo_t *ctx, *rctx;
 	rctx = cairo_create(dest);
 	Monitor *M;
+	XWindowChanges wc;
+	wc.stack_mode = Below;
 	for(i = 0; i < n; i++) {
 		M = &mons[i];
 		if (i < n - 1) M->next = &mons[i+1];
@@ -160,6 +162,8 @@ if (cairo_surface_status(src) != CAIRO_STATUS_SUCCESS) {
 			cairo_set_font_face(C->bar->ctx, conf.font);
 			cairo_set_font_size(C->bar->ctx, conf.font_size);
 			C->win = XCreateSimpleWindow(dpy,root,0,0,M->w,C->bar->h,0,0,0);
+			if (j == 0) wc.sibling = C->win;
+			else XConfigureWindow(dpy, C->win, CWSibling | CWStackMode, &wc);
 			XSelectInput(dpy, C->win, SELECT_EVENTS);
 			t = cairo_xlib_surface_create(dpy, C->win,
 					DefaultVisual(dpy,scr), M->w, C->bar->h);
@@ -233,8 +237,6 @@ int set_focus() {
 	Window win; int rev;
 	/* raise window */
 	if (c->flags & WIN_FLOAT) {
-		//XRaiseWindow(dpy, c->win);
-		/* work around for fullscreen SDL windows */
 		XWindowChanges wc;
 		wc.stack_mode = Above;
 		wc.sibling = m->container->win;

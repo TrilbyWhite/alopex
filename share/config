@@ -1,6 +1,7 @@
 !! Alopex resource database
 !! By: Jesse McClure (c) 2014
 !! License: CC-BY-SA
+!!   http://creativecommons.org/licenses/by-sa/4.0/
 
 ! including a specific theme file (rather than all three) will
 !  slghtly reduce memory use.  By default all three are included
