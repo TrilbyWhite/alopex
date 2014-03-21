@@ -120,7 +120,7 @@ void focus(Client *t, const char **arg) {
 }
 
 void killclient(Client *c, const char **arg) {
-	if (!c) return;
+	if (!c && !(c=winmarks[1])) return;
 	send_message(c, WM_PROTOCOLS, WM_DELETE_WINDOW);
 }
 
