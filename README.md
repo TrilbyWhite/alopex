@@ -7,7 +7,7 @@ Don't be a lagopus!
 
 
 
-### 22 March 20114
+### 22 March 2014
 
 - There may be issues with the cairo drawing functions used by alopex
   and some nvidia drivers.  Unfortunately I have no way of tracking down
