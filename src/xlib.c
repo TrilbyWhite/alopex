@@ -467,32 +467,28 @@ if (yy > c->y + c->h) c->y = yy - c->h;
 }
 
 void configurerequest(XEvent *ev) {
-fprintf(stderr,"CONFIGURE\n");
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	Client *c;
+	XWindowChanges wc;
+	wc.x=e->x; wc.y=e->y; wc.width=e->width; wc.height=e->height;
 	if ( (c=wintoclient(e->window)) ) {
-		if ( (e->value_mask & CWWidth) && (e->value_mask & CWHeight) ) {
-			if ( (e->width == m->w) && (e->height == m->h) ) {
-				c->flags |= WIN_FULL;
-				tile();
-			}
-			else {
-				if (e->value_mask & CWWidth) c->w = e->width;
-				if (e->value_mask & CWHeight) c->w = e->height;
-				// TODO x and y
-			}
+		if ( (e->value_mask & (CWWidth | CWHeight)) &&
+				(e->width == m->w) && (e->height == m->h) ) {
+			c->flags |= WIN_FULL;
 		}
+		else {
+			if (e->value_mask & CWX) c->x = e->x;
+			if (e->value_mask & CWY) c->x = e->y;
+			if (e->value_mask & CWWidth) c->w = e->width;
+			if (e->value_mask & CWHeight) c->w = e->height;
+		}
+		wc.x=c->x; wc.y=c->y; wc.width=c->w; wc.height=c->h;
 	}
-	if (!c || (c->flags & WIN_FLOAT) ) {
-fprintf(stderr,"-- CONFIGURE\n");
-if (e->window == root) return;
-fprintf(stderr,">> CONFIGURE\n");
-		XWindowChanges wc;
-		wc.x=e->x; wc.y=e->y; wc.width=e->width; wc.height=e->height;
-		wc.sibling = e->above; wc.stack_mode = e->detail;
-		XConfigureWindow(dpy, e->window, e->value_mask, &wc);
-		XFlush(dpy);
-	}
+	if (e->window == root) return;
+	wc.sibling = e->above;
+	wc.stack_mode = e->detail;
+	XConfigureWindow(dpy, e->window, e->value_mask, &wc);
+	tile();
 }
 
 void enternotify(XEvent *ev) {
@@ -598,7 +594,10 @@ void propertynotify(XEvent *ev) {
 	if (e->window == root) {
 		char *cmd;
 		if (!XFetchName(dpy, root, &cmd)) return;
-		if (strncmp("ALOPEX: ", cmd, 8) == 0) command(cmd + 8);
+		if (strncmp("ALOPEX: ", cmd, 8) == 0) {
+			XStoreName(dpy, root, "");
+			command(cmd + 8);
+		}
 		if (cmd) XFree(cmd);
 		return;
 	}
