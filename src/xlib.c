@@ -21,6 +21,7 @@ static int apply_rules(Client *);
 static int get_hints(Client *);
 static int get_icon(Client *);
 static int get_name(Client *);
+static int get_size(Client *);
 
 static void buttonpress(XEvent *);
 static void configurerequest(XEvent *);
@@ -419,6 +420,18 @@ int get_name(Client *c) {
 	return 0;
 }
 
+int get_size(Client *c) {
+	long ret;
+	XSizeHints hint;
+	if (!(XGetWMNormalHints(dpy,c->win,&hint,&ret))) hint.flags = 0;
+	if (hint.flags & PBaseSize) {
+		c->w = hint.base_width; c->h = hint.base_height;
+	}
+	else if (hint.flags & PMinSize) {
+		c->w = hint.min_width; c->h = hint.min_height;
+	}
+	return 0;
+}
 
 /**** EVENT HANDLERS ****/
 
@@ -470,24 +483,29 @@ void configurerequest(XEvent *ev) {
 	XConfigureRequestEvent *e = &ev->xconfigurerequest;
 	Client *c;
 	XWindowChanges wc;
-	wc.x=e->x; wc.y=e->y; wc.width=e->width; wc.height=e->height;
 	if ( (c=wintoclient(e->window)) ) {
-		if ( (e->value_mask & (CWWidth | CWHeight)) &&
-				(e->width == m->w) && (e->height == m->h) ) {
-			c->flags |= WIN_FULL;
-		}
-		else {
-			if (e->value_mask & CWX) c->x = e->x;
-			if (e->value_mask & CWY) c->x = e->y;
-			if (e->value_mask & CWWidth) c->w = e->width;
-			if (e->value_mask & CWHeight) c->w = e->height;
-		}
-		wc.x=c->x; wc.y=c->y; wc.width=c->w; wc.height=c->h;
+		if (e->value_mask & CWX) c->x = e->x;
+		if (e->value_mask & CWY) c->y = e->y;
+		if (e->value_mask & CWWidth) c->w = e->width;
+		if (e->value_mask & CWHeight) c->h = e->height;
+		if (c->w == m->w && c->h == m->h) c->flags |= WIN_FULL;
+		/* Let gtk3 windows know we're listening: */
+		XConfigureEvent cn;
+		cn.type = ConfigureNotify; cn.display = dpy;
+		cn.event = cn.window = c->win;
+		cn.x = c->x; cn.y = c->y; cn.width = c->w; cn.height = c->h;
+		cn.border_width = 0;
+		cn.above = None;
+		cn.override_redirect = False;
+		XSendEvent(dpy, c->win, False, StructureNotifyMask, (XEvent *)&cn);
 	}
-	if (e->window == root) return;
-	wc.sibling = e->above;
-	wc.stack_mode = e->detail;
-	XConfigureWindow(dpy, e->window, e->value_mask, &wc);
+	else {
+		wc.x=e->x; wc.y=e->y; wc.width=e->width; wc.height=e->height;
+		wc.sibling = e->above;
+		wc.stack_mode = e->detail;
+		wc.border_width = e->border_width;
+		XConfigureWindow(dpy, e->window, e->value_mask, &wc);
+	}
 	tile();
 }
 
@@ -572,6 +590,7 @@ void maprequest(XEvent *ev) {
 	else
 		c->parent = e->parent;
 	c->x = wa.x; c->y = wa.y; c->w = wa.width; c->h = wa.height;
+	get_size(c);
 	if (c->w == m->w && c->h == m->h) c->flags |= WIN_FULL;
 	XSelectInput(dpy, c->win, PropertyChangeMask | EnterWindowMask);
 	Client *p;
@@ -605,7 +624,10 @@ void propertynotify(XEvent *ev) {
 	if (e->atom == XA_WM_NAME) get_name(c);
 	else if (e->atom == XA_WM_HINTS) get_hints(c);
 	else if (e->atom == XA_WM_CLASS) apply_rules(c);
+	else if (e->atom == XA_WM_NORMAL_HINTS) get_size(c);
 	// icon ?
+	// netWM
+	// XA_TRANSIENT_FOR
 	else return;
 	tile();
 }
