@@ -428,7 +428,8 @@ int get_size(Client *c) {
 		c->w = hint.base_width; c->h = hint.base_height;
 	}
 	else if (hint.flags & PMinSize) {
-		c->w = hint.min_width; c->h = hint.min_height;
+		if (c->w < hint.min_width) c->w = hint.min_width;
+		if (c->h < hint.min_height) c->h = hint.min_height;
 	}
 	return 0;
 }
