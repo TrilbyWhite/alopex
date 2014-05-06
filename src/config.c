@@ -30,6 +30,10 @@ int config_init(const char *theme) {
 	else if (XrmGetResource(xrdb, class, class, &type, &val))
 		base = val.addr;
 	else base = _base;
+char test[256];
+sprintf(test, "%s.Tab.Offset", base);
+if (!XrmGetResource(xrdb, test, test, &type, &val))
+die("No theme resources found\n");
 	config_binds(xrdb, base);
 	config_general(xrdb, base);
 	config_rules(xrdb, base);
