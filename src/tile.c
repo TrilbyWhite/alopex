@@ -94,12 +94,13 @@ int tile() {
 		for (c = clients ; c; c = c->next) {
 			if (!(M->tags & c->tags)) continue;
 			else if (c->flags & WIN_FULL_TEST) {
-				if ( !winmarks[1] || !(winmarks[1]->flags & WIN_FULL_TEST) )
-					winmarks[1] = c;
+if ( !winmarks[1] || !(winmarks[1]->flags & WIN_FLOAT))
+winmarks[1] = c;
 				XMoveResizeWindow(dpy, c->win, M->x, M->y, M->w, M->h);
 			}
-			else if (c->flags & WIN_FLOAT)
+			else if (c->flags & WIN_FLOAT) {
 				XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
+			}
 		}
 		if (!M->focus) M->focus = M->container;
 	}

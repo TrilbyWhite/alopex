@@ -421,13 +421,16 @@ int get_name(Client *c) {
 }
 
 int get_size(Client *c) {
-	long ret;
+	long ret = 0;
 	XSizeHints hint;
-	if (!(XGetWMNormalHints(dpy,c->win,&hint,&ret))) hint.flags = 0;
+	if (!(XGetWMNormalHints(dpy,c->win,&hint,&ret))) return 0;
+	if (hint.flags & PSize) {
+		c->w = hint.width; c->h = hint.height;
+	}
 	if (hint.flags & PBaseSize) {
 		c->w = hint.base_width; c->h = hint.base_height;
 	}
-	else if (hint.flags & PMinSize) {
+	if (hint.flags & PMinSize) {
 		if (c->w < hint.min_width) c->w = hint.min_width;
 		if (c->h < hint.min_height) c->h = hint.min_height;
 	}
@@ -489,6 +492,10 @@ void configurerequest(XEvent *ev) {
 		if (e->value_mask & CWY) c->y = e->y;
 		if (e->value_mask & CWWidth) c->w = e->width;
 		if (e->value_mask & CWHeight) c->h = e->height;
+		if (c->flags & WIN_FULL_TEST) {
+			c->flags &= ~WIN_FULL;
+			c->flags |= WIN_FLOAT;
+		}
 		if (c->w == m->w && c->h == m->h) c->flags |= WIN_FULL;
 		/* Let gtk3 windows know we're listening: */
 		XConfigureEvent cn;
@@ -576,6 +583,7 @@ void maprequest(XEvent *ev) {
 	get_hints(c);
 	get_icon(c);
 	get_name(c);
+//	get_size(c);
 	apply_rules(c);
 	if (!c->tags && !(c->tags=m->tags)) {
 		Monitor *M;
@@ -591,7 +599,6 @@ void maprequest(XEvent *ev) {
 	else
 		c->parent = e->parent;
 	c->x = wa.x; c->y = wa.y; c->w = wa.width; c->h = wa.height;
-	get_size(c);
 	if (c->w == m->w && c->h == m->h) c->flags |= WIN_FULL;
 	XSelectInput(dpy, c->win, PropertyChangeMask | EnterWindowMask);
 	Client *p;
@@ -606,6 +613,7 @@ void maprequest(XEvent *ev) {
 	purgatory(c->win);
 	XMapWindow(dpy, c->win);
 	tile();
+	//if (c->flags & WIN_FLOAT) XRaiseWindow(dpy, c->win);
 }
 
 void propertynotify(XEvent *ev) {
