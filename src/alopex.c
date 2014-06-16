@@ -6,9 +6,8 @@ extern int xlib_free();
 extern int main_loop();
 
 void handler(int sig) {
-	if (sig == SIGCHLD) {
+	if (sig == SIGCHLD)
 		while (waitpid(-1, NULL, WNOHANG) > 0);
-	}
 }
 
 void die(const char *fmt, ...) {

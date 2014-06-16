@@ -90,12 +90,11 @@ int tile() {
 			cairo_paint(C->bar->ctx);
 		}
 		/* sort floating windows */
-		// TODO: needs testing
 		for (c = clients ; c; c = c->next) {
 			if (!(M->tags & c->tags)) continue;
 			else if (c->flags & WIN_FULL_TEST) {
-if ( !winmarks[1] || !(winmarks[1]->flags & WIN_FLOAT))
-winmarks[1] = c;
+				if ( !winmarks[1] || !(winmarks[1]->flags & WIN_FLOAT))
+					winmarks[1] = c;
 				XMoveResizeWindow(dpy, c->win, M->x, M->y, M->w, M->h);
 			}
 			else if (c->flags & WIN_FLOAT) {

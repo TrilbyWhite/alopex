@@ -6,6 +6,7 @@ static inline Atom make_atom(const char *a) {
 }
 
 int atoms_init() {
+	atom[WM_NAME] = XA_WM_NAME;
 	atom[WM_PROTOCOLS] = make_atom("WM_PROTOCOLS");
 	atom[WM_DELETE_WINDOW] = make_atom("WM_DELETE_WINDOW");
 	atom[WM_STATE] = make_atom("WM_STATE");
@@ -35,18 +36,18 @@ Atom get_atom(Client *c, int type) {
 }
 
 char *get_text(Client *c, int type) {
-	char **strs = NULL;
+	char **strs = NULL, *ret = NULL;
 	int n;
 	XTextProperty text;
 	XGetTextProperty(dpy, c->win, &text, atom[type]);
 	if (!text.nitems) return NULL;
-	if (text.encoding == XA_STRING) return (char *) text.value;
+	if (text.encoding == XA_STRING) ret = strdup(text.value);
 	else if (XmbTextPropertyToTextList(dpy, &text, &strs, &n)>=Success) {
-		char *tmp = strdup(*strs);
+		ret = strdup(*strs);
 		XFreeStringList(strs);
-		XFree(text.value);
-		return tmp;
 	}
+	XFree(text.value);
+	return ret;
 }
 
 

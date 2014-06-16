@@ -1,0 +1,24 @@
+!! Alopex resource database: theme flats
+!! By: Jesse McClure (c) 2014
+!! License: CC-BY-SA
+
+flats.Tab.Offset:					0.00 0.00 0.00 2.00 0.0
+flats.Tab.Background:			0.08 0.08 0.08 0.00 0.0
+flats.Tab.Border:					0.00 0.20 1.00 0.00 0.5
+flats.Tab.Text:					0.20 0.40 0.80 1.00 -10
+flats.TabFocus.Background:		0.14 0.14 0.14 0.00 0.0
+flats.TabFocus.Border:			0.60 0.90 1.00 0.00 0.5
+flats.TabFocus.Text:				0.90 0.95 1.00 1.00 -10
+flats.TabTop.Background:		0.14 0.14 0.14 0.00 0.0
+flats.TabTop.Border:				0.00 0.40 1.00 0.00 0.5
+flats.TabTop.Text:				0.35 0.75 1.00 1.00 -10
+flats.Status.Offset:				0.00 0.00 0.00 0.00 0.0
+flats.Status.Background:		0.14 0.14 0.14 0.00 0.0
+flats.Status.Border:				0.60 0.90 1.00 0.00 0.0
+flats.Status.Text:				0.80 0.80 0.80 1.00 0.0
+flats.Tag.Occupied:				0.60 0.90 1.00 1.00 0.0
+flats.Tag.View:					0.90 0.95 1.00 1.00 0.0
+flats.Tag.Alt:						0.35 0.75 1.00 1.00 0.0
+flats.Tag.Both:					0.60 1.00 0.60 1.00 0.0
+
+!! vim: ft=xdefaults

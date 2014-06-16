@@ -28,12 +28,10 @@ static void configurerequest(XEvent *);
 static void enternotify(XEvent *);
 static void expose(XEvent *);
 static void keypress(XEvent *);
-//static void keyrelease(XEvent *);
 static void propertynotify(XEvent *);
 static void maprequest(XEvent *);
 static void unmapnotify(XEvent *);
 
-//static Bool mod_down = False;
 static int purgX, purgY;
 static void (*handler[LASTEvent]) (XEvent *) = {
 	[ButtonPress]       = buttonpress,
@@ -41,7 +39,6 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[EnterNotify]       = enternotify,
 	[Expose]            = expose,
 	[KeyPress]          = keypress,
-//	[KeyRelease]        = keyrelease,
 	[MapRequest]        = maprequest,
 	[PropertyNotify]    = propertynotify,
 	[UnmapNotify]       = unmapnotify,
@@ -105,13 +102,13 @@ int get_mons(const char *bg, const char *cont) {
 	/* create monitors and set background */
 	cairo_surface_t *src, *dest;
 	src = cairo_image_surface_create_from_png(bg);
-if (cairo_surface_status(src) != CAIRO_STATUS_SUCCESS) {
-	src = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, maxX, maxY);
-	cairo_t *blank = cairo_create(src);
-	cairo_set_source_rgba(blank, 0, 0, 0, 1);
-	cairo_paint(blank);
-	cairo_destroy(blank);
-}
+	if (cairo_surface_status(src) != CAIRO_STATUS_SUCCESS) {
+		src = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, maxX, maxY);
+		cairo_t *blank = cairo_create(src);
+		cairo_set_source_rgba(blank, 0, 0, 0, 1);
+		cairo_paint(blank);
+		cairo_destroy(blank);
+	}
 	int imgw = cairo_image_surface_get_width(src);
 	int imgh = cairo_image_surface_get_height(src);
 	Pixmap pix = XCreatePixmap(dpy, root, maxX-minX, maxY-minY,
@@ -303,9 +300,6 @@ int xlib_init(const char *theme_name) {
 	}
 	XClearWindow(dpy,root);
 	/* BINDING + GRABS */
-//XSetWindowAttributes wa;
-//wa.event_mask = SELECT_EVENTS;
-//XChangeWindowAttributes(dpy,root,CWEventMask,&wa);
 	XSelectInput(dpy, root, SELECT_EVENTS);
 	unsigned int mod[] = {0, LockMask, Mod2Mask, LockMask|Mod2Mask};
 	KeyCode code;
@@ -320,9 +314,7 @@ int xlib_init(const char *theme_name) {
 				XGrabKey(dpy, code, key->mod|mod[j], root, True, GRABMODE);
 		}
 	}
-//	code = XKeysymToKeycode(dpy, XK_Super_L);
 	for (j = 0; j < 4; j++) {
-//		XGrabKey(dpy, code, mod[j], root, True, GRABMODE);
 		XGrabButton(dpy,1,Mod4Mask|mod[j],root,True,GRABMODE2);
 		XGrabButton(dpy,2,Mod4Mask|mod[j],root,True,GRABMODE2);
 		XGrabButton(dpy,3,Mod4Mask|mod[j],root,True,GRABMODE2);
@@ -376,12 +368,11 @@ int get_hints(Client *c) {
 	if (hint->flags & InputHint && !hint->input) c->flags |= WIN_FOCUS;
 	if (hint->flags & (IconPixmapHint | IconMaskHint)) get_icon(c);
 	XFree(hint);
-	// TODO EWMH checks
+	// TODO EWMH checks ??
 	return 0;
 }
 
 int get_icon(Client *c) {
-	// TODO: needs testing
 	XWMHints *hint;
 	if (!(hint=XGetWMHints(dpy,c->win))) return;
 	if (!(hint->flags & (IconPixmapHint | IconMaskHint))) return;
@@ -394,8 +385,6 @@ int get_icon(Client *c) {
 	icon = cairo_xlib_surface_create(dpy, hint->icon_pixmap,
 			DefaultVisual(dpy,scr), w, h);
 	if (hint->flags & IconMaskHint)
-	//mask = cairo_xlib_surface_create(dpy, hint->icon_mask,
-	//		DefaultVisual(dpy,scr), w, h);
 	mask = cairo_xlib_surface_create_for_bitmap(dpy,
 			hint->icon_mask, DefaultScreenOfDisplay(dpy), w, h);
 	c->icon = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, sz, sz);
@@ -415,7 +404,7 @@ int get_name(Client *c) {
 	Client *p;
 	if (c->title && c->title != noname) XFree(c->title);
 	if ( !(c->title=get_text(c,NET_WM_NAME)) )
-		if ( !(c->title=get_text(c,XA_WM_NAME)) )
+		if ( !(c->title=get_text(c,WM_NAME)) )
 			c->title = strdup(noname);
 	return 0;
 }
@@ -462,18 +451,17 @@ void buttonpress(XEvent *ev) {
 	int dx, dy;
 	int xx = e->x_root, yy = e->y_root;
 	while (True) {
-		//XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
 		expose(ev);
 		XMaskEvent(dpy, PointerMotionMask | ButtonReleaseMask, &ee);
 		if (ee.type == ButtonRelease) break;
-if (!(c->flags & WIN_FLOAT)) {
-	c->flags |= WIN_FLOAT;
-	tile();
-if (xx < c->x) c->x = xx;
-if (xx > c->x + c->w) c->x = xx - c->w;
-if (yy < c->y) c->y = yy;
-if (yy > c->y + c->h) c->y = yy - c->h;
-}
+		if (!(c->flags & WIN_FLOAT)) {
+			c->flags |= WIN_FLOAT;
+			tile();
+			if (xx < c->x) c->x = xx;
+			if (xx > c->x + c->w) c->x = xx - c->w;
+			if (yy < c->y) c->y = yy;
+			if (yy > c->y + c->h) c->y = yy - c->h;
+		}
 		XMoveResizeWindow(dpy, c->win, c->x, c->y, c->w, c->h);
 		dx = ee.xbutton.x_root - xx; xx = ee.xbutton.x_root;
 		dy = ee.xbutton.y_root - yy; yy = ee.xbutton.y_root;
@@ -538,7 +526,6 @@ void enternotify(XEvent *ev) {
 
 void expose(XEvent *ev) {
 	Monitor *M; Container *C;
-//	draw_bars(True);
 	for (M = mons; M; M = M->next) {
 		for (C = M->container; C; C = C->next){
 			cairo_set_source_surface(C->ctx, C->bar->buf, 0, 0);
@@ -551,24 +538,13 @@ void keypress(XEvent *ev) {
 	int i;
 	XKeyEvent *e = &ev->xkey;
 	KeySym sym = XkbKeycodeToKeysym(dpy, e->keycode, 0, 0);
-//	if (sym == XK_Super_L) mod_down = True;
 	for (i = 0; i < conf.nkeys; i++) {
 		if ( (sym==conf.key[i].keysym) && (conf.key[i].arg) &&
 				conf.key[i].mod == ((e->state&~Mod2Mask)&~LockMask) ) {
 			command(conf.key[i].arg);
-			//mod_down = False;
 		}
 	}
 }
-
-//void keyrelease(XEvent *ev) {
-//	XKeyEvent *e = &ev->xkey;
-//	KeySym sym = XkbKeycodeToKeysym(dpy, e->keycode, 0, 0);
-//	if (sym != XK_Super_L || !mod_down) return;
-//	mod_down = False;
-//	char str[MAX_LINE];
-//	if (input(str)) command(str);
-//}
 
 void maprequest(XEvent *ev) {
 	XMapRequestEvent *e = &ev->xmaprequest;
@@ -579,19 +555,15 @@ void maprequest(XEvent *ev) {
 	if ( (c=wintoclient(e->window)) ) return;
 	c = calloc(1, sizeof(Client));
 	c->win = e->window;
-// check for fullscreen
 	get_hints(c);
 	get_icon(c);
 	get_name(c);
-//	get_size(c);
 	apply_rules(c);
 	if (!c->tags && !(c->tags=m->tags)) {
 		Monitor *M;
 		int i, tags = 0;
 		for (M = mons; M; M = M->next) tags |= M->tags;
-//fprintf(stderr,"ADD TAG tags=%X\n",tags);
 		for (i = 0; ((1<<i) & tags) && i < 9; i++);
-//fprintf(stderr," -- %d\n",i);
 		c->tags = m->tags = (1<<i);
 	}
 	if (XGetTransientForHint(dpy, c->win, &c->parent))
@@ -613,7 +585,6 @@ void maprequest(XEvent *ev) {
 	purgatory(c->win);
 	XMapWindow(dpy, c->win);
 	tile();
-	//if (c->flags & WIN_FLOAT) XRaiseWindow(dpy, c->win);
 }
 
 void propertynotify(XEvent *ev) {
@@ -634,6 +605,7 @@ void propertynotify(XEvent *ev) {
 	else if (e->atom == XA_WM_HINTS) get_hints(c);
 	else if (e->atom == XA_WM_CLASS) apply_rules(c);
 	else if (e->atom == XA_WM_NORMAL_HINTS) get_size(c);
+	// TODO:
 	// icon ?
 	// netWM
 	// XA_TRANSIENT_FOR
