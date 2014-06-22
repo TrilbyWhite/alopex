@@ -235,17 +235,24 @@ int config_binds(XrmDatabase xrdb, const char *base) {
 		sprintf(class,"%s.Bind.Mod.%s",base,ord[i]);
 		if (XrmGetResource(xrdb, class, class, &type, &val)) {
 			mods[i] = 0;
+			if (strcasestr(val.addr, "mod5"))
+				mods[i] |= Mod5Mask;
 			if (strcasestr(val.addr,"super") ||
 					strcasestr(val.addr, "win") ||
 					strcasestr(val.addr, "mod4"))
 				mods[i] |= Mod4Mask;
+			if (strcasestr(val.addr, "mod3"))
+				mods[i] |= Mod3Mask;
+			if (strcasestr(val.addr, "mod2"))
+				mods[i] |= Mod2Mask;
+			if (strcasestr(val.addr, "alt") ||
+					strcasestr(val.addr, "mod1"))
+				mods[i] |= Mod1Mask;
 			if (strcasestr(val.addr, "control") ||
 					strcasestr(val.addr,"ctrl"))
 				mods[i] |= ControlMask;
 			if (strcasestr(val.addr, "shift"))
 				mods[i] |= ShiftMask;
-			if (strcasestr(val.addr, "alt"))
-				mods[i] |= Mod1Mask;
 		}
 	}
 	/* loop through bindings */
