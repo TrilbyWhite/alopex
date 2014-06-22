@@ -55,7 +55,7 @@ void focus(Client *t, const char **arg) {
 		return;
 	}
 	Container *C;
-	Client *c, *a, *b;
+	Client *c, *a, *b = NULL;
 	if (!(c=winmarks[1])) return;
 	if (strncasecmp(arg[0],"flo",3)==0) { /* focus floating */
 		for (a = winmarks[1]->next; a; a = a->next)
