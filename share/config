@@ -25,8 +25,8 @@ Alopex.Theme:           icecap
 ! A program or script that sends status strings to it's stdout
 *.Bar.StatInput:			/path/to/stat
 ! Font info
-*.Bar.Font:					/usr/share/fonts/TTF/DroidSansMono.ttf
-*.Bar.BoldFont:			/usr/share/fonts/TTF/DroidSans-Bold.ttf
+*.Bar.Font:					/usr/share/fonts/droid/DroidSansMono.ttf
+*.Bar.BoldFont:			/usr/share/fonts/droid/DroidSans-Bold.ttf
 *.Bar.FontSize:			14
 ! PNG file with 10x10 grid of icons 1-100
 *.Bar.Icons:				/path/to/icons.png
